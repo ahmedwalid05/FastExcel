@@ -18,26 +18,28 @@ FileInfo templateFile = new FileInfo("Template.xlsx");
 FileInfo outputFile = new FileInfo("C:\Temp\output.xlsx"));
 
 // Create an instance of the writer
-FastExcel.FastExcelWriter writer = new FastExcel.FastExcelWriter(templateFile, outputFile);
-
-//Create a data set some rows data
-DataSet data = new DataSet();
-List<Row> rows = new List<Row>();
-
-for (int rowNumber = 1; rowNumber < 100000; rowNumber++)
+using(FastExcel.FastExcelWriter writer = new FastExcel.FastExcelWriter(templateFile, outputFile))
 {
-	List<Cell> cells = new List<Cell>();
-    for (int columnNumber = 1; columnNumber < 13; columnNumber++)
-    {
-    	cells.Add(new Cell(columnNumber, columnNumber * DateTime.Now.Millisecond));
-    }
-    cells.Add(new Cell(13, "Hello" + rowNumber));
-    cells.Add(new Cell(14, "Some Text"));
-    
-    rows.Add(new Row(rowNumber, cells));
-}
-data.Rows = rows;
 
-// Write the data
-writer.Write(data, null, "sheet1", 1);
+    //Create a data set some rows data
+    DataSet data = new DataSet();
+    List<Row> rows = new List<Row>();
+
+    for (int rowNumber = 1; rowNumber < 100000; rowNumber++)
+    {
+        List<Cell> cells = new List<Cell>();
+        for (int columnNumber = 1; columnNumber < 13; columnNumber++)
+        {
+    	    cells.Add(new Cell(columnNumber, columnNumber * DateTime.Now.Millisecond));
+        }
+        cells.Add(new Cell(13, "Hello" + rowNumber));
+        cells.Add(new Cell(14, "Some Text"));
+    
+        rows.Add(new Row(rowNumber, cells));
+    }
+    data.Rows = rows;
+
+    // Write the data
+    writer.Write(data, null, "sheet1", 1);
+}
 ```

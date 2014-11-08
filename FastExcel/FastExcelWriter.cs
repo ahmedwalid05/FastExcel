@@ -9,11 +9,12 @@ using System.Xml.Linq;
 
 namespace FastExcel
 {
-    public class FastExcelWriter
+    public class FastExcelWriter : IDisposable
     {
         public FileInfo TemplateFile { get; private set;}
         public FileInfo OutpuFile { get; private set; }
         private SharedStrings SharedStrings { get; set; }
+        private ZipArchive Archive { get; set; }
 
         public FastExcelWriter(FileInfo outputFile)
             :this(null, outputFile)
@@ -59,47 +60,44 @@ namespace FastExcel
             }
             catch (Exception) { }
 
-            using (ZipArchive archive = ZipFile.Open(this.OutpuFile.FullName, ZipArchiveMode.Update))
+            if (this.Archive == null)
             {
-                // Get Strings file
-                this.SharedStrings = new SharedStrings(archive);
-                
-                // Open worksheet
-                Worksheet worksheet = null;
-                if (sheetNumber.HasValue)
-                {
-                    worksheet = new Worksheet(archive, SharedStrings, sheetNumber.Value);
-                }
-                else if (!string.IsNullOrEmpty(sheetName))
-                {
-                    worksheet = new Worksheet(archive, SharedStrings, sheetName);
-                }
-                else
-                {
-                    //TODO Thow exception
-                }
-
-                worksheet.ExistingHeadingRows = existingHeadingRows;
-
-                //Write Data
-                worksheet.Write(data);
-
-                // Update or create xl/sharedStrings.xml file
-                this.SharedStrings.Write();
-
-                // Update xl/_rels/workbook.xml.rels file
-                UpdateRelations(archive);
-                // Update [Content_Types].xml file
-                UpdateContentTypes(archive);
+                Archive = ZipFile.Open(this.OutpuFile.FullName, ZipArchiveMode.Update);
             }
+            
+            // Get Strings file
+            if (this.SharedStrings == null)
+            {
+                this.SharedStrings = new SharedStrings(this.Archive);
+            }
+                
+            // Open worksheet
+            Worksheet worksheet = null;
+            if (sheetNumber.HasValue)
+            {
+                worksheet = new Worksheet(this.Archive, SharedStrings, sheetNumber.Value);
+            }
+            else if (!string.IsNullOrEmpty(sheetName))
+            {
+                worksheet = new Worksheet(this.Archive, SharedStrings, sheetName);
+            }
+            else
+            {
+                //TODO Thow exception
+            }
+
+            worksheet.ExistingHeadingRows = existingHeadingRows;
+
+            //Write Data
+            worksheet.Write(data);
         }
 
         /// <summary>
         /// Update xl/_rels/workbook.xml.rels file
         /// </summary>
-        private void UpdateRelations(ZipArchive archive)
+        private void UpdateRelations()
         {
-            using (Stream stream = archive.GetEntry("xl/_rels/workbook.xml.rels").Open())
+            using (Stream stream = this.Archive.GetEntry("xl/_rels/workbook.xml.rels").Open())
             {
                 XDocument document = XDocument.Load(stream);
 
@@ -139,9 +137,9 @@ namespace FastExcel
         /// <summary>
         /// Update [Content_Types].xml file
         /// </summary>
-        private void UpdateContentTypes(ZipArchive archive)
+        private void UpdateContentTypes()
         {
-            using (Stream stream = archive.GetEntry("[Content_Types].xml").Open())
+            using (Stream stream = this.Archive.GetEntry("[Content_Types].xml").Open())
             {
                 XDocument document = XDocument.Load(stream);
 
@@ -177,6 +175,26 @@ namespace FastExcel
                 }
             }
         }
-        
+
+        public void Dispose()
+        {
+            if (this.Archive == null)
+            {
+                return;
+            }
+
+            // Update or create xl/sharedStrings.xml file
+            if (this.SharedStrings != null)
+            {
+                this.SharedStrings.Write();
+            }
+
+            // Update xl/_rels/workbook.xml.rels file
+            UpdateRelations();
+            // Update [Content_Types].xml file
+            UpdateContentTypes();
+
+            this.Archive.Dispose();
+        }
     }
 }

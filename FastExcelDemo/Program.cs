@@ -57,45 +57,47 @@ namespace FastExcelDemo
 
         private void FastExcelDemo(FileInfo templateFile, FileInfo outputFile)
         {
-            FastExcel.FastExcelWriter writer = new FastExcel.FastExcelWriter(templateFile, outputFile);
-
             Stopwatch stopwatch = Stopwatch.StartNew();
-            Console.WriteLine(string.Format("Creating {0} rows in Data Set...", NumberOfRecords));
-            DataSet data = new DataSet();
-            List<Row> rows = new List<Row>();
 
-            /*
-            This method is very easy but a lot slower
-            for (int rowNumber = 1; rowNumber < 100000; rowNumber++)
+            using (FastExcel.FastExcelWriter writer = new FastExcel.FastExcelWriter(templateFile, outputFile))
             {
-                List<Cell> cells = new List<Cell>();
-                for (int columnNumber = 1; columnNumber < 13; columnNumber++)
-			    {
-                    data.AddValue(rowNumber, columnNumber, columnNumber * DateTime.Now.Second);
-			    }
-            }*/
+                Console.WriteLine(string.Format("Creating {0} rows in Data Set...", NumberOfRecords));
+                DataSet data = new DataSet();
+                List<Row> rows = new List<Row>();
 
-            for (int rowNumber = 2; rowNumber < NumberOfRecords; rowNumber++)
-            {
-                List<Cell> cells = new List<Cell>();
-                for (int columnNumber = 1; columnNumber < 13; columnNumber++)
+                /*
+                This method is very easy but a lot slower to populate
+                for (int rowNumber = 1; rowNumber < 100000; rowNumber++)
                 {
-                    cells.Add(new Cell(columnNumber, columnNumber * DateTime.Now.Millisecond));
+                    List<Cell> cells = new List<Cell>();
+                    for (int columnNumber = 1; columnNumber < 13; columnNumber++)
+                    {
+                        data.AddValue(rowNumber, columnNumber, columnNumber * DateTime.Now.Second);
+                    }
+                }*/
+
+                for (int rowNumber = 2; rowNumber < NumberOfRecords; rowNumber++)
+                {
+                    List<Cell> cells = new List<Cell>();
+                    for (int columnNumber = 1; columnNumber < 13; columnNumber++)
+                    {
+                        cells.Add(new Cell(columnNumber, columnNumber * DateTime.Now.Millisecond));
+                    }
+                    cells.Add(new Cell(13, "Hello" + rowNumber));
+                    cells.Add(new Cell(14, "Some Text"));
+
+                    rows.Add(new Row(rowNumber, cells));
                 }
-                cells.Add(new Cell(13, "Hello" + rowNumber));
-                cells.Add(new Cell(14, "Some Text"));
+                data.Rows = rows;
 
-                rows.Add(new Row(rowNumber, cells));
+                Console.WriteLine(string.Format("Data Set Creation took {0} seconds", stopwatch.Elapsed.TotalSeconds));
+                stopwatch = Stopwatch.StartNew();
+                Console.WriteLine("Writing data...");
+                writer.Write(data, null, "sheet1", 0);
+
+                //Write to sheet 2 with headings
+                //writer.Write(data, null, "sheet2", 1);
             }
-            data.Rows = rows;
-
-            Console.WriteLine(string.Format("Data Set Creation took {0} seconds", stopwatch.Elapsed.TotalSeconds));
-            stopwatch = Stopwatch.StartNew();
-            Console.WriteLine("Writing data...");
-            writer.Write(data, null, "sheet1", 0);
-
-            //Write to sheet 2 with headings
-            //writer.Write(data, null, "sheet2", 1);
 
             Console.WriteLine(string.Format("Writing data took {0} seconds", stopwatch.Elapsed.TotalSeconds));
         }
