@@ -11,11 +11,16 @@ namespace FastExcel
         public int ColumnNumber { get; set; }
         public object Value { get; set; }
 
+        /// <summary>
+        /// Create a new Cell
+        /// </summary>
+        /// <param name="columnNumber">Column number starting at 1</param>
+        /// <param name="value">Cell Value</param>
         public Cell(int columnNumber, object value)
         {
             if (columnNumber <= 0)
             {
-                // TODO error
+                throw new Exception("Column numbers starting at 1");
             }
             this.ColumnNumber = columnNumber;
             this.Value = value;

@@ -46,7 +46,7 @@ namespace FastExcel
 
                 if (document == null)
                 {
-                    //TODO error
+                    throw new Exception("Unable to load workbook.xml");
                 }
 
                 List<XElement> sheetsElements = document.Descendants().Where(d => d.Name.LocalName == "sheet").ToList();
@@ -55,7 +55,14 @@ namespace FastExcel
 
                 if (sheetNumber.HasValue)
                 {
-                    sheetElement = sheetsElements[sheetNumber.Value];
+                    if (sheetNumber.Value <= sheetsElements.Count)
+                    {
+                        sheetElement = sheetsElements[sheetNumber.Value - 1];
+                    }
+                    else
+                    {
+                        throw new Exception(string.Format("There is no sheet at index '{0}'", sheetNumber));
+                    }
                 }
                 else if (!string.IsNullOrEmpty(sheetName))
                 {
@@ -63,28 +70,33 @@ namespace FastExcel
                                     from attribute in sheet.Attributes()
                                     where attribute.Name == "name" && attribute.Value.Equals(sheetName, StringComparison.InvariantCultureIgnoreCase)
                                     select sheet).FirstOrDefault();
+
+                    if (sheetElement == null)
+                    {
+                        throw new Exception(string.Format("There is no sheet named '{0}'", sheetName));
+                    }
                 }
 
-                if (sheetElement != null)
-                {
-                    result = (from attribute in sheetElement.Attributes()
-                              where attribute.Name == "sheetId"
-                              select string.Format("xl/worksheets/sheet{0}.xml", attribute.Value)).FirstOrDefault();
-                }
-                else
-                {
-                    // TODO: raise error
-                }
+                result = (from attribute in sheetElement.Attributes()
+                            where attribute.Name == "sheetId"
+                            select string.Format("xl/worksheets/sheet{0}.xml", attribute.Value)).FirstOrDefault();
+                
             }
 
             if (string.IsNullOrEmpty(result))
             {
-                // TODO: raise error
+                throw new Exception("Unable to resolve internal sheet name");
             }
 
             return result;
         }
 
+        /// <summary>
+        /// Read the existing sheet and copy some of the existing content
+        /// </summary>
+        /// <param name="stream">Worksheet stream</param>
+        /// <param name="headers">Content at top of document</param>
+        /// <param name="footers">Content at bottom of document</param>
         private void ReadHeadersAndFooters(StreamReader stream, out StringBuilder headers, out StringBuilder footers)
         {
             headers = new StringBuilder();
@@ -212,8 +224,7 @@ namespace FastExcel
             // Check if ExistingHeadingRows will be overridden by the dataset
             if (this.ExistingHeadingRows != 0 && data.Rows.Where(r => r.RowNumber <= this.ExistingHeadingRows).Any())
             {
-                //TODO complete error message
-                throw new Exception();
+                throw new Exception("Existing Heading Rows was specified but some or all will be overridden by data rows. Check DataSet.Row.RowNumber against ExistingHeadingRows");
             }
 
             using (Stream stream = this.Archive.GetEntry(this.FileName).Open())

@@ -11,11 +11,16 @@ namespace FastExcel
         public int RowNumber { get; set; }
         public IEnumerable<Cell> Cells { get; set; }
 
+        /// <summary>
+        /// Create a new Row
+        /// </summary>
+        /// <param name="rowNumber">Row number starting with 1</param>
+        /// <param name="cells">Cells on this row</param>
         public Row(int rowNumber, IEnumerable<Cell> cells)
         {
             if (rowNumber <= 0)
             {
-                // TODO error
+                throw new Exception("Row numbers starting at 1");
             }
             this.RowNumber = rowNumber;
             this.Cells = cells;

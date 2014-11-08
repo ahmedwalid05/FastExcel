@@ -76,7 +76,7 @@ namespace FastExcelDemo
                     }
                 }*/
 
-                for (int rowNumber = 2; rowNumber < NumberOfRecords; rowNumber++)
+                for (int rowNumber = 1; rowNumber < NumberOfRecords; rowNumber++)
                 {
                     List<Cell> cells = new List<Cell>();
                     for (int columnNumber = 1; columnNumber < 13; columnNumber++)
@@ -93,7 +93,7 @@ namespace FastExcelDemo
                 Console.WriteLine(string.Format("Data Set Creation took {0} seconds", stopwatch.Elapsed.TotalSeconds));
                 stopwatch = Stopwatch.StartNew();
                 Console.WriteLine("Writing data...");
-                writer.Write(data, null, "sheet1", 0);
+                writer.Write(data, "sheet1");
 
                 //Write to sheet 2 with headings
                 //writer.Write(data, null, "sheet2", 1);

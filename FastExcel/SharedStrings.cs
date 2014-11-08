@@ -20,7 +20,7 @@ namespace FastExcel
         private bool SharedStringsExists { get; set; }
         private ZipArchive ZipArchive { get; set; }
 
-        public SharedStrings(ZipArchive archive)
+        internal SharedStrings(ZipArchive archive)
         {
             this.ZipArchive = archive;
             

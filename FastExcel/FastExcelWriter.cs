@@ -15,12 +15,7 @@ namespace FastExcel
         public FileInfo OutpuFile { get; private set; }
         private SharedStrings SharedStrings { get; set; }
         private ZipArchive Archive { get; set; }
-
-        public FastExcelWriter(FileInfo outputFile)
-            :this(null, outputFile)
-        {
-        }
-
+        
         public FastExcelWriter(FileInfo templateFile, FileInfo outputFile)
         {
             this.TemplateFile = templateFile;
@@ -29,36 +24,66 @@ namespace FastExcel
             CheckFiles();
         }
 
-        private bool CheckFiles()
+        /// <summary>
+        /// Ensure files are ready for use
+        /// </summary>
+        private void CheckFiles()
         {
-            if (!this.TemplateFile.Exists)
+            if (this.TemplateFile == null)
+            {
+                throw new Exception("No Template file was supplied");
+            }
+            else if (!this.TemplateFile.Exists)
             {
                 this.TemplateFile = null;
-                throw new Exception();
+                throw new FileNotFoundException(string.Format("Template file '{0}' was not found", this.TemplateFile.FullName));
             }
 
-            if (this.OutpuFile.Exists)
+            if (this.OutpuFile == null)
+            {
+                throw new Exception("No Ouput file name was supplied");
+            }
+            else if (this.OutpuFile.Exists)
             {
                 this.OutpuFile = null;
-
-                //throw new Exception();
+                throw new Exception(string.Format("Output file '{0}' already exists", this.OutpuFile.FullName));
             }
-
-            return true;
         }
 
-        public void Write(DataSet data, int? sheetNumber = null, string sheetName = null, int existingHeadingRows = 0)
+        /// <summary>
+        /// Write data to a sheet
+        /// </summary>
+        /// <param name="data">A dataset</param>
+        /// <param name="sheetNumber">The number of the sheet starting at 1</param>
+        /// <param name="existingHeadingRows">How many rows in the template sheet you would like to keep</param>
+        public void Write(DataSet data, int sheetNumber, int existingHeadingRows = 0)
         {
-            if (!CheckFiles())
-            {
-                return;
-            }
+            Write(data, sheetNumber, null, existingHeadingRows);
+        }
+
+        /// <summary>
+        /// Write data to a sheet
+        /// </summary>
+        /// <param name="data">A dataset</param>
+        /// <param name="sheetName">The display name of the sheet</param>
+        /// <param name="existingHeadingRows">How many rows in the template sheet you would like to keep</param>
+        public void Write(DataSet data, string sheetName, int existingHeadingRows = 0)
+        {
+            Write(data, null, sheetName, existingHeadingRows);
+        }
+
+        private void Write(DataSet data, int? sheetNumber = null, string sheetName = null, int existingHeadingRows = 0)
+        {
+            CheckFiles();
 
             try
             {
                 File.Copy(this.TemplateFile.FullName, this.OutpuFile.FullName);
             }
-            catch (Exception) { }
+            catch (Exception ex) 
+            {
+                throw new Exception("Could not copy template to output file path", ex);
+            }
 
             if (this.Archive == null)
             {
@@ -83,7 +108,7 @@ namespace FastExcel
             }
             else
             {
-                //TODO Thow exception
+                throw new Exception("No worksheet name or number was specified");
             }
 
             worksheet.ExistingHeadingRows = existingHeadingRows;
