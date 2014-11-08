@@ -22,11 +22,6 @@ namespace FastExcel
 
         public FastExcelWriter(FileInfo templateFile, FileInfo outputFile)
         {
-            if (templateFile == null)
-            {
-                templateFile = new FileInfo(Path.Combine(Environment.CurrentDirectory,FastExcel.EXCEL_TEMPLATE_FILE));
-            }
-
             this.TemplateFile = templateFile;
             this.OutpuFile = outputFile;
 
