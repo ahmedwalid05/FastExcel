@@ -1,6 +1,6 @@
 #Fast Excel
 
-Currently provides a fast way of writing to *.xlsx Excel files using Office Open Xml.
+Currently provides a fast way of writing to *.xlsx Excel files.
 
 I am not using the Open XML SDK to interact with the data but going directly and editing the underlying xml files.
 
