@@ -12,14 +12,14 @@ namespace FastExcel
     public class FastExcelWriter : IDisposable
     {
         public FileInfo TemplateFile { get; private set;}
-        public FileInfo OutpuFile { get; private set; }
+        public FileInfo OutputFile { get; private set; }
         private SharedStrings SharedStrings { get; set; }
         private ZipArchive Archive { get; set; }
         
         public FastExcelWriter(FileInfo templateFile, FileInfo outputFile)
         {
             this.TemplateFile = templateFile;
-            this.OutpuFile = outputFile;
+            this.OutputFile = outputFile;
 
             CheckFiles();
         }
@@ -39,14 +39,14 @@ namespace FastExcel
                 throw new FileNotFoundException(string.Format("Template file '{0}' was not found", this.TemplateFile.FullName));
             }
 
-            if (this.OutpuFile == null)
+            if (this.OutputFile == null)
             {
                 throw new Exception("No Ouput file name was supplied");
             }
-            else if (this.OutpuFile.Exists)
+            else if (this.OutputFile.Exists)
             {
-                this.OutpuFile = null;
-                throw new Exception(string.Format("Output file '{0}' already exists", this.OutpuFile.FullName));
+                this.OutputFile = null;
+                throw new Exception(string.Format("Output file '{0}' already exists", this.OutputFile.FullName));
             }
         }
 
@@ -78,7 +78,7 @@ namespace FastExcel
 
             try
             {
-                File.Copy(this.TemplateFile.FullName, this.OutpuFile.FullName);
+                File.Copy(this.TemplateFile.FullName, this.OutputFile.FullName);
             }
             catch (Exception ex) 
             {
@@ -87,7 +87,7 @@ namespace FastExcel
 
             if (this.Archive == null)
             {
-                Archive = ZipFile.Open(this.OutpuFile.FullName, ZipArchiveMode.Update);
+                Archive = ZipFile.Open(this.OutputFile.FullName, ZipArchiveMode.Update);
             }
             
             // Get Strings file

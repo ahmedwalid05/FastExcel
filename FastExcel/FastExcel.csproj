@@ -46,6 +46,7 @@
   <ItemGroup>
     <Compile Include="Cell.cs" />
     <Compile Include="DataSet.cs" />
+    <Compile Include="FastExcelReader.cs" />
     <Compile Include="FastExcelWriter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Row.cs" />

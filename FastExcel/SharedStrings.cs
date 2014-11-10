@@ -16,6 +16,7 @@ namespace FastExcel
     {
         //A dictionary is a lot faster than a list
         private Dictionary<string, int> StringDictionary { get; set; }
+        private string[] StringArray { get; set; }
 
         private bool SharedStringsExists { get; set; }
         private ZipArchive ZipArchive { get; set; }
@@ -60,6 +61,9 @@ namespace FastExcel
         {
             if (StringDictionary.ContainsKey(stringValue))
             {
+                // Clear String Array used for retrieval
+                this.StringArray = null;
+
                 return StringDictionary[stringValue];
             }
             else
@@ -106,6 +110,30 @@ namespace FastExcel
             {
                 streamWriter.Dispose();
             }
+        }
+        
+        internal string GetString(string position)
+        {
+            int pos = 0;
+            if (int.TryParse(position, out pos))
+            {
+                return GetString(pos);
+            }
+            else
+            {
+                // TODO: should I throw an error? this is a corrupted excel document
+                return string.Empty;
+            }
+        }
+
+        internal string GetString(int position)
+        {
+            if (this.StringArray == null)
+            {
+                this.StringArray = this.StringDictionary.Select(kv => kv.Key).ToArray();
+            }
+
+            return this.StringArray[position - 1];
         }
     }
 }

@@ -256,5 +256,102 @@ namespace FastExcel
                 streamWriter.Flush();
             }
         }
+
+        internal DataSet Read()
+        {
+            DataSet dataSet = new DataSet();
+            List<Row> rows = new List<Row>();
+            List<string> headings = new List<string>();
+
+            using (Stream stream = this.Archive.GetEntry(this.FileName).Open())
+            {
+                XDocument document = XDocument.Load(stream);
+
+                var rowElements = document.Descendants().Where(d => d.Name.LocalName == "row");
+
+                foreach (var rowElement in rowElements)
+                {
+                    Row row = new Row(rowElement, this.SharedStrings);
+                    if (this.ExistingHeadingRows == 1 && row.RowNumber == 1)
+                    {
+                        foreach (Cell headerCell in row.Cells)
+                        {
+                            headings.Add(headerCell.Value.ToString());
+                        }
+                    }
+                    else if (row.Cells.Any())
+                    {
+                        rows.Add(row);
+                    }
+                }
+            }
+
+            dataSet.Headings = headings;
+            dataSet.Rows = rows;
+
+            return dataSet;
+        }
+
+        private List<string> GetHeadings(string lineBuffer, out bool headingsComplete, out bool rowsComplete, out string newLineBuffer)
+        {
+            List<string> headings = new List<string>();
+
+            headingsComplete = false;
+            rowsComplete = false;
+
+            while (!string.IsNullOrEmpty(lineBuffer))
+            {
+                if (lineBuffer.Contains("<row"))
+                {
+                    if (lineBuffer.Contains("</row>"))
+                    {
+                        int index = lineBuffer.IndexOf("<row");
+                        int currentLineIndex = lineBuffer.IndexOf("</row>") + "</row>".Length;
+                        XElement rowElement = XElement.Parse(lineBuffer.Substring(index, currentLineIndex - index));
+                        bool isFirstRow = (from a in rowElement.Attributes("r")
+                                           where a.Value == "1"
+                                           select a).Any();
+
+                        if (rowElement.HasElements && isFirstRow)
+                        {
+                            foreach (XElement cell in rowElement.Elements())
+                            {
+                                bool isTextRow = (from a in cell.Attributes("t")
+                                                  where a.Value == "s"
+                                                  select a).Any();
+
+                                if (isTextRow)
+                                {
+                                    headings.Add(this.SharedStrings.GetString(cell.Value));
+                                }
+                                else
+                                {
+                                    headings.Add(cell.Value);
+                                }
+                            }
+                        }
+
+                        //remove the read section from line
+                        lineBuffer = lineBuffer.Substring(currentLineIndex, lineBuffer.Length - currentLineIndex);
+
+                        headingsComplete = true;
+                        break;
+                    }
+                    else
+                    {
+                        // Keep reading
+                    }
+                }
+                else
+                {
+                    headingsComplete = true;
+                    rowsComplete = true;
+                    break;
+                }
+            }
+
+            newLineBuffer = lineBuffer;
+            return headings;
+        }
     }
 }

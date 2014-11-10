@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace FastExcel
 {
@@ -23,6 +24,38 @@ namespace FastExcel
                 throw new Exception("Row numbers starting at 1");
             }
             this.RowNumber = rowNumber;
+            this.Cells = cells;
+        }
+
+        public Row(XElement rowElement, SharedStrings sharedStrings)
+        {
+            int? rowNumber = null;
+
+            try
+            {
+                rowNumber = (from a in rowElement.Attributes("r")
+                             select int.Parse(a.Value)).First();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Row Number not found", ex);
+            }
+
+            List<Cell> cells = new List<Cell>();
+            Row row = new Row(rowNumber.Value, cells);
+
+            if (rowElement.HasElements)
+            {
+                foreach (XElement cellElement in rowElement.Elements())
+                {
+                    Cell cell = new Cell(cellElement, sharedStrings);
+                    if (cell.Value != null)
+                    {
+                        cells.Add(cell);
+                    }
+                }
+            }
+
             this.Cells = cells;
         }
 

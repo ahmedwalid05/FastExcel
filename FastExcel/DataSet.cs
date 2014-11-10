@@ -10,6 +10,8 @@ namespace FastExcel
     {
         public IEnumerable<Row> Rows { get; set; }
 
+        public IEnumerable<string> Headings { get; set; }
+
         /// <summary>
         /// This method is slow for large datasets, use the rows property instead
         /// </summary>

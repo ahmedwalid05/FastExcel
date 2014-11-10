@@ -22,29 +22,43 @@ namespace FastExcelDemo
 
         public Program()
         {
+            FileInfo inputFile = new FileInfo("C:\\Temp\\input.xlsx"));
+
+//Create a data set
+DataSet data = null;
+
+// Create an instance of the reader
+using (FastExcel.FastExcelReader reader = new FastExcel.FastExcelReader(inputFile))
+{
+    // Read the data
+    data = reader.Read("sheet1");
+}
+
             Console.WriteLine("Starting Fast Excel Demo");
-            FileInfo outputFile = new FileInfo(Path.Combine(DemoDir,"outpufile.xlsx"));
+            FileInfo outputFile = new FileInfo(Path.Combine(DemoDir,"outputfile.xlsx"));
             FileInfo epplusOutputFile = null;
             FileInfo templateFile = new FileInfo("Template.xlsx");
 
             if (outputFile.Exists)
             {
                 outputFile.Delete();
-                outputFile = new FileInfo(Path.Combine(DemoDir,"outpufile.xlsx"));
+                outputFile = new FileInfo(Path.Combine(DemoDir,"outputfile.xlsx"));
             }
 
             if (EPPlusTest)
             {
-                epplusOutputFile = new FileInfo(Path.Combine(DemoDir, "epplusOutpufile.xlsx"));
+                epplusOutputFile = new FileInfo(Path.Combine(DemoDir, "epplusOutputfile.xlsx"));
 
                 if (epplusOutputFile.Exists)
                 {
                     epplusOutputFile.Delete();
-                    epplusOutputFile = new FileInfo(Path.Combine(DemoDir, "epplusOutpufile.xlsx"));
+                    epplusOutputFile = new FileInfo(Path.Combine(DemoDir, "epplusOutputfile.xlsx"));
                 }
             }
 
-            FastExcelDemo(templateFile, outputFile);
+            FastExcelWriteDemo(templateFile, outputFile);
+            outputFile.Refresh();
+            FastExcelReadDemo(outputFile);
 
             if (EPPlusTest)
             {
@@ -55,7 +69,7 @@ namespace FastExcelDemo
             Console.ReadKey();
         }
 
-        private void FastExcelDemo(FileInfo templateFile, FileInfo outputFile)
+        private void FastExcelWriteDemo(FileInfo templateFile, FileInfo outputFile)
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
 
@@ -100,6 +114,23 @@ namespace FastExcelDemo
             }
 
             Console.WriteLine(string.Format("Writing data took {0} seconds", stopwatch.Elapsed.TotalSeconds));
+        }
+
+        private void FastExcelReadDemo(FileInfo inputFile)
+        {
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            using (FastExcel.FastExcelReader writer = new FastExcel.FastExcelReader(inputFile))
+            {
+                Console.WriteLine("Reading data...");
+                DataSet dataSet = writer.Read("sheet1", 1);
+
+
+                //Write to sheet 2 with headings
+                //writer.Write(data, null, "sheet2", 1);
+            }
+
+            Console.WriteLine(string.Format("Reading data took {0} seconds", stopwatch.Elapsed.TotalSeconds));
         }
 
         private void EPPlusDemo(FileInfo templateFile, FileInfo epplusOutputFile)

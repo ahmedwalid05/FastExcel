@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace FastExcel
 {
@@ -24,6 +25,26 @@ namespace FastExcel
             }
             this.ColumnNumber = columnNumber;
             this.Value = value;
+        }
+
+        public Cell(XElement cellElement, SharedStrings sharedStrings)
+        {
+            bool isTextRow = (from a in cellElement.Attributes("t")
+                              where a.Value == "s"
+                              select a).Any();
+            string columnName = (from a in cellElement.Attributes("r")
+                                 select a.Value).FirstOrDefault();
+
+            this.ColumnNumber = GetExcelColumnNumber(columnName);
+
+            if (isTextRow)
+            {
+                this.Value = sharedStrings.GetString(cellElement.Value);
+            }
+            else
+            {
+                this.Value = cellElement.Value;
+            }
         }
 
         internal StringBuilder ToString(SharedStrings sharedStrings, int rowNumber)
@@ -62,7 +83,7 @@ namespace FastExcel
         }
 
         //http://stackoverflow.com/questions/181596/how-to-convert-a-column-number-eg-127-into-an-excel-column-eg-aa
-        private string GetExcelColumnName(int columnNumber)
+        public static string GetExcelColumnName(int columnNumber)
         {
             int dividend = columnNumber;
             string columnName = String.Empty;
@@ -76,6 +97,23 @@ namespace FastExcel
             }
 
             return columnName;
+        }
+
+        //http://stackoverflow.com/questions/181596/how-to-convert-a-column-number-eg-127-into-an-excel-column-eg-aa
+        public static int GetExcelColumnNumber(string columnName)
+        {
+            int[] digits = new int[columnName.Length];
+            for (int i = 0; i < columnName.Length; ++i)
+            {
+                digits[i] = Convert.ToInt32(columnName[i]) - 64;
+            }
+            int mul = 1; int res = 0;
+            for (int pos = digits.Length - 1; pos >= 0; --pos)
+            {
+                res += digits[pos] * mul;
+                mul *= 26;
+            }
+            return res;
         }
     }
 }
