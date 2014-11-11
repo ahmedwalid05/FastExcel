@@ -2,6 +2,8 @@
 
 Currently provides a fast way of reading and writing to *.xlsx Excel files.
 
+More features to come, fell free to suggest something.
+
 I am not using the Open XML SDK to interact with the data but going directly and editing the underlying xml files.
 
 .Net version 4.5 is required because it uses System.IO.Compression
@@ -14,7 +16,7 @@ This project is not intended to be a replacement for full featured packages like
 ```C#
 // Get your template and output file paths
 FileInfo templateFile = new FileInfo("Template.xlsx");
-FileInfo outputFile = new FileInfo("C:\Temp\output.xlsx"));
+FileInfo outputFile = new FileInfo("C:\\Temp\\output.xlsx"));
 
 //Create a data set
 DataSet data = new DataSet();
@@ -46,7 +48,7 @@ using (FastExcel.FastExcelWriter writer = new FastExcel.FastExcelWriter(template
 
 ```C#
 // Get the input file paths
-FileInfo inputFile = new FileInfo("C:\\Temp\\input.xlsx"));
+FileInfo inputFile = new FileInfo("C:\\Temp\\input.xlsx");
 
 //Create a data set
 DataSet data = null;

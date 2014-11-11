@@ -22,18 +22,6 @@ namespace FastExcelDemo
 
         public Program()
         {
-            FileInfo inputFile = new FileInfo("C:\\Temp\\input.xlsx"));
-
-//Create a data set
-DataSet data = null;
-
-// Create an instance of the reader
-using (FastExcel.FastExcelReader reader = new FastExcel.FastExcelReader(inputFile))
-{
-    // Read the data
-    data = reader.Read("sheet1");
-}
-
             Console.WriteLine("Starting Fast Excel Demo");
             FileInfo outputFile = new FileInfo(Path.Combine(DemoDir,"outputfile.xlsx"));
             FileInfo epplusOutputFile = null;
@@ -124,10 +112,6 @@ using (FastExcel.FastExcelReader reader = new FastExcel.FastExcelReader(inputFil
             {
                 Console.WriteLine("Reading data...");
                 DataSet dataSet = writer.Read("sheet1", 1);
-
-
-                //Write to sheet 2 with headings
-                //writer.Write(data, null, "sheet2", 1);
             }
 
             Console.WriteLine(string.Format("Reading data took {0} seconds", stopwatch.Elapsed.TotalSeconds));
