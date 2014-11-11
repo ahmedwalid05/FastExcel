@@ -21,6 +21,8 @@ namespace FastExcel
         private bool SharedStringsExists { get; set; }
         private ZipArchive ZipArchive { get; set; }
 
+        public bool PendingChanges { get; private set; }
+
         internal SharedStrings(ZipArchive archive)
         {
             this.ZipArchive = archive;
@@ -59,22 +61,29 @@ namespace FastExcel
 
         internal int AddString(string stringValue)
         {
-            if (StringDictionary.ContainsKey(stringValue))
+            if (this.StringDictionary.ContainsKey(stringValue))
             {
                 // Clear String Array used for retrieval
                 this.StringArray = null;
 
-                return StringDictionary[stringValue];
+                return this.StringDictionary[stringValue];
             }
             else
             {
-                StringDictionary.Add(stringValue,StringDictionary.Count);
-                return StringDictionary.Count - 1;
+                this.PendingChanges = true;
+                this.StringDictionary.Add(stringValue, this.StringDictionary.Count);
+                return this.StringDictionary.Count - 1;
             }
         }
 
         internal void Write()
         {
+            // Only update if changes were made
+            if (!this.PendingChanges)
+            {
+                return;
+            }
+
             StreamWriter streamWriter = null;
             try
             {
@@ -109,6 +118,7 @@ namespace FastExcel
             finally
             {
                 streamWriter.Dispose();
+                this.PendingChanges = false;
             }
         }
         

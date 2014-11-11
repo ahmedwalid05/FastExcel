@@ -48,5 +48,7 @@ namespace FastExcel
             }
 
         }
+
+        // TODO: create function to convert data to dynamic types
     }
 }

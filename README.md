@@ -16,7 +16,7 @@ This project is not intended to be a replacement for full featured packages like
 ```C#
 // Get your template and output file paths
 FileInfo templateFile = new FileInfo("Template.xlsx");
-FileInfo outputFile = new FileInfo("C:\\Temp\\output.xlsx"));
+FileInfo outputFile = new FileInfo("C:\\Temp\\output.xlsx");
 
 //Create a data set
 DataSet data = new DataSet();
@@ -36,11 +36,11 @@ for (int rowNumber = 1; rowNumber < 100000; rowNumber++)
 data.Rows = rows;
 
 
-// Create an instance of the writer
-using (FastExcel.FastExcelWriter writer = new FastExcel.FastExcelWriter(templateFile, outputFile))
+// Create an instance of FastExcel
+using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(templateFile, outputFile))
 {
     // Write the data
-    writer.Write(data, "sheet1");
+    fastExcel.Write(data, "sheet1");
 }
 ```
 
@@ -53,10 +53,10 @@ FileInfo inputFile = new FileInfo("C:\\Temp\\input.xlsx");
 //Create a data set
 DataSet data = null;
 
-// Create an instance of the reader
-using (FastExcel.FastExcelReader reader = new FastExcel.FastExcelReader(inputFile))
+// Create an instance of Fast Excel
+using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile))
 {
     // Read the data
-    data = reader.Read("sheet1");
+    data = fastExcel.Read("sheet1");
 }
 ```

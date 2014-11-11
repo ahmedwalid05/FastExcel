@@ -9,17 +9,33 @@ using System.Xml.Linq;
 
 namespace FastExcel
 {
-    public class FastExcelWriter : IDisposable
+    public partial class FastExcel: IDisposable
     {
-        public FileInfo TemplateFile { get; private set;}
-        public FileInfo OutputFile { get; private set; }
+        public FileInfo ExcelFile { get; private set; }
+        public FileInfo TemplateFile { get; private set; }
+
         private SharedStrings SharedStrings { get; set; }
         private ZipArchive Archive { get; set; }
+        private bool UpdateExisting { get; set; }
+
+        /// <summary>
+        /// Update an existing excel file
+        /// </summary>
+        /// <param name="excelFile">location of an existing excel file</param>
+        public FastExcel(FileInfo excelFile) : this(null, excelFile, true) {}
         
-        public FastExcelWriter(FileInfo templateFile, FileInfo outputFile)
+        /// <summary>
+        /// Create a new excel file from a template
+        /// </summary>
+        /// <param name="templateFile">template location</param>
+        /// <param name="excelFile">location of where a new excel file will be saved to</param>
+        public FastExcel(FileInfo templateFile, FileInfo excelFile) :this(templateFile, excelFile, false) {}
+
+        private FastExcel(FileInfo templateFile, FileInfo excelFile, bool updateExisting)
         {
             this.TemplateFile = templateFile;
-            this.OutputFile = outputFile;
+            this.ExcelFile = excelFile;
+            this.UpdateExisting = updateExisting;
 
             CheckFiles();
         }
@@ -29,92 +45,40 @@ namespace FastExcel
         /// </summary>
         private void CheckFiles()
         {
-            if (this.TemplateFile == null)
+            if (this.UpdateExisting)
             {
-                throw new Exception("No Template file was supplied");
-            }
-            else if (!this.TemplateFile.Exists)
-            {
-                this.TemplateFile = null;
-                throw new FileNotFoundException(string.Format("Template file '{0}' was not found", this.TemplateFile.FullName));
-            }
-
-            if (this.OutputFile == null)
-            {
-                throw new Exception("No Ouput file name was supplied");
-            }
-            else if (this.OutputFile.Exists)
-            {
-                this.OutputFile = null;
-                throw new Exception(string.Format("Output file '{0}' already exists", this.OutputFile.FullName));
-            }
-        }
-
-        /// <summary>
-        /// Write data to a sheet
-        /// </summary>
-        /// <param name="data">A dataset</param>
-        /// <param name="sheetNumber">The number of the sheet starting at 1</param>
-        /// <param name="existingHeadingRows">How many rows in the template sheet you would like to keep</param>
-        public void Write(DataSet data, int sheetNumber, int existingHeadingRows = 0)
-        {
-            Write(data, sheetNumber, null, existingHeadingRows);
-        }
-
-        /// <summary>
-        /// Write data to a sheet
-        /// </summary>
-        /// <param name="data">A dataset</param>
-        /// <param name="sheetName">The display name of the sheet</param>
-        /// <param name="existingHeadingRows">How many rows in the template sheet you would like to keep</param>
-        public void Write(DataSet data, string sheetName, int existingHeadingRows = 0)
-        {
-            Write(data, null, sheetName, existingHeadingRows);
-        }
-
-        private void Write(DataSet data, int? sheetNumber = null, string sheetName = null, int existingHeadingRows = 0)
-        {
-            CheckFiles();
-
-            try
-            {
-                File.Copy(this.TemplateFile.FullName, this.OutputFile.FullName);
-            }
-            catch (Exception ex) 
-            {
-                throw new Exception("Could not copy template to output file path", ex);
-            }
-
-            if (this.Archive == null)
-            {
-                Archive = ZipFile.Open(this.OutputFile.FullName, ZipArchiveMode.Update);
-            }
-            
-            // Get Strings file
-            if (this.SharedStrings == null)
-            {
-                this.SharedStrings = new SharedStrings(this.Archive);
-            }
-                
-            // Open worksheet
-            Worksheet worksheet = null;
-            if (sheetNumber.HasValue)
-            {
-                worksheet = new Worksheet(this.Archive, SharedStrings, sheetNumber.Value);
-            }
-            else if (!string.IsNullOrEmpty(sheetName))
-            {
-                worksheet = new Worksheet(this.Archive, SharedStrings, sheetName);
+                if (this.ExcelFile == null)
+                {
+                    throw new Exception("No input file name was supplied");
+                }
+                else if (!this.ExcelFile.Exists)
+                {
+                    this.ExcelFile = null;
+                    throw new Exception(string.Format("Input file '{0}' does not exist", this.ExcelFile.FullName));
+                }
             }
             else
             {
-                throw new Exception("No worksheet name or number was specified");
+                if (this.TemplateFile == null)
+                {
+                    throw new Exception("No Template file was supplied");
+                }
+                else if (!this.TemplateFile.Exists)
+                {
+                    this.TemplateFile = null;
+                    throw new FileNotFoundException(string.Format("Template file '{0}' was not found", this.TemplateFile.FullName));
+                }
+
+                if (this.ExcelFile == null)
+                {
+                    throw new Exception("No Ouput file name was supplied");
+                }
+                else if (this.ExcelFile.Exists)
+                {
+                    this.ExcelFile = null;
+                    throw new Exception(string.Format("Output file '{0}' already exists", this.ExcelFile.FullName));
+                }
             }
-
-            worksheet.ExistingHeadingRows = existingHeadingRows;
-
-            //Write Data
-            worksheet.Write(data);
         }
 
         /// <summary>
@@ -122,6 +86,8 @@ namespace FastExcel
         /// </summary>
         private void UpdateRelations()
         {
+            //I'm keeping UpdateRelations in this class because it might need to update more than shared strings eventually
+
             using (Stream stream = this.Archive.GetEntry("xl/_rels/workbook.xml.rels").Open())
             {
                 XDocument document = XDocument.Load(stream);
@@ -164,6 +130,8 @@ namespace FastExcel
         /// </summary>
         private void UpdateContentTypes()
         {
+            //I'm keeping UpdateContentTypes in this class because it might need to update more than shared strings eventually
+
             using (Stream stream = this.Archive.GetEntry("[Content_Types].xml").Open())
             {
                 XDocument document = XDocument.Load(stream);
@@ -200,7 +168,10 @@ namespace FastExcel
                 }
             }
         }
-
+        
+        /// <summary>
+        /// Saves any pending changes to the Excel stream and adds/updates associated files if needed
+        /// </summary>
         public void Dispose()
         {
             if (this.Archive == null)
@@ -208,16 +179,22 @@ namespace FastExcel
                 return;
             }
 
+            bool ensureSharedStrings = false;
+
             // Update or create xl/sharedStrings.xml file
             if (this.SharedStrings != null)
             {
+                ensureSharedStrings = this.SharedStrings.PendingChanges;
                 this.SharedStrings.Write();
             }
 
-            // Update xl/_rels/workbook.xml.rels file
-            UpdateRelations();
-            // Update [Content_Types].xml file
-            UpdateContentTypes();
+            if (ensureSharedStrings)
+            {
+                // Update xl/_rels/workbook.xml.rels file
+                UpdateRelations();
+                // Update [Content_Types].xml file
+                UpdateContentTypes();
+            }
 
             this.Archive.Dispose();
         }

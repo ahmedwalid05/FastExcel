@@ -61,7 +61,7 @@ namespace FastExcelDemo
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            using (FastExcel.FastExcelWriter writer = new FastExcel.FastExcelWriter(templateFile, outputFile))
+            using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(templateFile, outputFile))
             {
                 Console.WriteLine(string.Format("Creating {0} rows in Data Set...", NumberOfRecords));
                 DataSet data = new DataSet();
@@ -95,7 +95,7 @@ namespace FastExcelDemo
                 Console.WriteLine(string.Format("Data Set Creation took {0} seconds", stopwatch.Elapsed.TotalSeconds));
                 stopwatch = Stopwatch.StartNew();
                 Console.WriteLine("Writing data...");
-                writer.Write(data, "sheet1");
+                fastExcel.Write(data, "sheet1");
 
                 //Write to sheet 2 with headings
                 //writer.Write(data, null, "sheet2", 1);
@@ -108,10 +108,10 @@ namespace FastExcelDemo
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            using (FastExcel.FastExcelReader writer = new FastExcel.FastExcelReader(inputFile))
+            using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile))
             {
                 Console.WriteLine("Reading data...");
-                DataSet dataSet = writer.Read("sheet1", 1);
+                DataSet dataSet = fastExcel.Read("sheet1", 1);
             }
 
             Console.WriteLine(string.Format("Reading data took {0} seconds", stopwatch.Elapsed.TotalSeconds));

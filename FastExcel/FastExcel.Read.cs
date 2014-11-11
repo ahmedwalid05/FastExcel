@@ -9,35 +9,8 @@ using System.Xml.Linq;
 
 namespace FastExcel
 {
-    public class FastExcelReader: IDisposable
+    public partial class FastExcel
     {
-        public FileInfo InputFile { get; private set; }
-        private SharedStrings SharedStrings { get; set; }
-        private ZipArchive Archive { get; set; }
-
-        public FastExcelReader(FileInfo inputFile)
-        {
-            this.InputFile = inputFile;
-
-            CheckFile();
-        }
-
-        /// <summary>
-        /// Ensure files are ready for use
-        /// </summary>
-        private void CheckFile()
-        {
-            if (this.InputFile == null)
-            {
-                throw new Exception("No input file name was supplied");
-            }
-            else if (!this.InputFile.Exists)
-            {
-                this.InputFile = null;
-                throw new Exception(string.Format("Input file '{0}' does not exist", this.InputFile.FullName));
-            }
-        }
-
         public DataSet Read(int sheetNumber, int existingHeadingRows = 0)
         {
             return Read(sheetNumber, null, existingHeadingRows);
@@ -50,19 +23,19 @@ namespace FastExcel
 
         private DataSet Read(int? sheetNumber = null, string sheetName = null, int existingHeadingRows = 0)
         {
-            CheckFile();
+            CheckFiles();
 
             if (this.Archive == null)
             {
-                Archive = ZipFile.Open(this.InputFile.FullName, ZipArchiveMode.Update);
+                Archive = ZipFile.Open(this.ExcelFile.FullName, ZipArchiveMode.Update);
             }
-            
+
             // Get Strings file
             if (this.SharedStrings == null)
             {
                 this.SharedStrings = new SharedStrings(this.Archive);
             }
-                
+
             // Open worksheet
             Worksheet worksheet = null;
             if (sheetNumber.HasValue)
@@ -82,16 +55,6 @@ namespace FastExcel
 
             //Write Data
             return worksheet.Read();
-        }
-        
-        public void Dispose()
-        {
-            if (this.Archive == null)
-            {
-                return;
-            }
-            
-            this.Archive.Dispose();
         }
     }
 }
