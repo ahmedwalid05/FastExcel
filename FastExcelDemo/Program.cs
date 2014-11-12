@@ -47,8 +47,8 @@ namespace FastExcelDemo
             FastExcelWriteDemo(templateFile, outputFile);
             outputFile.Refresh();
             FastExcelReadDemo(outputFile);
-            outputFile.Refresh();
             FastExcelMergeDemo(outputFile);
+            FastExcelWriteGenericsDemo(outputFile);
 
             if (EPPlusTest)
             {
@@ -148,12 +148,46 @@ namespace FastExcelDemo
             Console.WriteLine(string.Format("Updating data took {0} seconds", stopwatch.Elapsed.TotalSeconds));
         }
 
+        private void FastExcelWriteGenericsDemo(FileInfo outputFile)
+        {
+            Stopwatch stopwatch = new Stopwatch();
+
+            using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(outputFile))
+            {
+                List<GenericObject> objectList = new List<GenericObject>();
+
+                for (int rowNumber = 1; rowNumber < NumberOfRecords; rowNumber++)
+                {
+                    GenericObject genericObject = new GenericObject();
+                    genericObject.StringColumn1 = "A string " + rowNumber.ToString();
+                    genericObject.IntegerColumn2 = 45678854;
+                    genericObject.DoubleColumn3 = 87.01d;
+                    genericObject.ObjectColumn4 = DateTime.Now.ToLongTimeString();
+
+                    objectList.Add(genericObject);
+                }
+                stopwatch.Start();
+                Console.WriteLine("Writing Generic object list...");
+                fastExcel.Write(objectList, "sheet3", true);
+            }
+
+            Console.WriteLine(string.Format("Writing Generic object list took {0} seconds", stopwatch.Elapsed.TotalSeconds));
+        }
+
+        private class GenericObject
+        {
+            public string StringColumn1 { get; set; }
+            public int IntegerColumn2 { get; set; }
+            public double DoubleColumn3 { get; set; }
+            public object ObjectColumn4 { get; set; }
+        }
+
         private void EPPlusDemo(FileInfo templateFile, FileInfo epplusOutputFile)
         {
             Console.WriteLine("Preparing EPPlus data");
             using (OfficeOpenXml.ExcelPackage package = new OfficeOpenXml.ExcelPackage(epplusOutputFile, templateFile))
             {
-                var sheet3 = package.Workbook.Worksheets["sheet1"];
+                var sheet = package.Workbook.Worksheets["sheet1"];
 
                 List<object[]> epplusData = new List<object[]>();
                 for (int rowNumber = 1; rowNumber < NumberOfRecords; rowNumber++)
@@ -178,7 +212,7 @@ namespace FastExcelDemo
                 Stopwatch epplusStopwatch = Stopwatch.StartNew();
                 Console.WriteLine("Adding rows to EPPlus Worksheet...");
 
-                sheet3.Cells["A1"].LoadFromArrays(epplusData);
+                sheet.Cells["A1"].LoadFromArrays(epplusData);
                 package.Save();
 
                 Console.WriteLine(string.Format("Saving data took {0} seconds", epplusStopwatch.Elapsed.TotalSeconds));

@@ -11,7 +11,29 @@ I am not using the Open XML SDK to interact with the data but going directly and
 Check out the demo project for usage and benchmark testing against EPPlus.
 This project is not intended to be a replacement for full featured packages like EPPlus, just light weight fast way of saving data to Excel.
 
-##Write Demo
+##Write Demo 1
+This demo uses Generic objects, ie any object you wish with public properties
+```C#
+using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(outputFile))
+{
+    List<MyObject> objectList = new List<MyObject>();
+
+    for (int rowNumber = 1; rowNumber < NumberOfRecords; rowNumber++)
+    {
+        MyObject genericObject = new MyObject();
+        genericObject.StringColumn1 = "A string " + rowNumber.ToString();
+        genericObject.IntegerColumn2 = 45678854;
+        genericObject.DoubleColumn3 = 87.01d;
+        genericObject.ObjectColumn4 = DateTime.Now.ToLongTimeString();
+
+        objectList.Add(genericObject);
+    }
+    fastExcel.Write(objectList, "sheet3", true);
+}
+```
+
+##Write Demo 2
+This demo lets you specify exactly which cell you are writing to
 
 ```C#
 // Get your template and output file paths

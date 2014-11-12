@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,6 +12,56 @@ namespace FastExcel
         public IEnumerable<Row> Rows { get; set; }
 
         public IEnumerable<string> Headings { get; set; }
+
+        public DataSet() { }
+
+        public void PopulateRows<T>(IEnumerable<T> objects, bool usePropertiesAsHeadings = false)
+        {
+            int rowNumber = 1;
+
+            // Get all properties
+            PropertyInfo[] properties = typeof(T).GetProperties();
+            List<Row> rows = new List<Row>();
+            
+            if (usePropertiesAsHeadings)
+            {
+                this.Headings = (from prop in properties
+                                 select prop.Name);
+
+                int headingColumnNumber = 1;
+                IEnumerable<Cell> headingCells = (from h in this.Headings
+                                                   select new Cell(headingColumnNumber++, h)).ToArray();
+
+                Row headingRow = new Row(rowNumber++, headingCells);
+
+                rows.Add(headingRow);
+            }
+
+            foreach (T rowObject in objects)
+            {
+                List<Cell> cells = new List<Cell>();
+                
+                int columnNumber = 1;
+
+                // Get value from each property
+                foreach (PropertyInfo propertyInfo in properties)
+                {
+                    object value = propertyInfo.GetValue(rowObject, null);
+                    if(value != null)
+                    {
+                        Cell cell = new Cell(columnNumber, value);
+                        cells.Add(cell);
+                    }
+                    columnNumber++;
+                }
+
+                Row row = new Row(rowNumber++, cells);
+                rows.Add(row);
+            }
+
+            this.Rows = rows;
+        }
+
 
         /// <summary>
         /// This method is slow for large datasets, use the rows property instead
@@ -48,9 +99,6 @@ namespace FastExcel
             }
 
         }
-
-        // TODO: create function to convert data to dynamic types
-
 
         /// <summary>
         /// Merges the parameter into the current DatSet object, the parameter takes precedence

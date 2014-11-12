@@ -33,6 +33,62 @@ namespace FastExcel
             this.Write(data, null, sheetName, existingHeadingRows);
         }
 
+        /// <summary>
+        /// Write a list of objects to a sheet
+        /// </summary>
+        /// <typeparam name="T">Row Object</typeparam>
+        /// <param name="rows">IEnumerable list of objects</param>
+        /// <param name="sheetNumber">The number of the sheet starting at 1</param>
+        /// <param name="existingHeadingRows">How many rows in the template sheet you would like to keep</param>
+        public void Write<T>(IEnumerable<T> rows, int sheetNumber, int existingHeadingRows = 0)
+        {
+            DataSet data = new DataSet();
+            data.PopulateRows<T>(rows);
+            this.Write(data, sheetNumber, null, existingHeadingRows);
+        }
+
+        /// <summary>
+        /// Write a list of objects to a sheet
+        /// </summary>
+        /// <typeparam name="T">Row Object</typeparam>
+        /// <param name="rows">IEnumerable list of objects</param>
+        /// <param name="sheetName">The display name of the sheet</param>
+        /// <param name="existingHeadingRows">How many rows in the template sheet you would like to keep</param>
+        public void Write<T>(IEnumerable<T> rows, string sheetName, int existingHeadingRows = 0)
+        {
+            DataSet data = new DataSet();
+            data.PopulateRows<T>(rows);
+            this.Write(data, null, sheetName, existingHeadingRows);
+        }
+
+        /// <summary>
+        /// Write a list of objects to a sheet
+        /// </summary>
+        /// <typeparam name="T">Row Object</typeparam>
+        /// <param name="objectList">IEnumerable list of objects</param>
+        /// <param name="sheetNumber">The number of the sheet starting at 1</param>
+        /// <param name="usePropertiesAsHeadings">Use property names from object list as headings</param>
+        public void Write<T>(IEnumerable<T> objectList, int sheetNumber, bool usePropertiesAsHeadings)
+        {
+            DataSet data = new DataSet();
+            data.PopulateRows<T>(objectList, usePropertiesAsHeadings);
+            this.Write(data, sheetNumber, null, 0);
+        }
+
+        /// <summary>
+        /// Write a list of objects to a sheet
+        /// </summary>
+        /// <typeparam name="T">Row Object</typeparam>
+        /// <param name="rows">IEnumerable list of objects</param>
+        /// <param name="sheetName">The display name of the sheet</param>
+        /// <param name="usePropertiesAsHeadings">Use property names from object list as headings</param>
+        public void Write<T>(IEnumerable<T> rows, string sheetName, bool usePropertiesAsHeadings)
+        {
+            DataSet data = new DataSet();
+            data.PopulateRows<T>(rows, usePropertiesAsHeadings);
+            this.Write(data, null, sheetName, 0);
+        }
+
         private void Write(DataSet data, int? sheetNumber = null, string sheetName = null, int existingHeadingRows = 0)
         {
             CheckFiles();
