@@ -219,7 +219,7 @@ namespace FastExcel
             }
         }
 
-        public void Write(DataSet data)
+        internal void Write(DataSet data)
         {
             // Check if ExistingHeadingRows will be overridden by the dataset
             if (this.ExistingHeadingRows != 0 && data.Rows.Where(r => r.RowNumber <= this.ExistingHeadingRows).Any())
@@ -292,6 +292,13 @@ namespace FastExcel
             return dataSet;
         }
 
+        internal void Update(DataSet data)
+        {
+            DataSet currentData = this.Read();
+            currentData.Merge(data);
+            this.Write(currentData);
+        }
+
         private List<string> GetHeadings(string lineBuffer, out bool headingsComplete, out bool rowsComplete, out string newLineBuffer)
         {
             List<string> headings = new List<string>();
@@ -353,5 +360,6 @@ namespace FastExcel
             newLineBuffer = lineBuffer;
             return headings;
         }
+
     }
 }

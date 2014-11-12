@@ -19,7 +19,7 @@ namespace FastExcel
         /// <param name="existingHeadingRows">How many rows in the template sheet you would like to keep</param>
         public void Write(DataSet data, int sheetNumber, int existingHeadingRows = 0)
         {
-            Write(data, sheetNumber, null, existingHeadingRows);
+            this.Write(data, sheetNumber, null, existingHeadingRows);
         }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace FastExcel
         /// <param name="existingHeadingRows">How many rows in the template sheet you would like to keep</param>
         public void Write(DataSet data, string sheetName, int existingHeadingRows = 0)
         {
-            Write(data, null, sheetName, existingHeadingRows);
+            this.Write(data, null, sheetName, existingHeadingRows);
         }
 
         private void Write(DataSet data, int? sheetNumber = null, string sheetName = null, int existingHeadingRows = 0)
@@ -39,7 +39,10 @@ namespace FastExcel
 
             try
             {
-                File.Copy(this.TemplateFile.FullName, this.ExcelFile.FullName);
+                if (!this.UpdateExisting)
+                {
+                    File.Copy(this.TemplateFile.FullName, this.ExcelFile.FullName);
+                }
             }
             catch (Exception ex)
             {

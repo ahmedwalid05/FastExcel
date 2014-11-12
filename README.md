@@ -11,7 +11,7 @@ I am not using the Open XML SDK to interact with the data but going directly and
 Check out the demo project for usage and benchmark testing against EPPlus.
 This project is not intended to be a replacement for full featured packages like EPPlus, just light weight fast way of saving data to Excel.
 
-##Read Demo
+##Write Demo
 
 ```C#
 // Get your template and output file paths
@@ -44,7 +44,7 @@ using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(templateFile, out
 }
 ```
 
-##Write Demo
+##Read Demo
 
 ```C#
 // Get the input file paths
@@ -58,5 +58,36 @@ using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile))
 {
     // Read the data
     data = fastExcel.Read("sheet1");
+}
+```
+
+##Update Demo
+
+```C#
+// Get the input file paths
+FileInfo inputFile = new FileInfo("C:\\Temp\\input.xlsx");
+
+//Create a data set
+DataSet data = new DataSet();
+List<Row> rows = new List<Row>();
+                
+for (int rowNumber = 1; rowNumber < NumberOfRecords; rowNumber+= 50)
+{
+    List<Cell> cells = new List<Cell>();
+    for (int columnNumber = 1; columnNumber < 13; columnNumber+= 2)
+    {
+        cells.Add(new Cell(columnNumber, rowNumber));
+    }
+    cells.Add(new Cell(13, "Updated Row"));
+
+    rows.Add(new Row(rowNumber, cells));
+}
+data.Rows = rows;
+
+// Create an instance of Fast Excel
+using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile))
+{
+    // Read the data
+    data = fastExcel.Update("sheet1");
 }
 ```

@@ -47,6 +47,7 @@
     <Compile Include="Cell.cs" />
     <Compile Include="DataSet.cs" />
     <Compile Include="FastExcel.cs" />
+    <Compile Include="FastExcel.Update.cs" />
     <Compile Include="FastExcel.Read.cs" />
     <Compile Include="FastExcel.Write.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

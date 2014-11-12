@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -100,8 +101,13 @@ namespace FastExcel
         }
 
         //http://stackoverflow.com/questions/181596/how-to-convert-a-column-number-eg-127-into-an-excel-column-eg-aa
-        public static int GetExcelColumnNumber(string columnName)
+        public static int GetExcelColumnNumber(string columnName, bool includesRowNumber = true)
         {
+            if (includesRowNumber)
+            {
+                columnName = Regex.Replace(columnName, @"\d", "");
+            }
+
             int[] digits = new int[columnName.Length];
             for (int i = 0; i < columnName.Length; ++i)
             {
@@ -114,6 +120,15 @@ namespace FastExcel
                 mul *= 26;
             }
             return res;
+        }
+
+        /// <summary>
+        /// Merge the parameter cell into this cell
+        /// </summary>
+        /// <param name="cell">Cell to merge</param>
+        public void Merge(Cell cell)
+        {
+            this.Value = cell.Value;
         }
     }
 }

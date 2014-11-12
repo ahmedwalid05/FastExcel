@@ -50,5 +50,41 @@ namespace FastExcel
         }
 
         // TODO: create function to convert data to dynamic types
+
+
+        /// <summary>
+        /// Merges the parameter into the current DatSet object, the parameter takes precedence
+        /// </summary>
+        /// <param name="data">A DataSet to merge</param>
+        public void Merge(DataSet data)
+        {
+            // Merge headings
+            if (this.Headings == null || !this.Headings.Any())
+            {
+                this.Headings = data.Headings;
+            }
+
+            // Merge rows
+            List<Row> outputList = new List<Row>();
+            foreach (var row in this.Rows.Union(data.Rows).GroupBy(r => r.RowNumber))
+            {
+                int count = row.Count();
+                if (count == 1)
+                {
+                    outputList.Add(row.First());
+                }
+                else
+                {
+                    row.First().Merge(row.Skip(1).First());
+
+                    outputList.Add(row.First());
+                }
+            }
+
+            // Sort
+            this.Rows = (from r in outputList
+                        orderby r.RowNumber
+                        select r);
+        }
     }
 }

@@ -47,6 +47,8 @@ namespace FastExcelDemo
             FastExcelWriteDemo(templateFile, outputFile);
             outputFile.Refresh();
             FastExcelReadDemo(outputFile);
+            outputFile.Refresh();
+            FastExcelMergeDemo(outputFile);
 
             if (EPPlusTest)
             {
@@ -115,6 +117,35 @@ namespace FastExcelDemo
             }
 
             Console.WriteLine(string.Format("Reading data took {0} seconds", stopwatch.Elapsed.TotalSeconds));
+        }
+
+        private void FastExcelMergeDemo(FileInfo inputFile)
+        {
+            Stopwatch stopwatch = new Stopwatch();
+            using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile))
+            {
+                DataSet data = new DataSet();
+                List<Row> rows = new List<Row>();
+                
+                for (int rowNumber = 1; rowNumber < NumberOfRecords; rowNumber+= 50)
+                {
+                    List<Cell> cells = new List<Cell>();
+                    for (int columnNumber = 1; columnNumber < 13; columnNumber+= 2)
+                    {
+                        cells.Add(new Cell(columnNumber, rowNumber));
+                    }
+                    cells.Add(new Cell(13, "Updated Row"));
+
+                    rows.Add(new Row(rowNumber, cells));
+                }
+                data.Rows = rows;
+
+                stopwatch.Start();
+                Console.WriteLine("Updating data every 50th row...");
+                fastExcel.Update(data, "sheet1");
+            }
+
+            Console.WriteLine(string.Format("Updating data took {0} seconds", stopwatch.Elapsed.TotalSeconds));
         }
 
         private void EPPlusDemo(FileInfo templateFile, FileInfo epplusOutputFile)

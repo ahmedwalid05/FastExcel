@@ -29,11 +29,9 @@ namespace FastExcel
 
         public Row(XElement rowElement, SharedStrings sharedStrings)
         {
-            int? rowNumber = null;
-
             try
             {
-                rowNumber = (from a in rowElement.Attributes("r")
+                this.RowNumber = (from a in rowElement.Attributes("r")
                              select int.Parse(a.Value)).First();
             }
             catch (Exception ex)
@@ -42,8 +40,7 @@ namespace FastExcel
             }
 
             List<Cell> cells = new List<Cell>();
-            Row row = new Row(rowNumber.Value, cells);
-
+            
             if (rowElement.HasElements)
             {
                 foreach (XElement cellElement in rowElement.Elements())
@@ -80,6 +77,31 @@ namespace FastExcel
             }
 
             return row;
+        }
+
+        internal void Merge(Row row)
+        {
+            // Merge cells
+            List<Cell> outputList = new List<Cell>();
+            foreach (var cell in this.Cells.Union(row.Cells).GroupBy(c => c.ColumnNumber))
+            {
+                int count = cell.Count();
+                if (count == 1)
+                {
+                    outputList.Add(cell.First());
+                }
+                else
+                {
+                    cell.First().Merge(cell.Skip(1).First());
+
+                    outputList.Add(cell.First());
+                }
+            }
+
+            // Sort
+            this.Cells = (from c in outputList
+                          orderby c.ColumnNumber
+                          select c);
         }
     }
 }
