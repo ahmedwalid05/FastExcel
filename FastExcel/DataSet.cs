@@ -62,9 +62,35 @@ namespace FastExcel
             this.Rows = rows;
         }
 
+        public void AddRow(params object[] cellValues)
+        {
+            if (this.Rows == null)
+            {
+                this.Rows = new List<Row>();
+            }
+
+            List<Cell> cells = new List<Cell>();
+
+            int columnNumber = 1;
+            foreach (object value in cellValues)
+	        {
+                if (value != null)
+                {
+		            Cell cell = new Cell(columnNumber++, value);
+                    cells.Add(cell);
+                }
+                else
+                {
+                    columnNumber++;
+                }
+	        }
+
+            Row row = new Row(this.Rows.Count() + 1, cells);
+            (this.Rows as List<Row>).Add(row);
+        }
 
         /// <summary>
-        /// This method is slow for large datasets, use the rows property instead
+        /// Note: This method is slow
         /// </summary>
         public void AddValue(int rowNumber, int columnNumber, object value)
         {

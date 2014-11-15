@@ -248,7 +248,7 @@ namespace FastExcel
                 // Add Rows
                 foreach (Row row in data.Rows)
                 {
-                    streamWriter.Write(row.ToString(this.SharedStrings));
+                    streamWriter.Write(row.ToXmlString(this.SharedStrings));
                 }
 
                 //Add Footers

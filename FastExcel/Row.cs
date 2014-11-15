@@ -56,7 +56,7 @@ namespace FastExcel
             this.Cells = cells;
         }
 
-        internal StringBuilder ToString(SharedStrings sharedStrings)
+        internal StringBuilder ToXmlString(SharedStrings sharedStrings)
         {
             StringBuilder row = new StringBuilder();
 
@@ -67,7 +67,7 @@ namespace FastExcel
                 {
                     foreach (Cell cell in this.Cells)
                     {
-                        row.Append(cell.ToString(sharedStrings, this.RowNumber));
+                        row.Append(cell.ToXmlString(sharedStrings, this.RowNumber));
                     }
                 }
                 finally

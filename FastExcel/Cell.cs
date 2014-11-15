@@ -48,7 +48,7 @@ namespace FastExcel
             }
         }
 
-        internal StringBuilder ToString(SharedStrings sharedStrings, int rowNumber)
+        internal StringBuilder ToXmlString(SharedStrings sharedStrings, int rowNumber)
         {
             StringBuilder cell = new StringBuilder();
 

@@ -23,6 +23,8 @@ namespace FastExcelDemo
         public Program()
         {
             Console.WriteLine("Starting Fast Excel Demo");
+            Console.WriteLine(string.Format("Demos use {0} rows", NumberOfRecords));
+            
             FileInfo outputFile = new FileInfo(Path.Combine(DemoDir,"outputfile.xlsx"));
             FileInfo epplusOutputFile = null;
             FileInfo templateFile = new FileInfo("Template.xlsx");
@@ -43,12 +45,12 @@ namespace FastExcelDemo
                     epplusOutputFile = new FileInfo(Path.Combine(DemoDir, "epplusOutputfile.xlsx"));
                 }
             }
-
             FastExcelWriteDemo(templateFile, outputFile);
             outputFile.Refresh();
             FastExcelReadDemo(outputFile);
             FastExcelMergeDemo(outputFile);
             FastExcelWriteGenericsDemo(outputFile);
+            FastExcelWriteAddRowDemo(outputFile);
 
             if (EPPlusTest)
             {
@@ -61,34 +63,27 @@ namespace FastExcelDemo
 
         private void FastExcelWriteDemo(FileInfo templateFile, FileInfo outputFile)
         {
+            Console.WriteLine();
+            Console.WriteLine("DEMO 1");
+
             Stopwatch stopwatch = Stopwatch.StartNew();
 
             using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(templateFile, outputFile))
             {
-                Console.WriteLine(string.Format("Creating {0} rows in Data Set...", NumberOfRecords));
                 DataSet data = new DataSet();
                 List<Row> rows = new List<Row>();
-
-                /*
-                This method is very easy but a lot slower to populate
-                for (int rowNumber = 1; rowNumber < 100000; rowNumber++)
-                {
-                    List<Cell> cells = new List<Cell>();
-                    for (int columnNumber = 1; columnNumber < 13; columnNumber++)
-                    {
-                        data.AddValue(rowNumber, columnNumber, columnNumber * DateTime.Now.Second);
-                    }
-                }*/
-
+                
                 for (int rowNumber = 1; rowNumber < NumberOfRecords; rowNumber++)
                 {
                     List<Cell> cells = new List<Cell>();
-                    for (int columnNumber = 1; columnNumber < 13; columnNumber++)
-                    {
-                        cells.Add(new Cell(columnNumber, columnNumber * DateTime.Now.Millisecond));
-                    }
-                    cells.Add(new Cell(13, "Hello" + rowNumber));
-                    cells.Add(new Cell(14, "Some Text"));
+                    cells.Add(new Cell(1, 1 * DateTime.Now.Millisecond));
+                    cells.Add(new Cell(2, 2 * DateTime.Now.Millisecond));
+                    cells.Add(new Cell(3, 3 * DateTime.Now.Millisecond));
+                    cells.Add(new Cell(4, 4 * DateTime.Now.Millisecond));
+                    cells.Add(new Cell(5, 45678854));
+                    cells.Add(new Cell(6, 87.01d));
+                    cells.Add(new Cell(7, "Test 1 " + rowNumber));
+                    cells.Add(new Cell(8, DateTime.Now.ToLongTimeString()));
 
                     rows.Add(new Row(rowNumber, cells));
                 }
@@ -106,8 +101,41 @@ namespace FastExcelDemo
             Console.WriteLine(string.Format("Writing data took {0} seconds", stopwatch.Elapsed.TotalSeconds));
         }
 
+        private void FastExcelWriteAddRowDemo(FileInfo outputFile)
+        {
+            Console.WriteLine();
+            Console.WriteLine("DEMO 6");
+
+            Stopwatch stopwatch = new Stopwatch();
+
+            using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(outputFile))
+            {
+                DataSet dataSet = new DataSet();
+
+                for (int rowNumber = 1; rowNumber < NumberOfRecords; rowNumber++)
+                {
+                    dataSet.AddRow(1 * DateTime.Now.Millisecond
+                                , 2 * DateTime.Now.Millisecond
+                                , 3 * DateTime.Now.Millisecond
+                                , 4 * DateTime.Now.Millisecond
+                                , 45678854
+                                , 87.01d
+                                , "Test 2" + rowNumber
+                                , DateTime.Now.ToLongTimeString());
+                }
+                stopwatch.Start();
+                Console.WriteLine("Writing using AddRow...");
+                fastExcel.Write(dataSet, "sheet4");
+            }
+
+            Console.WriteLine(string.Format("Writing using AddRow took {0} seconds", stopwatch.Elapsed.TotalSeconds));
+        }
+
         private void FastExcelReadDemo(FileInfo inputFile)
         {
+            Console.WriteLine();
+            Console.WriteLine("DEMO 3");
+
             Stopwatch stopwatch = Stopwatch.StartNew();
 
             using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile))
@@ -121,6 +149,9 @@ namespace FastExcelDemo
 
         private void FastExcelMergeDemo(FileInfo inputFile)
         {
+            Console.WriteLine();
+            Console.WriteLine("DEMO 4");
+
             Stopwatch stopwatch = new Stopwatch();
             using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile))
             {
@@ -130,7 +161,7 @@ namespace FastExcelDemo
                 for (int rowNumber = 1; rowNumber < NumberOfRecords; rowNumber+= 50)
                 {
                     List<Cell> cells = new List<Cell>();
-                    for (int columnNumber = 1; columnNumber < 13; columnNumber+= 2)
+                    for (int columnNumber = 1; columnNumber < 12; columnNumber+= 2)
                     {
                         cells.Add(new Cell(columnNumber, rowNumber));
                     }
@@ -150,6 +181,9 @@ namespace FastExcelDemo
 
         private void FastExcelWriteGenericsDemo(FileInfo outputFile)
         {
+            Console.WriteLine();
+            Console.WriteLine("DEMO 5");
+
             Stopwatch stopwatch = new Stopwatch();
 
             using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(outputFile))
@@ -159,10 +193,14 @@ namespace FastExcelDemo
                 for (int rowNumber = 1; rowNumber < NumberOfRecords; rowNumber++)
                 {
                     GenericObject genericObject = new GenericObject();
-                    genericObject.StringColumn1 = "A string " + rowNumber.ToString();
-                    genericObject.IntegerColumn2 = 45678854;
-                    genericObject.DoubleColumn3 = 87.01d;
-                    genericObject.ObjectColumn4 = DateTime.Now.ToLongTimeString();
+                    genericObject.IntegerColumn1 = 1 * DateTime.Now.Millisecond;
+                    genericObject.IntegerColumn2 = 2 * DateTime.Now.Millisecond;
+                    genericObject.IntegerColumn3 = 3 * DateTime.Now.Millisecond;
+                    genericObject.IntegerColumn4 = 4 * DateTime.Now.Millisecond;
+                    genericObject.IntegerColumn5 = 45678854;
+                    genericObject.DoubleColumn6 = 87.01d;
+                    genericObject.StringColumn7 = "Test 3" + rowNumber;
+                    genericObject.ObjectColumn8 = DateTime.Now.ToLongTimeString();
 
                     objectList.Add(genericObject);
                 }
@@ -176,14 +214,21 @@ namespace FastExcelDemo
 
         private class GenericObject
         {
-            public string StringColumn1 { get; set; }
+            public int IntegerColumn1 { get; set; }
             public int IntegerColumn2 { get; set; }
-            public double DoubleColumn3 { get; set; }
-            public object ObjectColumn4 { get; set; }
+            public int IntegerColumn3 { get; set; }
+            public int IntegerColumn4 { get; set; }
+            public int IntegerColumn5 { get; set; }
+            public double DoubleColumn6 { get; set; }
+            public string StringColumn7 { get; set; }
+            public string ObjectColumn8 { get; set; }
         }
 
         private void EPPlusDemo(FileInfo templateFile, FileInfo epplusOutputFile)
         {
+            Console.WriteLine();
+            Console.WriteLine("EPPlus Comparison DEMO");
+
             Console.WriteLine("Preparing EPPlus data");
             using (OfficeOpenXml.ExcelPackage package = new OfficeOpenXml.ExcelPackage(epplusOutputFile, templateFile))
             {
@@ -198,15 +243,10 @@ namespace FastExcelDemo
                     list.Add(2 * DateTime.Now.Millisecond);
                     list.Add(3 * DateTime.Now.Millisecond);
                     list.Add(4 * DateTime.Now.Millisecond);
-                    list.Add(5 * DateTime.Now.Millisecond);
-                    list.Add(6 * DateTime.Now.Millisecond);
-                    list.Add(7 * DateTime.Now.Millisecond);
-                    list.Add(8 * DateTime.Now.Millisecond);
-                    list.Add(9 * DateTime.Now.Millisecond);
-                    list.Add(10 * DateTime.Now.Millisecond);
-                    list.Add(11 * DateTime.Now.Millisecond);
-                    list.Add(12 * DateTime.Now.Millisecond);
-                    list.Add("Hello" + rowNumber);
+                    list.Add(45678854);
+                    list.Add(87.01d);
+                    list.Add("EPPlus 1" + rowNumber);
+                    list.Add(DateTime.Now.ToLongTimeString());
                     epplusData.Add(list.ToArray());
                 }
                 Stopwatch epplusStopwatch = Stopwatch.StartNew();
