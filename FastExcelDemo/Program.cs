@@ -47,10 +47,14 @@ namespace FastExcelDemo
             }
             FastExcelWriteDemo(templateFile, outputFile);
             outputFile.Refresh();
-            FastExcelReadDemo(outputFile);
-            FastExcelMergeDemo(outputFile);
             FastExcelWriteGenericsDemo(outputFile);
             FastExcelWriteAddRowDemo(outputFile);
+            FastExcelWrite2DimensionArrayDemo(outputFile);
+
+            FastExcelMergeDemo(outputFile);
+
+            FastExcelReadDemo(outputFile);
+            FastExcelReadDemo2(outputFile);
 
             if (EPPlusTest)
             {
@@ -64,9 +68,9 @@ namespace FastExcelDemo
         private void FastExcelWriteDemo(FileInfo templateFile, FileInfo outputFile)
         {
             Console.WriteLine();
-            Console.WriteLine("DEMO 1");
+            Console.WriteLine("DEMO WRITE 1");
 
-            Stopwatch stopwatch = Stopwatch.StartNew();
+            Stopwatch stopwatch = new Stopwatch();
 
             using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(templateFile, outputFile))
             {
@@ -89,100 +93,18 @@ namespace FastExcelDemo
                 }
                 data.Rows = rows;
 
-                Console.WriteLine(string.Format("Data Set Creation took {0} seconds", stopwatch.Elapsed.TotalSeconds));
-                stopwatch = Stopwatch.StartNew();
+                stopwatch.Start();
                 Console.WriteLine("Writing data...");
                 fastExcel.Write(data, "sheet1");
-
-                //Write to sheet 2 with headings
-                //writer.Write(data, null, "sheet2", 1);
             }
 
             Console.WriteLine(string.Format("Writing data took {0} seconds", stopwatch.Elapsed.TotalSeconds));
         }
 
-        private void FastExcelWriteAddRowDemo(FileInfo outputFile)
-        {
-            Console.WriteLine();
-            Console.WriteLine("DEMO 6");
-
-            Stopwatch stopwatch = new Stopwatch();
-
-            using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(outputFile))
-            {
-                DataSet dataSet = new DataSet();
-
-                for (int rowNumber = 1; rowNumber < NumberOfRecords; rowNumber++)
-                {
-                    dataSet.AddRow(1 * DateTime.Now.Millisecond
-                                , 2 * DateTime.Now.Millisecond
-                                , 3 * DateTime.Now.Millisecond
-                                , 4 * DateTime.Now.Millisecond
-                                , 45678854
-                                , 87.01d
-                                , "Test 2" + rowNumber
-                                , DateTime.Now.ToLongTimeString());
-                }
-                stopwatch.Start();
-                Console.WriteLine("Writing using AddRow...");
-                fastExcel.Write(dataSet, "sheet4");
-            }
-
-            Console.WriteLine(string.Format("Writing using AddRow took {0} seconds", stopwatch.Elapsed.TotalSeconds));
-        }
-
-        private void FastExcelReadDemo(FileInfo inputFile)
-        {
-            Console.WriteLine();
-            Console.WriteLine("DEMO 3");
-
-            Stopwatch stopwatch = Stopwatch.StartNew();
-
-            using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile))
-            {
-                Console.WriteLine("Reading data...");
-                DataSet dataSet = fastExcel.Read("sheet1", 1);
-            }
-
-            Console.WriteLine(string.Format("Reading data took {0} seconds", stopwatch.Elapsed.TotalSeconds));
-        }
-
-        private void FastExcelMergeDemo(FileInfo inputFile)
-        {
-            Console.WriteLine();
-            Console.WriteLine("DEMO 4");
-
-            Stopwatch stopwatch = new Stopwatch();
-            using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile))
-            {
-                DataSet data = new DataSet();
-                List<Row> rows = new List<Row>();
-                
-                for (int rowNumber = 1; rowNumber < NumberOfRecords; rowNumber+= 50)
-                {
-                    List<Cell> cells = new List<Cell>();
-                    for (int columnNumber = 1; columnNumber < 12; columnNumber+= 2)
-                    {
-                        cells.Add(new Cell(columnNumber, rowNumber));
-                    }
-                    cells.Add(new Cell(13, "Updated Row"));
-
-                    rows.Add(new Row(rowNumber, cells));
-                }
-                data.Rows = rows;
-
-                stopwatch.Start();
-                Console.WriteLine("Updating data every 50th row...");
-                fastExcel.Update(data, "sheet1");
-            }
-
-            Console.WriteLine(string.Format("Updating data took {0} seconds", stopwatch.Elapsed.TotalSeconds));
-        }
-
         private void FastExcelWriteGenericsDemo(FileInfo outputFile)
         {
             Console.WriteLine();
-            Console.WriteLine("DEMO 5");
+            Console.WriteLine("DEMO WRITE 2");
 
             Stopwatch stopwatch = new Stopwatch();
 
@@ -205,12 +127,145 @@ namespace FastExcelDemo
                     objectList.Add(genericObject);
                 }
                 stopwatch.Start();
-                Console.WriteLine("Writing Generic object list...");
+                Console.WriteLine("Writing using IEnumerable<MyObject>...");
                 fastExcel.Write(objectList, "sheet3", true);
             }
 
-            Console.WriteLine(string.Format("Writing Generic object list took {0} seconds", stopwatch.Elapsed.TotalSeconds));
+            Console.WriteLine(string.Format("Writing IEnumerable<MyObject> took {0} seconds", stopwatch.Elapsed.TotalSeconds));
         }
+
+        private void FastExcelWriteAddRowDemo(FileInfo outputFile)
+        {
+            Console.WriteLine();
+            Console.WriteLine("DEMO WRITE 3");
+
+            Stopwatch stopwatch = new Stopwatch();
+
+            using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(outputFile))
+            {
+                DataSet dataSet = new DataSet();
+
+                for (int rowNumber = 1; rowNumber < NumberOfRecords; rowNumber++)
+                {
+                    dataSet.AddRow(1 * DateTime.Now.Millisecond
+                                , 2 * DateTime.Now.Millisecond
+                                , 3 * DateTime.Now.Millisecond
+                                , 4 * DateTime.Now.Millisecond
+                                , 45678854
+                                , 87.01d
+                                , "Test 2" + rowNumber
+                                , DateTime.Now.ToLongTimeString());
+                }
+                stopwatch.Start();
+                Console.WriteLine("Writing using AddRow(params object[])...");
+                fastExcel.Write(dataSet, "sheet4");
+            }
+
+            Console.WriteLine(string.Format("Writing using AddRow(params object[]) took {0} seconds", stopwatch.Elapsed.TotalSeconds));
+        }
+
+        private void FastExcelWrite2DimensionArrayDemo(FileInfo outputFile)
+        {
+            Console.WriteLine();
+            Console.WriteLine("DEMO WRITE 4");
+
+            Stopwatch stopwatch = new Stopwatch();
+
+            using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(outputFile))
+            {
+                List<object[]> rowData = new List<object[]>();
+
+                // Note rowNumber starts at 2 because we are using existing headings on the sheet
+                for (int rowNumber = 2; rowNumber < NumberOfRecords; rowNumber++)
+                {
+                    rowData.Add( new object[]{ 1 * DateTime.Now.Millisecond
+                                , 2 * DateTime.Now.Millisecond
+                                , 3 * DateTime.Now.Millisecond
+                                , 4 * DateTime.Now.Millisecond
+                                , 45678854
+                                , 87.01d
+                                , "Test 2" + rowNumber
+                                , DateTime.Now.ToLongTimeString()});
+                }
+                stopwatch.Start();
+                Console.WriteLine("Writing using IEnumerable<IEnumerable<object>>...");
+
+                // Note existingHeadingRows = 1, because we are keeping existing headings on the sheet
+                fastExcel.Write(rowData, "sheet2", 1);
+            }
+
+            Console.WriteLine(string.Format("Writing using IEnumerable<IEnumerable<object>> took {0} seconds", stopwatch.Elapsed.TotalSeconds));
+        }
+        
+        #region Update demos
+        private void FastExcelMergeDemo(FileInfo inputFile)
+        {
+            Console.WriteLine();
+            Console.WriteLine("DEMO UPDATE 1");
+
+            Stopwatch stopwatch = new Stopwatch();
+            using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile))
+            {
+                DataSet data = new DataSet();
+                List<Row> rows = new List<Row>();
+
+                for (int rowNumber = 1; rowNumber < NumberOfRecords; rowNumber += 50)
+                {
+                    List<Cell> cells = new List<Cell>();
+                    for (int columnNumber = 1; columnNumber < 12; columnNumber += 2)
+                    {
+                        cells.Add(new Cell(columnNumber, rowNumber));
+                    }
+                    cells.Add(new Cell(13, "Updated Row"));
+
+                    rows.Add(new Row(rowNumber, cells));
+                }
+                data.Rows = rows;
+
+                stopwatch.Start();
+                Console.WriteLine("Updating data every 50th row...");
+                fastExcel.Update(data, "sheet1");
+            }
+
+            Console.WriteLine(string.Format("Updating data took {0} seconds", stopwatch.Elapsed.TotalSeconds));
+        }
+        #endregion
+
+        #region Reading Demos
+        private void FastExcelReadDemo(FileInfo inputFile)
+        {
+            Console.WriteLine();
+            Console.WriteLine("DEMO READ 1");
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            // Open excel file using read only is much faster, but you cannot perfrom any writes
+            using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile, true))
+            {
+                Console.WriteLine("Reading data (Read Only Access)...");
+                DataSet dataSet = fastExcel.Read("sheet1", 1);
+            }
+
+            Console.WriteLine(string.Format("Reading data took {0} seconds", stopwatch.Elapsed.TotalSeconds));
+        }
+
+        private void FastExcelReadDemo2(FileInfo inputFile)
+        {
+            Console.WriteLine();
+            Console.WriteLine("DEMO READ 2");
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
+            // Open excel file using read/write is slower, but you can also perform writes
+            using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile, false))
+            {
+                Console.WriteLine("Reading data (Read/Write Access)...");
+                DataSet dataSet = fastExcel.Read("sheet1", 1);
+            }
+
+            Console.WriteLine(string.Format("Reading data took {0} seconds", stopwatch.Elapsed.TotalSeconds));
+        }
+        #endregion
 
         private class GenericObject
         {

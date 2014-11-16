@@ -57,7 +57,7 @@ namespace FastExcel
         public void Write<T>(IEnumerable<T> rows, string sheetName, int existingHeadingRows = 0)
         {
             DataSet data = new DataSet();
-            data.PopulateRows<T>(rows);
+            data.PopulateRows<T>(rows, existingHeadingRows);
             this.Write(data, null, sheetName, existingHeadingRows);
         }
 
@@ -71,7 +71,7 @@ namespace FastExcel
         public void Write<T>(IEnumerable<T> objectList, int sheetNumber, bool usePropertiesAsHeadings)
         {
             DataSet data = new DataSet();
-            data.PopulateRows<T>(objectList, usePropertiesAsHeadings);
+            data.PopulateRows<T>(objectList, 0, usePropertiesAsHeadings);
             this.Write(data, sheetNumber, null, 0);
         }
 
@@ -85,7 +85,7 @@ namespace FastExcel
         public void Write<T>(IEnumerable<T> rows, string sheetName, bool usePropertiesAsHeadings)
         {
             DataSet data = new DataSet();
-            data.PopulateRows<T>(rows, usePropertiesAsHeadings);
+            data.PopulateRows<T>(rows, 0,usePropertiesAsHeadings);
             this.Write(data, null, sheetName, 0);
         }
 
@@ -105,16 +105,7 @@ namespace FastExcel
                 throw new Exception("Could not copy template to output file path", ex);
             }
 
-            if (this.Archive == null)
-            {
-                Archive = ZipFile.Open(this.ExcelFile.FullName, ZipArchiveMode.Update);
-            }
-
-            // Get Strings file
-            if (this.SharedStrings == null)
-            {
-                this.SharedStrings = new SharedStrings(this.Archive);
-            }
+            PrepareArchive();
 
             // Open worksheet
             Worksheet worksheet = null;

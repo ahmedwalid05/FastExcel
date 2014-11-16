@@ -8,8 +8,11 @@ I am not using the Open XML SDK to interact with the data but going directly and
 
 .Net version 4.5 is required because it uses System.IO.Compression
 
-Check out the demo project for usage and benchmark testing against EPPlus.
-This project is not intended to be a replacement for full featured packages like EPPlus, just light weight fast way of interacting with data in Excel.
+Check out the demo project for usage and benchmarking.
+
+This project is not intended to be a replacement for full featured Excel packages with things like formatting, just light weight fast way of interacting with data in Excel.
+
+Below are a few demos check out https://github.com/mrjono1/FastExcel/blob/master/FastExcelDemo/Program.cs for more.
 
 ##Write Demo 1
 This demo uses Generic objects, ie any object you wish with public properties
@@ -76,7 +79,7 @@ FileInfo inputFile = new FileInfo("C:\\Temp\\input.xlsx");
 DataSet data = null;
 
 // Create an instance of Fast Excel
-using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile))
+using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile, true))
 {
     // Read the data
     data = fastExcel.Read("sheet1");

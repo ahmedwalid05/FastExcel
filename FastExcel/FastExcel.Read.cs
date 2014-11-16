@@ -25,16 +25,7 @@ namespace FastExcel
         {
             CheckFiles();
 
-            if (this.Archive == null)
-            {
-                Archive = ZipFile.Open(this.ExcelFile.FullName, ZipArchiveMode.Update);
-            }
-
-            // Get Strings file
-            if (this.SharedStrings == null)
-            {
-                this.SharedStrings = new SharedStrings(this.Archive);
-            }
+            PrepareArchive();
 
             // Open worksheet
             Worksheet worksheet = null;

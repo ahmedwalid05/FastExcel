@@ -18,26 +18,50 @@ namespace FastExcel
         private ZipArchive Archive { get; set; }
         private bool UpdateExisting { get; set; }
 
+        public bool ReadOnly { get; private set; }
+
         /// <summary>
         /// Update an existing excel file
         /// </summary>
         /// <param name="excelFile">location of an existing excel file</param>
-        public FastExcel(FileInfo excelFile) : this(null, excelFile, true) {}
+        public FastExcel(FileInfo excelFile, bool readOnly = false) : this(null, excelFile, true, readOnly) {}
         
         /// <summary>
         /// Create a new excel file from a template
         /// </summary>
         /// <param name="templateFile">template location</param>
         /// <param name="excelFile">location of where a new excel file will be saved to</param>
-        public FastExcel(FileInfo templateFile, FileInfo excelFile) :this(templateFile, excelFile, false) {}
+        public FastExcel(FileInfo templateFile, FileInfo excelFile) :this(templateFile, excelFile, false, false) {}
 
-        private FastExcel(FileInfo templateFile, FileInfo excelFile, bool updateExisting)
+        private FastExcel(FileInfo templateFile, FileInfo excelFile, bool updateExisting, bool readOnly = false)
         {
             this.TemplateFile = templateFile;
             this.ExcelFile = excelFile;
             this.UpdateExisting = updateExisting;
+            this.ReadOnly = readOnly;
 
             CheckFiles();
+        }
+
+        private void PrepareArchive()
+        {
+            if (this.Archive == null)
+            {
+                if (this.ReadOnly)
+                {
+                    Archive = ZipFile.Open(this.ExcelFile.FullName, ZipArchiveMode.Read);
+                }
+                else
+                {
+                    Archive = ZipFile.Open(this.ExcelFile.FullName, ZipArchiveMode.Update);
+                }
+            }
+
+            // Get Strings file
+            if (this.SharedStrings == null)
+            {
+                this.SharedStrings = new SharedStrings(this.Archive);
+            }
         }
 
         /// <summary>
@@ -179,21 +203,24 @@ namespace FastExcel
                 return;
             }
 
-            bool ensureSharedStrings = false;
-
-            // Update or create xl/sharedStrings.xml file
-            if (this.SharedStrings != null)
+            if (this.Archive.Mode != ZipArchiveMode.Read)
             {
-                ensureSharedStrings = this.SharedStrings.PendingChanges;
-                this.SharedStrings.Write();
-            }
+                bool ensureSharedStrings = false;
 
-            if (ensureSharedStrings)
-            {
-                // Update xl/_rels/workbook.xml.rels file
-                UpdateRelations();
-                // Update [Content_Types].xml file
-                UpdateContentTypes();
+                // Update or create xl/sharedStrings.xml file
+                if (this.SharedStrings != null)
+                {
+                    ensureSharedStrings = this.SharedStrings.PendingChanges;
+                    this.SharedStrings.Write();
+                }
+
+                if (ensureSharedStrings)
+                {
+                    // Update xl/_rels/workbook.xml.rels file
+                    UpdateRelations();
+                    // Update [Content_Types].xml file
+                    UpdateContentTypes();
+                }
             }
 
             this.Archive.Dispose();

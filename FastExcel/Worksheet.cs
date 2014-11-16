@@ -221,6 +221,11 @@ namespace FastExcel
 
         internal void Write(DataSet data)
         {
+            if (this.Archive.Mode != ZipArchiveMode.Update)
+            {
+                throw new Exception("FastExcel is in ReadOnly mode so cannot perform a write");
+            }
+
             // Check if ExistingHeadingRows will be overridden by the dataset
             if (this.ExistingHeadingRows != 0 && data.Rows.Where(r => r.RowNumber <= this.ExistingHeadingRows).Any())
             {

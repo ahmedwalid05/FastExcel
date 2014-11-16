@@ -15,13 +15,25 @@ namespace FastExcel
 
         public DataSet() { }
 
-        public void PopulateRows<T>(IEnumerable<T> objects, bool usePropertiesAsHeadings = false)
+        public void PopulateRows<T>(IEnumerable<T> rows, int existingHeadingRows = 0, bool usePropertiesAsHeadings = false)
         {
-            int rowNumber = 1;
+            if ((rows.FirstOrDefault() as IEnumerable<object>) == null)
+            {
+                PopulateRowsFromObjects(rows, existingHeadingRows, usePropertiesAsHeadings);
+            }
+            else
+            {
+                PopulateRowsFromIEnumerable(rows as IEnumerable<IEnumerable<object>>, existingHeadingRows);
+            }
+        }
+
+        private void PopulateRowsFromObjects<T>(IEnumerable<T> rows, int existingHeadingRows = 0, bool usePropertiesAsHeadings = false)
+        {
+            int rowNumber = existingHeadingRows + 1;
 
             // Get all properties
             PropertyInfo[] properties = typeof(T).GetProperties();
-            List<Row> rows = new List<Row>();
+            List<Row> newRows = new List<Row>();
             
             if (usePropertiesAsHeadings)
             {
@@ -34,10 +46,10 @@ namespace FastExcel
 
                 Row headingRow = new Row(rowNumber++, headingCells);
 
-                rows.Add(headingRow);
+                newRows.Add(headingRow);
             }
 
-            foreach (T rowObject in objects)
+            foreach (T rowObject in rows)
             {
                 List<Cell> cells = new List<Cell>();
                 
@@ -56,10 +68,39 @@ namespace FastExcel
                 }
 
                 Row row = new Row(rowNumber++, cells);
-                rows.Add(row);
+                newRows.Add(row);
             }
 
-            this.Rows = rows;
+            this.Rows = newRows;
+        }
+
+        private void PopulateRowsFromIEnumerable(IEnumerable<IEnumerable<object>> rows, int existingHeadingRows = 0)
+        {
+            int rowNumber = existingHeadingRows + 1;
+            
+            List<Row> newRows = new List<Row>();
+
+            foreach (IEnumerable<object> rowOfObjects in rows)
+            {
+                List<Cell> cells = new List<Cell>();
+
+                int columnNumber = 1;
+
+                foreach (object value in rowOfObjects)
+                {
+                    if (value != null)
+                    {
+                        Cell cell = new Cell(columnNumber, value);
+                        cells.Add(cell);
+                    }
+                    columnNumber++;
+                }
+
+                Row row = new Row(rowNumber++, cells);
+                newRows.Add(row);
+            }
+
+            this.Rows = newRows;
         }
 
         public void AddRow(params object[] cellValues)
