@@ -52,7 +52,7 @@ namespace FastExcelDemo
             FastExcelWrite2DimensionArrayDemo(outputFile);
 
             FastExcelMergeDemo(outputFile);
-
+              
             FastExcelReadDemo(outputFile);
             FastExcelReadDemo2(outputFile);
 
@@ -242,10 +242,10 @@ namespace FastExcelDemo
             // Open excel file using read only is much faster, but you cannot perfrom any writes
             using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile, true))
             {
-                Console.WriteLine("Reading data (Read Only Access)...");
+                Console.WriteLine("Reading data (Read Only Access) still needs enumerating...");
                 DataSet dataSet = fastExcel.Read("sheet1", 1);
             }
-
+            
             Console.WriteLine(string.Format("Reading data took {0} seconds", stopwatch.Elapsed.TotalSeconds));
         }
 
@@ -259,7 +259,7 @@ namespace FastExcelDemo
             // Open excel file using read/write is slower, but you can also perform writes
             using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile, false))
             {
-                Console.WriteLine("Reading data (Read/Write Access)...");
+                Console.WriteLine("Reading data (Read/Write Access) still needs enumerating...");
                 DataSet dataSet = fastExcel.Read("sheet1", 1);
             }
 

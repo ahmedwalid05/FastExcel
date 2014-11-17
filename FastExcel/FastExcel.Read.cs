@@ -44,7 +44,7 @@ namespace FastExcel
 
             worksheet.ExistingHeadingRows = existingHeadingRows;
 
-            //Write Data
+            //Read Data
             return worksheet.Read();
         }
     }

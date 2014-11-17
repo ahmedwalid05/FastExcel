@@ -180,26 +180,25 @@ namespace FastExcel
             }
 
             // Merge rows
-            List<Row> outputList = new List<Row>();
-            foreach (var row in this.Rows.Union(data.Rows).GroupBy(r => r.RowNumber))
+            data.Rows = MergeRows(data.Rows);
+        }
+
+        private IEnumerable<Row> MergeRows(IEnumerable<Row> rows)
+        {
+            foreach (var row in this.Rows.Union(rows).GroupBy(r => r.RowNumber))
             {
                 int count = row.Count();
                 if (count == 1)
                 {
-                    outputList.Add(row.First());
+                    yield return row.First();
                 }
                 else
                 {
                     row.First().Merge(row.Skip(1).First());
 
-                    outputList.Add(row.First());
+                    yield return row.First();
                 }
             }
-
-            // Sort
-            this.Rows = (from r in outputList
-                        orderby r.RowNumber
-                        select r);
         }
     }
 }

@@ -38,22 +38,23 @@ namespace FastExcel
             {
                 throw new Exception("Row Number not found", ex);
             }
-
-            List<Cell> cells = new List<Cell>();
-            
+                        
             if (rowElement.HasElements)
             {
-                foreach (XElement cellElement in rowElement.Elements())
+                this.Cells = GetCells(rowElement, sharedStrings);
+            }
+        }
+
+        private IEnumerable<Cell> GetCells(XElement rowElement, SharedStrings sharedStrings)
+        {
+            foreach (XElement cellElement in rowElement.Elements())
+            {
+                Cell cell = new Cell(cellElement, sharedStrings);
+                if (cell.Value != null)
                 {
-                    Cell cell = new Cell(cellElement, sharedStrings);
-                    if (cell.Value != null)
-                    {
-                        cells.Add(cell);
-                    }
+                    yield return cell;
                 }
             }
-
-            this.Cells = cells;
         }
 
         internal StringBuilder ToXmlString(SharedStrings sharedStrings)

@@ -265,43 +265,47 @@ namespace FastExcel
         internal DataSet Read()
         {
             DataSet dataSet = new DataSet();
-            List<Row> rows = new List<Row>();
-            List<string> headings = new List<string>();
+            IEnumerable<Row> rows = null;
 
+            List<string> headings = new List<string>();
             using (Stream stream = this.Archive.GetEntry(this.FileName).Open())
             {
                 XDocument document = XDocument.Load(stream);
+                int skipRows = 0;
 
-                var rowElements = document.Descendants().Where(d => d.Name.LocalName == "row");
-
-                foreach (var rowElement in rowElements)
+                Row possibleHeadingRow = new Row(document.Descendants().Where(d => d.Name.LocalName == "row").FirstOrDefault(), this.SharedStrings);
+                if (this.ExistingHeadingRows == 1 && possibleHeadingRow.RowNumber == 1)
                 {
-                    Row row = new Row(rowElement, this.SharedStrings);
-                    if (this.ExistingHeadingRows == 1 && row.RowNumber == 1)
+                    foreach (Cell headerCell in possibleHeadingRow.Cells)
                     {
-                        foreach (Cell headerCell in row.Cells)
-                        {
-                            headings.Add(headerCell.Value.ToString());
-                        }
-                    }
-                    else if (row.Cells.Any())
-                    {
-                        rows.Add(row);
+                        headings.Add(headerCell.Value.ToString());
                     }
                 }
+                rows = GetRows(document.Descendants().Where(d => d.Name.LocalName == "row").Skip(skipRows));
             }
 
             dataSet.Headings = headings;
+
             dataSet.Rows = rows;
 
             return dataSet;
         }
 
+        private IEnumerable<Row> GetRows(IEnumerable<XElement> rowElements)
+        {
+            foreach (var rowElement in rowElements)
+            {
+                yield return new Row(rowElement, this.SharedStrings);
+            }
+        }
+
         internal void Update(DataSet data)
         {
             DataSet currentData = this.Read();
+            this.SharedStrings.ReadWriteMode = true;
             currentData.Merge(data);
             this.Write(currentData);
+            this.SharedStrings.ReadWriteMode = false;
         }
 
         private List<string> GetHeadings(string lineBuffer, out bool headingsComplete, out bool rowsComplete, out string newLineBuffer)
@@ -365,6 +369,5 @@ namespace FastExcel
             newLineBuffer = lineBuffer;
             return headings;
         }
-
     }
 }

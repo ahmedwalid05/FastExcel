@@ -16,12 +16,14 @@ namespace FastExcel
     {
         //A dictionary is a lot faster than a list
         private Dictionary<string, int> StringDictionary { get; set; }
-        private string[] StringArray { get; set; }
+        private Dictionary<int, string> StringArray { get; set; }
 
         private bool SharedStringsExists { get; set; }
         private ZipArchive ZipArchive { get; set; }
 
         public bool PendingChanges { get; private set; }
+
+        public bool ReadWriteMode { get; set; }
 
         internal SharedStrings(ZipArchive archive)
         {
@@ -63,15 +65,23 @@ namespace FastExcel
         {
             if (this.StringDictionary.ContainsKey(stringValue))
             {
-                // Clear String Array used for retrieval
-                this.StringArray = null;
-
                 return this.StringDictionary[stringValue];
             }
             else
             {
                 this.PendingChanges = true;
                 this.StringDictionary.Add(stringValue, this.StringDictionary.Count);
+
+                // Clear String Array used for retrieval
+                if (this.ReadWriteMode && this.StringArray != null)
+                {
+                    this.StringArray.Add(this.StringDictionary.Count - 1, stringValue);
+                }
+                else
+                {
+                    this.StringArray = null;
+                }
+
                 return this.StringDictionary.Count - 1;
             }
         }
@@ -127,7 +137,7 @@ namespace FastExcel
             int pos = 0;
             if (int.TryParse(position, out pos))
             {
-                return GetString(pos);
+                return GetString(pos + 1);
             }
             else
             {
@@ -140,7 +150,7 @@ namespace FastExcel
         {
             if (this.StringArray == null)
             {
-                this.StringArray = this.StringDictionary.Select(kv => kv.Key).ToArray();
+                this.StringArray = this.StringDictionary.ToDictionary(kv => kv.Value, kv => kv.Key);
             }
 
             return this.StringArray[position - 1];
