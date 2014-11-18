@@ -111,11 +111,11 @@ namespace FastExcel
             Worksheet worksheet = null;
             if (sheetNumber.HasValue)
             {
-                worksheet = new Worksheet(this.Archive, SharedStrings, sheetNumber.Value);
+                worksheet = new Worksheet(this, SharedStrings, sheetNumber.Value);
             }
             else if (!string.IsNullOrEmpty(sheetName))
             {
-                worksheet = new Worksheet(this.Archive, SharedStrings, sheetName);
+                worksheet = new Worksheet(this, SharedStrings, sheetName);
             }
             else
             {

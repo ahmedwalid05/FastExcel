@@ -13,12 +13,19 @@ namespace FastExcel
     {
         public FileInfo ExcelFile { get; private set; }
         public FileInfo TemplateFile { get; private set; }
+        public bool ReadOnly { get; private set; }
+        public bool CacheWorksheetReferences { get; set; }
 
         private SharedStrings SharedStrings { get; set; }
-        private ZipArchive Archive { get; set; }
+        internal ZipArchive Archive { get; set; }
         private bool UpdateExisting { get; set; }
 
-        public bool ReadOnly { get; private set; }
+        /// <summary>
+        /// int is the index of the worksheet
+        /// bool - true: add a sheet with this file name // TODO extend so you can give a new sheet a name
+        /// bool - false: delete a sheet with this file name
+        /// </summary>
+        private Dictionary<int, bool> WorksheetReferenceUpdates { get; set; }
 
         /// <summary>
         /// Update an existing excel file
@@ -43,7 +50,7 @@ namespace FastExcel
             CheckFiles();
         }
 
-        private void PrepareArchive()
+        private void PrepareArchive(bool openSharedStrings = true)
         {
             if (this.Archive == null)
             {
@@ -58,7 +65,7 @@ namespace FastExcel
             }
 
             // Get Strings file
-            if (this.SharedStrings == null)
+            if (this.SharedStrings == null && openSharedStrings)
             {
                 this.SharedStrings = new SharedStrings(this.Archive);
             }
@@ -108,9 +115,13 @@ namespace FastExcel
         /// <summary>
         /// Update xl/_rels/workbook.xml.rels file
         /// </summary>
-        private void UpdateRelations()
+        private void UpdateRelations(bool ensureStrings)
         {
-            //I'm keeping UpdateRelations in this class because it might need to update more than shared strings eventually
+            if (!(ensureStrings || (this.WorksheetReferenceUpdates != null && this.WorksheetReferenceUpdates.Any())))
+            {
+                // Nothing to update
+                return;
+            }
 
             using (Stream stream = this.Archive.GetEntry("xl/_rels/workbook.xml.rels").Open())
             {
@@ -120,26 +131,184 @@ namespace FastExcel
                 {
                     //TODO error
                 }
+                bool update = false;
 
                 List<XElement> relationshipElements = document.Descendants().Where(d => d.Name.LocalName == "Relationship").ToList();
+                if (ensureStrings)
+                {
+                    //Ensure SharedStrings
+                    XElement relationshipElement = (from element in relationshipElements
+                                                    from attribute in element.Attributes()
+                                                    where attribute.Name == "Target" && attribute.Value.Equals("sharedStrings.xml", StringComparison.InvariantCultureIgnoreCase)
+                                                    select element).FirstOrDefault();
+
+                    if (relationshipElement == null)
+                    {
+                        relationshipElement = new XElement(document.Root.GetDefaultNamespace() + "Relationship");
+                        relationshipElement.Add(new XAttribute("Target", "sharedStrings.xml"));
+                        relationshipElement.Add(new XAttribute("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings"));
+                        relationshipElement.Add(new XAttribute("Id", string.Format("rId{0}", relationshipElements.Count + 1)));
+
+                        document.Root.Add(relationshipElement);
+                        update = true;
+                    }
+                }
+                if (this.WorksheetReferenceUpdates != null && this.WorksheetReferenceUpdates.Any())
+                {
+                    foreach (var item in this.WorksheetReferenceUpdates)
+                    {
+                        if (!item.Value)
+                        {
+                            string fileName = string.Format("worksheets/sheet{0}.xml", item.Key);
+
+                            XElement relationshipElement = (from element in relationshipElements
+                                                        from attribute in element.Attributes()
+                                                        where attribute.Name == "Target" && attribute.Value == fileName
+                                                        select element).FirstOrDefault();
+                            if (relationshipElement != null)
+                            {
+                                relationshipElement.Remove();
+                                update = true;
+                            }
+                        }
+                    }
+                }
+
+                if (update)
+                {
+                    // Set the stream to the start
+                    stream.Position = 0;
+                    // Clear the stream
+                    stream.SetLength(0);
+
+                    // Open the stream so we can override all content of the sheet
+                    StreamWriter streamWriter = new StreamWriter(stream, Encoding.UTF8);
+                    document.Save(streamWriter);
+                    streamWriter.Flush();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Update [Content_Types].xml file
+        /// </summary>
+        private void UpdateContentTypes(bool ensureStrings)
+        {
+            if (!(ensureStrings || (this.WorksheetReferenceUpdates != null && this.WorksheetReferenceUpdates.Any())))
+            {
+                // Nothing to update
+                return;
+            }
+
+            using (Stream stream = this.Archive.GetEntry("[Content_Types].xml").Open())
+            {
+                XDocument document = XDocument.Load(stream);
+
+                if (document == null)
+                {
+                    //TODO error
+                }
+                bool update = false;
+                List<XElement> overrideElements = document.Descendants().Where(d => d.Name.LocalName == "Override").ToList();
 
                 //Ensure SharedStrings
-                XElement relationshipElement = (from element in relationshipElements
+                if (ensureStrings)
+                {
+                    XElement overrideElement = (from element in overrideElements
                                                 from attribute in element.Attributes()
-                                                where attribute.Name == "Target" && attribute.Value.Equals("sharedStrings.xml", StringComparison.InvariantCultureIgnoreCase)
+                                                where attribute.Name == "PartName" && attribute.Value.Equals("/xl/sharedStrings.xml", StringComparison.InvariantCultureIgnoreCase)
                                                 select element).FirstOrDefault();
 
-                if (relationshipElement == null)
+                    if (overrideElement == null)
+                    {
+                        overrideElement = new XElement(document.Root.GetDefaultNamespace() + "Override");
+                        overrideElement.Add(new XAttribute("ContentType", "application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"));
+                        overrideElement.Add(new XAttribute("PartName", "/xl/sharedStrings.xml"));
+
+                        document.Root.Add(overrideElement);
+                        update = true;
+                    }
+                }
+                if (this.WorksheetReferenceUpdates != null && this.WorksheetReferenceUpdates.Any())
                 {
-                    relationshipElement = new XElement(document.Root.GetDefaultNamespace() + "Relationship");
-                    relationshipElement.Add(new XAttribute("Target", "sharedStrings.xml"));
-                    relationshipElement.Add(new XAttribute("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings"));
-                    relationshipElement.Add(new XAttribute("Id", string.Format("rId{0}", relationshipElements.Count + 1)));
+                    foreach (var item in this.WorksheetReferenceUpdates)
+                    {
+                        if (!item.Value)
+                        {
+                            // TODO resuse filename saved on worksheet
+                            string fileName = string.Format("/xl/worksheets/sheet{0}.xml", item.Key);
 
-                    document.Root.Add(relationshipElement);
+                            XElement overrideElement = (from element in overrideElements
+                                                        from attribute in element.Attributes()
+                                                        where attribute.Name == "PartName" && attribute.Value == fileName
+                                                        select element).FirstOrDefault();
+                            if (overrideElement != null)
+                            {
+                                overrideElement.Remove();
+                                update = true;
+                            }
+                        }
+                    }
+                }
+                if (update)
+                {
+                    // Set the stream to the start
+                    stream.Position = 0;
+                    // Clear the stream
+                    stream.SetLength(0);
+                    
+                    // Open the stream so we can override all content of the sheet
+                    StreamWriter streamWriter = new StreamWriter(stream, Encoding.UTF8);
+                    document.Save(streamWriter);
+                    streamWriter.Flush();
+                }
+            }
+        }
+        
+        /// <summary>
+        /// Update xl/workbook.xml file
+        /// </summary>
+        private void UpdateWorkbook()
+        {
+            if (this.WorksheetReferenceUpdates == null || !this.WorksheetReferenceUpdates.Any())
+            {
+                // Nothing to update
+                return;
+            }
 
+            using (Stream stream = this.Archive.GetEntry("xl/workbook.xml").Open())
+            {
+                XDocument document = XDocument.Load(stream);
+
+                if (document == null)
+                {
+                    throw new Exception("Unable to load workbook.xml");
+                }
+                bool update = false;
+
+                foreach (var item in this.WorksheetReferenceUpdates)
+	            {
+                    if (!item.Value)
+                    {
+		                XElement sheetElement = (from sheet in document.Descendants()
+                                                 where sheet.Name.LocalName == "sheet"
+                                                 from attribute in sheet.Attributes()
+                                                 where attribute.Name == "sheetId" && attribute.Value == item.Key.ToString()
+                                                 select sheet).FirstOrDefault();
+                        if (sheetElement != null)
+                        {
+                            sheetElement.Remove();
+                            update = true;
+                        }
+                    }
+	            }
+
+                if (update)
+                {
                     //Set the stream to the start
                     stream.Position = 0;
+                    // Clear the stream
+                    stream.SetLength(0);
 
                     // Open the stream so we can override all content of the sheet
                     StreamWriter streamWriter = new StreamWriter(stream);
@@ -150,49 +319,67 @@ namespace FastExcel
         }
 
         /// <summary>
-        /// Update [Content_Types].xml file
+        /// Get worksheet file name from xl/workbook.xml
         /// </summary>
-        private void UpdateContentTypes()
+        internal Tuple<int, int, string, string> GetWorksheetName(int? sheetNumber = null, string sheetName = null)
         {
-            //I'm keeping UpdateContentTypes in this class because it might need to update more than shared strings eventually
+            string fileName = null;
+            int sheetIndex = 0;
 
-            using (Stream stream = this.Archive.GetEntry("[Content_Types].xml").Open())
+            // TODO: May be able to speed up by only loading the sheets element
+            using (Stream stream = this.Archive.GetEntry("xl/workbook.xml").Open())
             {
                 XDocument document = XDocument.Load(stream);
 
                 if (document == null)
                 {
-                    //TODO error
+                    throw new Exception("Unable to load workbook.xml");
                 }
 
-                List<XElement> overrideElements = document.Descendants().Where(d => d.Name.LocalName == "Override").ToList();
+                List<XElement> sheetsElements = document.Descendants().Where(d => d.Name.LocalName == "sheet").ToList();
 
-                //Ensure SharedStrings
-                XElement overrideElement = (from element in overrideElements
-                                                from attribute in element.Attributes()
-                                            where attribute.Name == "PartName" && attribute.Value.Equals("/xl/sharedStrings.xml", StringComparison.InvariantCultureIgnoreCase)
-                                                select element).FirstOrDefault();
+                XElement sheetElement = null;
 
-                if (overrideElement == null)
+                if (sheetNumber.HasValue)
                 {
-                    overrideElement = new XElement(document.Root.GetDefaultNamespace() + "Override");
-                    overrideElement.Add(new XAttribute("ContentType", "application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"));
-                    overrideElement.Add(new XAttribute("PartName", "/xl/sharedStrings.xml"));
-
-                    document.Root.Add(overrideElement);
-                    //stream.Position = 0;
-
-                    //Set the stream to the start
-                    stream.Position = 0;
-
-                    // Open the stream so we can override all content of the sheet
-                    StreamWriter streamWriter = new StreamWriter(stream);
-                    document.Save(streamWriter);
-                    streamWriter.Flush();
+                    if (sheetNumber.Value <= sheetsElements.Count)
+                    {
+                        sheetElement = sheetsElements[sheetNumber.Value - 1];
+                    }
+                    else
+                    {
+                        throw new Exception(string.Format("There is no sheet at index '{0}'", sheetNumber));
+                    }
                 }
+                else if (!string.IsNullOrEmpty(sheetName))
+                {
+                    sheetElement = (from sheet in sheetsElements
+                                    from attribute in sheet.Attributes()
+                                    where attribute.Name == "name" && attribute.Value.Equals(sheetName, StringComparison.InvariantCultureIgnoreCase)
+                                    select sheet).FirstOrDefault();
+
+                    if (sheetElement == null)
+                    {
+                        throw new Exception(string.Format("There is no sheet named '{0}'", sheetName));
+                    }
+                }
+
+                sheetIndex = (from attribute in sheetElement.Attributes()
+                          where attribute.Name == "sheetId"
+                          select int.Parse(attribute.Value)).FirstOrDefault();
+
+                fileName = string.Format("xl/worksheets/sheet{0}.xml", sheetIndex);
             }
+
+            if (string.IsNullOrEmpty(fileName))
+            {
+                throw new Exception("Unable to resolve internal sheet name");
+            }
+
+            return new Tuple<int, int, string, string>((sheetNumber ?? 0), sheetIndex, sheetName, fileName); ;
         }
-        
+
+
         /// <summary>
         /// Saves any pending changes to the Excel stream and adds/updates associated files if needed
         /// </summary>
@@ -220,13 +407,12 @@ namespace FastExcel
                     this.SharedStrings.Write();
                 }
 
-                if (ensureSharedStrings)
-                {
-                    // Update xl/_rels/workbook.xml.rels file
-                    UpdateRelations();
-                    // Update [Content_Types].xml file
-                    UpdateContentTypes();
-                }
+                // Update xl/_rels/workbook.xml.rels file
+                UpdateRelations(ensureSharedStrings);
+                // Update [Content_Types].xml file
+                UpdateContentTypes(ensureSharedStrings);
+                // Update xl/workbook.xml file
+                UpdateWorkbook();
             }
 
             this.Archive.Dispose();

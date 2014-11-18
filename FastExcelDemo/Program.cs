@@ -56,6 +56,8 @@ namespace FastExcelDemo
             FastExcelReadDemo(outputFile);
             FastExcelReadDemo2(outputFile);
 
+            //FastExcelDeleteWorkSheet(outputFile);
+
             if (EPPlusTest)
             {
                 EPPlusDemo(templateFile, epplusOutputFile);
@@ -277,6 +279,15 @@ namespace FastExcelDemo
             public double DoubleColumn6 { get; set; }
             public string StringColumn7 { get; set; }
             public string ObjectColumn8 { get; set; }
+        }
+
+
+        private void FastExcelDeleteWorkSheet(FileInfo outputFile)
+        {
+            using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(outputFile))
+            {
+                fastExcel.Delete(1);
+            }
         }
 
         private void EPPlusDemo(FileInfo templateFile, FileInfo epplusOutputFile)

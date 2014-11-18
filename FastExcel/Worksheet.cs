@@ -11,84 +11,38 @@ namespace FastExcel
 {
     public class Worksheet
     {
-        private ZipArchive Archive { get; set; }
-        private string FileName { get; set; }
+        private FastExcel FastExcel { get; set; }
+        
         private SharedStrings SharedStrings { get; set; }
         public int ExistingHeadingRows { get; set; }
 
-        public Worksheet(ZipArchive archive, SharedStrings sharedStrings, int sheetNumber)
+        internal int Index { get; set; }
+        internal int Number { get; set; }
+        public string Name { get; set; }
+        internal string FileName { get; set; }
+
+        public Worksheet(FastExcel fastExcel, SharedStrings sharedStrings, int sheetNumber) : this(fastExcel, sharedStrings, sheetNumber, null){}
+
+        public Worksheet(FastExcel fastExcel, SharedStrings sharedStrings, string sheetName) : this(fastExcel, sharedStrings, null, sheetName){}
+
+        private Worksheet(FastExcel fastExcel, SharedStrings sharedStrings, int? sheetNumber = null, string sheetName = null)
         {
-            this.Archive = archive;
+            this.FastExcel = fastExcel;
             this.SharedStrings = sharedStrings;
-            this.FileName = GetWorksheetName(sheetNumber, null);
+            Tuple<int, int, string, string> worksheetProperties = this.FastExcel.GetWorksheetName(sheetNumber, sheetName);
+            this.Index = worksheetProperties.Item1;
+            this.Number = worksheetProperties.Item2;
+            this.Name = worksheetProperties.Item3;
+            this.FileName = worksheetProperties.Item4;
             this.ExistingHeadingRows = 0;
         }
 
-        public Worksheet(ZipArchive archive, SharedStrings sharedStrings, string sheetName)
+        public bool Exists
         {
-            this.Archive = archive;
-            this.SharedStrings = sharedStrings;
-            this.FileName = GetWorksheetName(null, sheetName);
-            this.ExistingHeadingRows = 0;
-        }
-
-        /// <summary>
-        /// Get worksheet file name from xl/workbook.xml
-        /// </summary>
-        private string GetWorksheetName(int? sheetNumber = null, string sheetName = null)
-        {
-            string result = null;
-
-            // TODO: May be able to speed up by only loading the sheets element
-            using (Stream stream = this.Archive.GetEntry("xl/workbook.xml").Open())
+            get
             {
-                XDocument document = XDocument.Load(stream);
-
-                if (document == null)
-                {
-                    throw new Exception("Unable to load workbook.xml");
-                }
-
-                List<XElement> sheetsElements = document.Descendants().Where(d => d.Name.LocalName == "sheet").ToList();
-
-                XElement sheetElement = null;
-
-                if (sheetNumber.HasValue)
-                {
-                    if (sheetNumber.Value <= sheetsElements.Count)
-                    {
-                        sheetElement = sheetsElements[sheetNumber.Value - 1];
-                    }
-                    else
-                    {
-                        throw new Exception(string.Format("There is no sheet at index '{0}'", sheetNumber));
-                    }
-                }
-                else if (!string.IsNullOrEmpty(sheetName))
-                {
-                    sheetElement = (from sheet in sheetsElements
-                                    from attribute in sheet.Attributes()
-                                    where attribute.Name == "name" && attribute.Value.Equals(sheetName, StringComparison.InvariantCultureIgnoreCase)
-                                    select sheet).FirstOrDefault();
-
-                    if (sheetElement == null)
-                    {
-                        throw new Exception(string.Format("There is no sheet named '{0}'", sheetName));
-                    }
-                }
-
-                result = (from attribute in sheetElement.Attributes()
-                            where attribute.Name == "sheetId"
-                            select string.Format("xl/worksheets/sheet{0}.xml", attribute.Value)).FirstOrDefault();
-                
+                return !string.IsNullOrEmpty(this.FileName);
             }
-
-            if (string.IsNullOrEmpty(result))
-            {
-                throw new Exception("Unable to resolve internal sheet name");
-            }
-
-            return result;
         }
 
         /// <summary>
@@ -221,7 +175,7 @@ namespace FastExcel
 
         internal void Write(DataSet data)
         {
-            if (this.Archive.Mode != ZipArchiveMode.Update)
+            if (this.FastExcel.Archive.Mode != ZipArchiveMode.Update)
             {
                 throw new Exception("FastExcel is in ReadOnly mode so cannot perform a write");
             }
@@ -232,7 +186,7 @@ namespace FastExcel
                 throw new Exception("Existing Heading Rows was specified but some or all will be overridden by data rows. Check DataSet.Row.RowNumber against ExistingHeadingRows");
             }
 
-            using (Stream stream = this.Archive.GetEntry(this.FileName).Open())
+            using (Stream stream = this.FastExcel.Archive.GetEntry(this.FileName).Open())
             {
                 StringBuilder worksheetHeaders = null;
                 StringBuilder worksheetFooters = null;
@@ -268,7 +222,7 @@ namespace FastExcel
             IEnumerable<Row> rows = null;
 
             List<string> headings = new List<string>();
-            using (Stream stream = this.Archive.GetEntry(this.FileName).Open())
+            using (Stream stream = this.FastExcel.Archive.GetEntry(this.FileName).Open())
             {
                 XDocument document = XDocument.Load(stream);
                 int skipRows = 0;
