@@ -11,44 +11,24 @@ namespace FastExcel
 {
     public partial class FastExcel
     {
-        public void Update(DataSet data, int sheetNumber)
+        public void Update(Worksheet data, int sheetNumber)
         {
             this.Update(data, sheetNumber, null);
         }
 
-        public void Update(DataSet data, string sheetName)
+        public void Update(Worksheet data, string sheetName)
         {
             this.Update(data, null, sheetName);
         }
 
-        private void Update(DataSet data, int? sheetNumber = null, string sheetName = null)
+        private void Update(Worksheet data, int? sheetNumber = null, string sheetName = null)
         {
             CheckFiles();
-
             PrepareArchive();
 
-            // Open worksheet
-            Worksheet worksheet = null;
-            if (sheetNumber.HasValue)
-            {
-                worksheet = new Worksheet(this, SharedStrings, sheetNumber.Value);
-            }
-            else if (!string.IsNullOrEmpty(sheetName))
-            {
-                worksheet = new Worksheet(this, SharedStrings, sheetName);
-            }
-            else
-            {
-                throw new Exception("No worksheet name or number was specified");
-            }
-
-            if (!worksheet.Exists)
-            {
-                throw new Exception("No worksheet was found with the name or number was specified");
-            }
-
-            //Update Data
-            worksheet.Update(data);
+            Worksheet currentData = this.Read(sheetNumber, sheetName);
+            currentData.Merge(data);
+            this.Write(currentData);
         }
     }
 }

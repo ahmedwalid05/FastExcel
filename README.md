@@ -43,8 +43,8 @@ This demo lets you specify exactly which cell you are writing to
 FileInfo templateFile = new FileInfo("Template.xlsx");
 FileInfo outputFile = new FileInfo("C:\\Temp\\output.xlsx");
 
-//Create a data set
-DataSet data = new DataSet();
+//Create a worksheet with some rows
+Worksheet worksheet = new Worksheet();
 List<Row> rows = new List<Row>();
 for (int rowNumber = 1; rowNumber < 100000; rowNumber++)
 {
@@ -58,14 +58,14 @@ for (int rowNumber = 1; rowNumber < 100000; rowNumber++)
  
     rows.Add(new Row(rowNumber, cells));
 }
-data.Rows = rows;
+worksheet.Rows = rows;
 
 
 // Create an instance of FastExcel
 using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(templateFile, outputFile))
 {
     // Write the data
-    fastExcel.Write(data, "sheet1");
+    fastExcel.Write(worksheet, "sheet1");
 }
 ```
 
@@ -75,14 +75,14 @@ using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(templateFile, out
 // Get the input file paths
 FileInfo inputFile = new FileInfo("C:\\Temp\\input.xlsx");
 
-//Create a data set
-DataSet data = null;
+//Create a worksheet
+DataSet worksheet = null;
 
 // Create an instance of Fast Excel
 using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile, true))
 {
     // Read the data
-    data = fastExcel.Read("sheet1");
+    worksheet = fastExcel.Read("sheet1");
 }
 ```
 
@@ -92,8 +92,8 @@ using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile, true))
 // Get the input file paths
 FileInfo inputFile = new FileInfo("C:\\Temp\\input.xlsx");
 
-//Create a data set
-DataSet data = new DataSet();
+//Create a some rows in a worksheet
+Worksheet worksheet = new Worksheet();
 List<Row> rows = new List<Row>();
                 
 for (int rowNumber = 1; rowNumber < NumberOfRecords; rowNumber+= 50)
@@ -107,12 +107,12 @@ for (int rowNumber = 1; rowNumber < NumberOfRecords; rowNumber+= 50)
 
     rows.Add(new Row(rowNumber, cells));
 }
-data.Rows = rows;
+worksheet.Rows = rows;
 
 // Create an instance of Fast Excel
 using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile))
 {
     // Read the data
-    data = fastExcel.Update("sheet1");
+    fastExcel.Update(worksheet, "sheet1");
 }
 ```

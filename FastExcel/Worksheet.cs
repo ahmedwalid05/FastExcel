@@ -1,42 +1,221 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO.Compression;
+using System.IO;
 using System.Xml.Linq;
 
 namespace FastExcel
 {
     public class Worksheet
     {
-        private FastExcel FastExcel { get; set; }
-        
-        private SharedStrings SharedStrings { get; set; }
-        public int ExistingHeadingRows { get; set; }
+        public IEnumerable<Row> Rows { get; set; }
+
+        public IEnumerable<string> Headings { get; set; }
 
         internal int Index { get; set; }
         internal int Number { get; set; }
         public string Name { get; set; }
         internal string FileName { get; set; }
 
-        public Worksheet(FastExcel fastExcel, SharedStrings sharedStrings, int sheetNumber) : this(fastExcel, sharedStrings, sheetNumber, null){}
+        public bool Template { get; set; }
 
-        public Worksheet(FastExcel fastExcel, SharedStrings sharedStrings, string sheetName) : this(fastExcel, sharedStrings, null, sheetName){}
+        internal string Headers { get; set; }
+        internal string Footers { get; set; }
 
-        private Worksheet(FastExcel fastExcel, SharedStrings sharedStrings, int? sheetNumber = null, string sheetName = null)
+        public int ExistingHeadingRows { get; set; }
+
+        public Worksheet() { }
+
+        public void PopulateRows<T>(IEnumerable<T> rows, int existingHeadingRows = 0, bool usePropertiesAsHeadings = false)
         {
-            this.FastExcel = fastExcel;
-            this.SharedStrings = sharedStrings;
-            Tuple<int, int, string, string> worksheetProperties = this.FastExcel.GetWorksheetName(sheetNumber, sheetName);
-            this.Index = worksheetProperties.Item1;
-            this.Number = worksheetProperties.Item2;
-            this.Name = worksheetProperties.Item3;
-            this.FileName = worksheetProperties.Item4;
-            this.ExistingHeadingRows = 0;
+            if ((rows.FirstOrDefault() as IEnumerable<object>) == null)
+            {
+                PopulateRowsFromObjects(rows, existingHeadingRows, usePropertiesAsHeadings);
+            }
+            else
+            {
+                PopulateRowsFromIEnumerable(rows as IEnumerable<IEnumerable<object>>, existingHeadingRows);
+            }
         }
 
+        private void PopulateRowsFromObjects<T>(IEnumerable<T> rows, int existingHeadingRows = 0, bool usePropertiesAsHeadings = false)
+        {
+            int rowNumber = existingHeadingRows + 1;
+
+            // Get all properties
+            PropertyInfo[] properties = typeof(T).GetProperties();
+            List<Row> newRows = new List<Row>();
+            
+            if (usePropertiesAsHeadings)
+            {
+                this.Headings = (from prop in properties
+                                 select prop.Name);
+
+                int headingColumnNumber = 1;
+                IEnumerable<Cell> headingCells = (from h in this.Headings
+                                                   select new Cell(headingColumnNumber++, h)).ToArray();
+
+                Row headingRow = new Row(rowNumber++, headingCells);
+
+                newRows.Add(headingRow);
+            }
+
+            foreach (T rowObject in rows)
+            {
+                List<Cell> cells = new List<Cell>();
+                
+                int columnNumber = 1;
+
+                // Get value from each property
+                foreach (PropertyInfo propertyInfo in properties)
+                {
+                    object value = propertyInfo.GetValue(rowObject, null);
+                    if(value != null)
+                    {
+                        Cell cell = new Cell(columnNumber, value);
+                        cells.Add(cell);
+                    }
+                    columnNumber++;
+                }
+
+                Row row = new Row(rowNumber++, cells);
+                newRows.Add(row);
+            }
+
+            this.Rows = newRows;
+        }
+
+        private void PopulateRowsFromIEnumerable(IEnumerable<IEnumerable<object>> rows, int existingHeadingRows = 0)
+        {
+            int rowNumber = existingHeadingRows + 1;
+            
+            List<Row> newRows = new List<Row>();
+
+            foreach (IEnumerable<object> rowOfObjects in rows)
+            {
+                List<Cell> cells = new List<Cell>();
+
+                int columnNumber = 1;
+
+                foreach (object value in rowOfObjects)
+                {
+                    if (value != null)
+                    {
+                        Cell cell = new Cell(columnNumber, value);
+                        cells.Add(cell);
+                    }
+                    columnNumber++;
+                }
+
+                Row row = new Row(rowNumber++, cells);
+                newRows.Add(row);
+            }
+
+            this.Rows = newRows;
+        }
+
+        public void AddRow(params object[] cellValues)
+        {
+            if (this.Rows == null)
+            {
+                this.Rows = new List<Row>();
+            }
+
+            List<Cell> cells = new List<Cell>();
+
+            int columnNumber = 1;
+            foreach (object value in cellValues)
+	        {
+                if (value != null)
+                {
+		            Cell cell = new Cell(columnNumber++, value);
+                    cells.Add(cell);
+                }
+                else
+                {
+                    columnNumber++;
+                }
+	        }
+
+            Row row = new Row(this.Rows.Count() + 1, cells);
+            (this.Rows as List<Row>).Add(row);
+        }
+
+        /// <summary>
+        /// Note: This method is slow
+        /// </summary>
+        public void AddValue(int rowNumber, int columnNumber, object value)
+        {
+            if (this.Rows == null)
+            {
+                this.Rows = new List<Row>();
+            }
+
+            Row row = (from r in this.Rows
+                       where r.RowNumber == rowNumber
+                       select r).FirstOrDefault();
+            Cell cell = null;
+
+            if (row == null)
+            {
+                cell = new Cell(columnNumber, value);
+                row = new Row(rowNumber, new List<Cell>{ cell });
+                (this.Rows as List<Row>).Add(row);
+            }
+
+            if (cell == null)
+            {
+                cell = (from c in row.Cells
+                        where c.ColumnNumber == columnNumber
+                        select c).FirstOrDefault();
+
+                if (cell == null)
+                {
+                    cell = new Cell(columnNumber, value);
+                    (row.Cells as List<Cell>).Add(cell);
+                }
+            }
+
+        }
+
+        /// <summary>
+        /// Merges the parameter into the current DatSet object, the parameter takes precedence
+        /// </summary>
+        /// <param name="data">A DataSet to merge</param>
+        public void Merge(Worksheet data)
+        {
+            // Merge headings
+            if (this.Headings == null || !this.Headings.Any())
+            {
+                this.Headings = data.Headings;
+            }
+
+            // Merge rows
+            data.Rows = MergeRows(data.Rows);
+        }
+
+        private IEnumerable<Row> MergeRows(IEnumerable<Row> rows)
+        {
+            foreach (var row in this.Rows.Union(rows).GroupBy(r => r.RowNumber))
+            {
+                int count = row.Count();
+                if (count == 1)
+                {
+                    yield return row.First();
+                }
+                else
+                {
+                    row.First().Merge(row.Skip(1).First());
+
+                    yield return row.First();
+                }
+            }
+        }
+        
         public bool Exists
         {
             get
@@ -46,282 +225,81 @@ namespace FastExcel
         }
 
         /// <summary>
-        /// Read the existing sheet and copy some of the existing content
+        /// Get worksheet file name from xl/workbook.xml
         /// </summary>
-        /// <param name="stream">Worksheet stream</param>
-        /// <param name="headers">Content at top of document</param>
-        /// <param name="footers">Content at bottom of document</param>
-        private void ReadHeadersAndFooters(StreamReader stream, out StringBuilder headers, out StringBuilder footers)
+        internal void GetWorksheetProperties(ZipArchive archive, int? sheetNumber = null, string sheetName = null)
         {
-            headers = new StringBuilder();
-            footers = new StringBuilder();
-            
-            bool headersComplete = false;
-            bool rowsComplete = false;
-
-            int existingHeadingRows = this.ExistingHeadingRows;
-
-            while (stream.Peek() >= 0)
+            //If filename has already been loaded then we can skip this function
+            if (!string.IsNullOrEmpty(this.FileName))
             {
-                string line = stream.ReadLine();
-                int currentLineIndex = 0;
-
-                if (!headersComplete)
-                {
-                    if (line.Contains("<sheetData/>"))
-                    {
-                        currentLineIndex = line.IndexOf("<sheetData/>");
-                        headers.Append(line.Substring(0, currentLineIndex));
-                        //remove the read section from line
-                        line = line.Substring(currentLineIndex, line.Length - currentLineIndex);
-
-                        headers.Append("<sheetData>");
-
-                        // Headers complete now skip any content and start footer
-                        headersComplete = true;
-                        footers = new StringBuilder();
-                        footers.Append("</sheetData>");
-
-                        //There is no rows
-                        rowsComplete = true;
-                    }
-                    else if (line.Contains("<sheetData>"))
-                    {
-                        currentLineIndex = line.IndexOf("<sheetData>");
-                        headers.Append(line.Substring(0, currentLineIndex));
-                        //remove the read section from line
-                        line = line.Substring(currentLineIndex, line.Length - currentLineIndex);
-
-                        headers.Append("<sheetData>");
-
-                        // Headers complete now skip any content and start footer
-                        headersComplete = true;
-                        footers = new StringBuilder();
-                        footers.Append("</sheetData>");
-                    }
-                    else
-                    {
-                        headers.Append(line);
-                    }
-                }
-
-                if (headersComplete && !rowsComplete)
-                {
-                    if (existingHeadingRows == 0)
-                    {
-                        rowsComplete = true;
-                    }
-
-                    if (!rowsComplete)
-                    {
-                        while (!string.IsNullOrEmpty(line) && existingHeadingRows != 0)
-                        {
-                            if (line.Contains("<row"))
-                            {
-                                if (line.Contains("</row>"))
-                                {
-                                    int index = line.IndexOf("<row");
-                                    currentLineIndex = line.IndexOf("</row>") + "</row>".Length;
-                                    headers.Append(line.Substring(index, currentLineIndex - index));
-
-                                    //remove the read section from line
-                                    line = line.Substring(currentLineIndex, line.Length - currentLineIndex);
-                                    existingHeadingRows--;
-                                }
-                                else
-                                {
-                                    int index = line.IndexOf("<row");
-                                    headers.Append(line.Substring(index, line.Length - index));
-                                    line = string.Empty;
-                                }
-                            }
-                            else if (line.Contains("</row>"))
-                            {
-                                currentLineIndex = line.IndexOf("</row>") + "</row>".Length;
-                                headers.Append(line.Substring(0, currentLineIndex));
-
-                                //remove the read section from line
-                                line = line.Substring(currentLineIndex, line.Length - currentLineIndex);
-                                existingHeadingRows--;
-                            }
-                        }
-                    }
-
-                    if (existingHeadingRows == 0)
-                    {
-                        rowsComplete = true;
-                    }
-                }
-
-                if (rowsComplete)
-                {
-                    if (line.Contains("</sheetData>"))
-                    {
-                        int index = line.IndexOf("</sheetData>") + "</sheetData>".Length;
-                        footers.Append(line.Substring(index, line.Length - index));
-                    }
-                    else if (line.Contains("<sheetData/>"))
-                    {
-                        int index = line.IndexOf("<sheetData/>") + "<sheetData/>".Length;
-                        footers.Append(line.Substring(index, line.Length - index));
-                    }
-                    else
-                    {
-                        footers.Append(line);
-                    }
-                }
-            }
-        }
-
-        internal void Write(DataSet data)
-        {
-            if (this.FastExcel.Archive.Mode != ZipArchiveMode.Update)
-            {
-                throw new Exception("FastExcel is in ReadOnly mode so cannot perform a write");
+                return;
             }
 
-            // Check if ExistingHeadingRows will be overridden by the dataset
-            if (this.ExistingHeadingRows != 0 && data.Rows.Where(r => r.RowNumber <= this.ExistingHeadingRows).Any())
+            if (!sheetNumber.HasValue && string.IsNullOrEmpty(sheetName))
             {
-                throw new Exception("Existing Heading Rows was specified but some or all will be overridden by data rows. Check DataSet.Row.RowNumber against ExistingHeadingRows");
+                throw new Exception("No worksheet name or number was specified");
             }
 
-            using (Stream stream = this.FastExcel.Archive.GetEntry(this.FileName).Open())
-            {
-                StringBuilder worksheetHeaders = null;
-                StringBuilder worksheetFooters = null;
-
-                // Open worksheet and read the data at the top and bottom of the sheet
-                StreamReader streamReader = new StreamReader(stream);
-                ReadHeadersAndFooters(streamReader, out worksheetHeaders, out worksheetFooters);
-
-                //Set the stream to the start
-                stream.Position = 0;
-
-                // Open the stream so we can override all content of the sheet
-                StreamWriter streamWriter = new StreamWriter(stream);
-
-                // TODO instead of saving the headers then writing them back get position where the headers finish then write from there
-                streamWriter.Write(worksheetHeaders);
-
-                // Add Rows
-                foreach (Row row in data.Rows)
-                {
-                    streamWriter.Write(row.ToXmlString(this.SharedStrings));
-                }
-
-                //Add Footers
-                streamWriter.Write(worksheetFooters);
-                streamWriter.Flush();
-            }
-        }
-
-        internal DataSet Read()
-        {
-            DataSet dataSet = new DataSet();
-            IEnumerable<Row> rows = null;
-
-            List<string> headings = new List<string>();
-            using (Stream stream = this.FastExcel.Archive.GetEntry(this.FileName).Open())
+            // TODO: May be able to speed up by only loading the sheets element
+            using (Stream stream = archive.GetEntry("xl/workbook.xml").Open())
             {
                 XDocument document = XDocument.Load(stream);
-                int skipRows = 0;
 
-                Row possibleHeadingRow = new Row(document.Descendants().Where(d => d.Name.LocalName == "row").FirstOrDefault(), this.SharedStrings);
-                if (this.ExistingHeadingRows == 1 && possibleHeadingRow.RowNumber == 1)
+                if (document == null)
                 {
-                    foreach (Cell headerCell in possibleHeadingRow.Cells)
-                    {
-                        headings.Add(headerCell.Value.ToString());
-                    }
+                    throw new Exception("Unable to load workbook.xml");
                 }
-                rows = GetRows(document.Descendants().Where(d => d.Name.LocalName == "row").Skip(skipRows));
-            }
 
-            dataSet.Headings = headings;
+                List<XElement> sheetsElements = document.Descendants().Where(d => d.Name.LocalName == "sheet").ToList();
 
-            dataSet.Rows = rows;
+                XElement sheetElement = null;
 
-            return dataSet;
-        }
-
-        private IEnumerable<Row> GetRows(IEnumerable<XElement> rowElements)
-        {
-            foreach (var rowElement in rowElements)
-            {
-                yield return new Row(rowElement, this.SharedStrings);
-            }
-        }
-
-        internal void Update(DataSet data)
-        {
-            DataSet currentData = this.Read();
-            this.SharedStrings.ReadWriteMode = true;
-            currentData.Merge(data);
-            this.Write(currentData);
-            this.SharedStrings.ReadWriteMode = false;
-        }
-
-        private List<string> GetHeadings(string lineBuffer, out bool headingsComplete, out bool rowsComplete, out string newLineBuffer)
-        {
-            List<string> headings = new List<string>();
-
-            headingsComplete = false;
-            rowsComplete = false;
-
-            while (!string.IsNullOrEmpty(lineBuffer))
-            {
-                if (lineBuffer.Contains("<row"))
+                if (sheetNumber.HasValue)
                 {
-                    if (lineBuffer.Contains("</row>"))
+                    if (sheetNumber.Value <= sheetsElements.Count)
                     {
-                        int index = lineBuffer.IndexOf("<row");
-                        int currentLineIndex = lineBuffer.IndexOf("</row>") + "</row>".Length;
-                        XElement rowElement = XElement.Parse(lineBuffer.Substring(index, currentLineIndex - index));
-                        bool isFirstRow = (from a in rowElement.Attributes("r")
-                                           where a.Value == "1"
-                                           select a).Any();
-
-                        if (rowElement.HasElements && isFirstRow)
-                        {
-                            foreach (XElement cell in rowElement.Elements())
-                            {
-                                bool isTextRow = (from a in cell.Attributes("t")
-                                                  where a.Value == "s"
-                                                  select a).Any();
-
-                                if (isTextRow)
-                                {
-                                    headings.Add(this.SharedStrings.GetString(cell.Value));
-                                }
-                                else
-                                {
-                                    headings.Add(cell.Value);
-                                }
-                            }
-                        }
-
-                        //remove the read section from line
-                        lineBuffer = lineBuffer.Substring(currentLineIndex, lineBuffer.Length - currentLineIndex);
-
-                        headingsComplete = true;
-                        break;
+                        sheetElement = sheetsElements[sheetNumber.Value - 1];
                     }
                     else
                     {
-                        // Keep reading
+                        throw new Exception(string.Format("There is no sheet at index '{0}'", sheetNumber));
                     }
                 }
-                else
+                else if (!string.IsNullOrEmpty(sheetName))
                 {
-                    headingsComplete = true;
-                    rowsComplete = true;
-                    break;
+                    sheetElement = (from sheet in sheetsElements
+                                    from attribute in sheet.Attributes()
+                                    where attribute.Name == "name" && attribute.Value.Equals(sheetName, StringComparison.InvariantCultureIgnoreCase)
+                                    select sheet).FirstOrDefault();
+
+                    if (sheetElement == null)
+                    {
+                        throw new Exception(string.Format("There is no sheet named '{0}'", sheetName));
+                    }
                 }
+
+                this.Index = (from attribute in sheetElement.Attributes()
+                              where attribute.Name == "sheetId"
+                              select int.Parse(attribute.Value)).FirstOrDefault();
+
+                this.FileName = string.Format("xl/worksheets/sheet{0}.xml", this.Index);
             }
 
-            newLineBuffer = lineBuffer;
-            return headings;
+            if (!this.Exists)
+            {
+                throw new Exception("No worksheet was found with the name or number was specified");
+            }
+
+            this.Number = (sheetNumber ?? 0);
+            this.Name = sheetName;
+        }
+
+        internal void ValidateNewWorksheet()
+        {
+            if (string.IsNullOrEmpty(this.Name))
+            {
+                // Calculate a new name for the worksheet
+            }
         }
     }
 }

@@ -21,11 +21,9 @@ namespace FastExcel
         private bool UpdateExisting { get; set; }
 
         /// <summary>
-        /// int is the index of the worksheet
-        /// bool - true: add a sheet with this file name // TODO extend so you can give a new sheet a name
-        /// bool - false: delete a sheet with this file name
+        /// A list of worksheet indexs to delete
         /// </summary>
-        private Dictionary<int, bool> WorksheetReferenceUpdates { get; set; }
+        private List<int> DeleteWorksheets { get; set; }
 
         /// <summary>
         /// Update an existing excel file
@@ -117,7 +115,7 @@ namespace FastExcel
         /// </summary>
         private void UpdateRelations(bool ensureStrings)
         {
-            if (!(ensureStrings || (this.WorksheetReferenceUpdates != null && this.WorksheetReferenceUpdates.Any())))
+            if (!(ensureStrings || (this.DeleteWorksheets != null && this.DeleteWorksheets.Any())))
             {
                 // Nothing to update
                 return;
@@ -153,23 +151,20 @@ namespace FastExcel
                         update = true;
                     }
                 }
-                if (this.WorksheetReferenceUpdates != null && this.WorksheetReferenceUpdates.Any())
+                if (this.DeleteWorksheets != null && this.DeleteWorksheets.Any())
                 {
-                    foreach (var item in this.WorksheetReferenceUpdates)
+                    foreach (var item in this.DeleteWorksheets)
                     {
-                        if (!item.Value)
-                        {
-                            string fileName = string.Format("worksheets/sheet{0}.xml", item.Key);
+                        string fileName = string.Format("worksheets/sheet{0}.xml", item);
 
-                            XElement relationshipElement = (from element in relationshipElements
+                        XElement relationshipElement = (from element in relationshipElements
                                                         from attribute in element.Attributes()
                                                         where attribute.Name == "Target" && attribute.Value == fileName
                                                         select element).FirstOrDefault();
-                            if (relationshipElement != null)
-                            {
-                                relationshipElement.Remove();
-                                update = true;
-                            }
+                        if (relationshipElement != null)
+                        {
+                            relationshipElement.Remove();
+                            update = true;
                         }
                     }
                 }
@@ -194,7 +189,7 @@ namespace FastExcel
         /// </summary>
         private void UpdateContentTypes(bool ensureStrings)
         {
-            if (!(ensureStrings || (this.WorksheetReferenceUpdates != null && this.WorksheetReferenceUpdates.Any())))
+            if (!(ensureStrings || (this.DeleteWorksheets != null && this.DeleteWorksheets.Any())))
             {
                 // Nothing to update
                 return;
@@ -229,24 +224,21 @@ namespace FastExcel
                         update = true;
                     }
                 }
-                if (this.WorksheetReferenceUpdates != null && this.WorksheetReferenceUpdates.Any())
+                if (this.DeleteWorksheets != null && this.DeleteWorksheets.Any())
                 {
-                    foreach (var item in this.WorksheetReferenceUpdates)
+                    foreach (var item in this.DeleteWorksheets)
                     {
-                        if (!item.Value)
-                        {
-                            // TODO resuse filename saved on worksheet
-                            string fileName = string.Format("/xl/worksheets/sheet{0}.xml", item.Key);
+                        // TODO resuse filename saved on worksheet
+                        string fileName = string.Format("/xl/worksheets/sheet{0}.xml", item);
 
-                            XElement overrideElement = (from element in overrideElements
-                                                        from attribute in element.Attributes()
-                                                        where attribute.Name == "PartName" && attribute.Value == fileName
-                                                        select element).FirstOrDefault();
-                            if (overrideElement != null)
-                            {
-                                overrideElement.Remove();
-                                update = true;
-                            }
+                        XElement overrideElement = (from element in overrideElements
+                                                    from attribute in element.Attributes()
+                                                    where attribute.Name == "PartName" && attribute.Value == fileName
+                                                    select element).FirstOrDefault();
+                        if (overrideElement != null)
+                        {
+                            overrideElement.Remove();
+                            update = true;
                         }
                     }
                 }
@@ -270,7 +262,7 @@ namespace FastExcel
         /// </summary>
         private void UpdateWorkbook()
         {
-            if (this.WorksheetReferenceUpdates == null || !this.WorksheetReferenceUpdates.Any())
+            if (this.DeleteWorksheets == null || !this.DeleteWorksheets.Any())
             {
                 // Nothing to update
                 return;
@@ -286,22 +278,19 @@ namespace FastExcel
                 }
                 bool update = false;
 
-                foreach (var item in this.WorksheetReferenceUpdates)
-	            {
-                    if (!item.Value)
+                foreach (var item in this.DeleteWorksheets)
+                {
+                    XElement sheetElement = (from sheet in document.Descendants()
+                                             where sheet.Name.LocalName == "sheet"
+                                             from attribute in sheet.Attributes()
+                                             where attribute.Name == "sheetId" && attribute.Value == item.ToString()
+                                             select sheet).FirstOrDefault();
+                    if (sheetElement != null)
                     {
-		                XElement sheetElement = (from sheet in document.Descendants()
-                                                 where sheet.Name.LocalName == "sheet"
-                                                 from attribute in sheet.Attributes()
-                                                 where attribute.Name == "sheetId" && attribute.Value == item.Key.ToString()
-                                                 select sheet).FirstOrDefault();
-                        if (sheetElement != null)
-                        {
-                            sheetElement.Remove();
-                            update = true;
-                        }
+                        sheetElement.Remove();
+                        update = true;
                     }
-	            }
+                }
 
                 if (update)
                 {
@@ -317,69 +306,7 @@ namespace FastExcel
                 }
             }
         }
-
-        /// <summary>
-        /// Get worksheet file name from xl/workbook.xml
-        /// </summary>
-        internal Tuple<int, int, string, string> GetWorksheetName(int? sheetNumber = null, string sheetName = null)
-        {
-            string fileName = null;
-            int sheetIndex = 0;
-
-            // TODO: May be able to speed up by only loading the sheets element
-            using (Stream stream = this.Archive.GetEntry("xl/workbook.xml").Open())
-            {
-                XDocument document = XDocument.Load(stream);
-
-                if (document == null)
-                {
-                    throw new Exception("Unable to load workbook.xml");
-                }
-
-                List<XElement> sheetsElements = document.Descendants().Where(d => d.Name.LocalName == "sheet").ToList();
-
-                XElement sheetElement = null;
-
-                if (sheetNumber.HasValue)
-                {
-                    if (sheetNumber.Value <= sheetsElements.Count)
-                    {
-                        sheetElement = sheetsElements[sheetNumber.Value - 1];
-                    }
-                    else
-                    {
-                        throw new Exception(string.Format("There is no sheet at index '{0}'", sheetNumber));
-                    }
-                }
-                else if (!string.IsNullOrEmpty(sheetName))
-                {
-                    sheetElement = (from sheet in sheetsElements
-                                    from attribute in sheet.Attributes()
-                                    where attribute.Name == "name" && attribute.Value.Equals(sheetName, StringComparison.InvariantCultureIgnoreCase)
-                                    select sheet).FirstOrDefault();
-
-                    if (sheetElement == null)
-                    {
-                        throw new Exception(string.Format("There is no sheet named '{0}'", sheetName));
-                    }
-                }
-
-                sheetIndex = (from attribute in sheetElement.Attributes()
-                          where attribute.Name == "sheetId"
-                          select int.Parse(attribute.Value)).FirstOrDefault();
-
-                fileName = string.Format("xl/worksheets/sheet{0}.xml", sheetIndex);
-            }
-
-            if (string.IsNullOrEmpty(fileName))
-            {
-                throw new Exception("Unable to resolve internal sheet name");
-            }
-
-            return new Tuple<int, int, string, string>((sheetNumber ?? 0), sheetIndex, sheetName, fileName); ;
-        }
-
-
+        
         /// <summary>
         /// Saves any pending changes to the Excel stream and adds/updates associated files if needed
         /// </summary>

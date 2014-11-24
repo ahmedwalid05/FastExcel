@@ -45,7 +45,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Cell.cs" />
-    <Compile Include="DataSet.cs" />
+    <Compile Include="Worksheet.cs" />
     <Compile Include="FastExcel.cs" />
     <Compile Include="FastExcel.Delete.cs" />
     <Compile Include="FastExcel.Update.cs" />
@@ -54,7 +54,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Row.cs" />
     <Compile Include="SharedStrings.cs" />
-    <Compile Include="Worksheet.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

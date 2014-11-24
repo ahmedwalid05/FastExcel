@@ -27,25 +27,15 @@ namespace FastExcel
 
             PrepareArchive(false);
 
-            // Open worksheet
-            Worksheet worksheet = null;
-            if (sheetNumber.HasValue)
-            {
-                worksheet = new Worksheet(this, null, sheetNumber.Value);
-            }
-            else if (!string.IsNullOrEmpty(sheetName))
-            {
-                worksheet = new Worksheet(this, null, sheetName);
-            }
+            // Get worksheet details
+            Worksheet worksheet = new Worksheet();
+            worksheet.GetWorksheetProperties(this.Archive, sheetNumber, sheetName);
 
-            if (worksheet.Exists)
+            if (this.DeleteWorksheets == null)
             {
-                if (this.WorksheetReferenceUpdates == null)
-                {
-                    this.WorksheetReferenceUpdates = new Dictionary<int, bool>();
-                }
-                this.WorksheetReferenceUpdates.Add(worksheet.Index, false);
+                this.DeleteWorksheets = new List<int>();
             }
+            this.DeleteWorksheets.Add(worksheet.Index);
         }
     }
 }
