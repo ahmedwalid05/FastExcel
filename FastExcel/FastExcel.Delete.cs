@@ -11,11 +11,19 @@ namespace FastExcel
 {
     public partial class FastExcel
     {
+        /// <summary>
+        /// Deletes the selected sheet Note:delete happens on Dispose
+        /// </summary>
+        /// <param name="sheetNumber">sheet number, starts at 1</param>
         public void Delete(int sheetNumber)
         {
             this.Delete(sheetNumber, null);
         }
 
+        /// <summary>
+        /// Deletes the selected sheet Note:delete happens on Dispose
+        /// </summary>
+        /// <param name="sheetName">Worksheet name</param>
         public void Delete(string sheetName)
         {
             this.Update(null, sheetName);
@@ -29,13 +37,23 @@ namespace FastExcel
 
             // Get worksheet details
             Worksheet worksheet = new Worksheet();
-            worksheet.GetWorksheetProperties(this.Archive, sheetNumber, sheetName);
+            worksheet.GetWorksheetProperties(this, sheetNumber, sheetName);
 
-            if (this.DeleteWorksheets == null)
+            // Delete the file
+            if (!string.IsNullOrEmpty(worksheet.FileName))
             {
-                this.DeleteWorksheets = new List<int>();
+                ZipArchiveEntry entry = this.Archive.GetEntry(worksheet.FileName);
+                if (entry != null)
+                {
+                    entry.Delete();
+                }
+
+                if (this.DeleteWorksheets == null)
+                {
+                    this.DeleteWorksheets = new List<int>();
+                }
+                this.DeleteWorksheets.Add(worksheet.Index);
             }
-            this.DeleteWorksheets.Add(worksheet.Index);
         }
     }
 }

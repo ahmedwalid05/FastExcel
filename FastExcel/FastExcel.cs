@@ -21,9 +21,19 @@ namespace FastExcel
         private bool UpdateExisting { get; set; }
 
         /// <summary>
+        /// Maximum sheet number, obtained when a sheet is added
+        /// </summary>
+        internal int MaxSheetNumber { get; set; }
+
+        /// <summary>
         /// A list of worksheet indexs to delete
         /// </summary>
         private List<int> DeleteWorksheets { get; set; }
+
+        /// <summary>
+        /// A list of worksheet indexs to insert
+        /// </summary>
+        private List<WorksheetAddSettings> AddWorksheets { get; set; }
 
         /// <summary>
         /// Update an existing excel file
@@ -115,7 +125,9 @@ namespace FastExcel
         /// </summary>
         private void UpdateRelations(bool ensureStrings)
         {
-            if (!(ensureStrings || (this.DeleteWorksheets != null && this.DeleteWorksheets.Any())))
+            if (!(ensureStrings || 
+                (this.DeleteWorksheets != null && this.DeleteWorksheets.Any()) || 
+                (this.AddWorksheets != null && this.AddWorksheets.Any())))
             {
                 // Nothing to update
                 return;
@@ -132,6 +144,7 @@ namespace FastExcel
                 bool update = false;
 
                 List<XElement> relationshipElements = document.Descendants().Where(d => d.Name.LocalName == "Relationship").ToList();
+                int id = relationshipElements.Count;
                 if (ensureStrings)
                 {
                     //Ensure SharedStrings
@@ -145,27 +158,25 @@ namespace FastExcel
                         relationshipElement = new XElement(document.Root.GetDefaultNamespace() + "Relationship");
                         relationshipElement.Add(new XAttribute("Target", "sharedStrings.xml"));
                         relationshipElement.Add(new XAttribute("Type", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings"));
-                        relationshipElement.Add(new XAttribute("Id", string.Format("rId{0}", relationshipElements.Count + 1)));
+                        relationshipElement.Add(new XAttribute("Id", string.Format("rId{0}", ++id)));
 
                         document.Root.Add(relationshipElement);
                         update = true;
                     }
                 }
-                if (this.DeleteWorksheets != null && this.DeleteWorksheets.Any())
-                {
-                    foreach (var item in this.DeleteWorksheets)
-                    {
-                        string fileName = string.Format("worksheets/sheet{0}.xml", item);
 
-                        XElement relationshipElement = (from element in relationshipElements
-                                                        from attribute in element.Attributes()
-                                                        where attribute.Name == "Target" && attribute.Value == fileName
-                                                        select element).FirstOrDefault();
-                        if (relationshipElement != null)
-                        {
-                            relationshipElement.Remove();
-                            update = true;
-                        }
+                // Remove all references to sheets from this file as they are not requried
+                if ((this.DeleteWorksheets != null && this.DeleteWorksheets.Any()) ||
+                (this.AddWorksheets != null && this.AddWorksheets.Any()))
+                {
+                    XElement[] worksheetElements = (from element in relationshipElements
+                                                    from attribute in element.Attributes()
+                                                    where attribute.Name == "Type" && attribute.Value == "http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet"
+                                                    select element).ToArray();
+                    for (int i = worksheetElements.Length -1; i > 0; i--)
+                    {
+                        worksheetElements[i].Remove();
+                        update = true;
                     }
                 }
 
@@ -185,11 +196,156 @@ namespace FastExcel
         }
 
         /// <summary>
+        /// Update xl/workbook.xml file
+        /// </summary>
+        private string[] UpdateWorkbook()
+        {
+            if (!(this.DeleteWorksheets != null && this.DeleteWorksheets.Any() ||
+                (this.AddWorksheets != null && this.AddWorksheets.Any())))
+            {
+                // Nothing to update
+                return null;
+            }
+
+            List<string> sheetNames = new List<string>();
+            using (Stream stream = this.Archive.GetEntry("xl/workbook.xml").Open())
+            {
+                XDocument document = XDocument.Load(stream);
+
+                if (document == null)
+                {
+                    throw new Exception("Unable to load workbook.xml");
+                }
+
+                bool update = false;
+
+                RenameAndRebildWorksheetProperties((from sheet in document.Descendants()
+                                              where sheet.Name.LocalName == "sheet"
+                                              select sheet).ToArray());
+                
+                if (update)
+                {
+                    // Re number sheet ids
+                    XNamespace r = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+                    int id = 1;
+                    foreach (XElement sheetElement in (from sheet in document.Descendants()
+                                                       where sheet.Name.LocalName == "sheet"
+                                                       select sheet))
+                    {
+                        sheetElement.SetAttributeValue(r + "id", string.Format("rId{0}", id++));
+                        sheetNames.Add(sheetElement.Attribute("name").Value);
+                    }
+
+                    //Set the stream to the start
+                    stream.Position = 0;
+                    // Clear the stream
+                    stream.SetLength(0);
+
+                    // Open the stream so we can override all content of the sheet
+                    StreamWriter streamWriter = new StreamWriter(stream);
+                    document.Save(streamWriter);
+                    streamWriter.Flush();
+                }
+            }
+            return sheetNames.ToArray();
+        }
+
+
+        /// <summary>
+        /// If sheets have been added or deleted, sheets need to be renamed
+        /// </summary>
+        private void RenameAndRebildWorksheetProperties(XElement[] sheets)
+        {
+            if (!((this.DeleteWorksheets != null && this.DeleteWorksheets.Any()) ||
+                (this.AddWorksheets != null && this.AddWorksheets.Any())))
+            {
+                // Nothing to update
+                return;
+            }
+            XNamespace r = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+
+            List<WorksheetProperties> sheetProperties = (from sheet in sheets
+                                                         select new WorksheetProperties
+                                                         ()
+                                                         {
+                                                             SheetId = int.Parse(sheet.Attribute("sheetId").Value),
+                                                             Name = sheet.Attribute("name").Value,
+                                                             CurrentIndex = int.Parse(sheet.Attribute(r + "id").Value)
+                                                         }).ToList();
+
+            // Remove deleted worksheets to sheetProperties
+            if (this.DeleteWorksheets != null && this.DeleteWorksheets.Any())
+            {
+                foreach (var item in this.DeleteWorksheets)
+                {
+                    WorksheetProperties sheetToDelete = (from sp in sheetProperties
+                                        where sp.SheetId == item
+                                        select sp).FirstOrDefault();
+
+                    if (sheetToDelete != null)
+                    {
+                        sheetProperties.Remove(sheetToDelete);
+                    }
+                }
+            }
+
+            // Add new worksheets to sheetProperties
+            if (this.AddWorksheets != null && this.AddWorksheets.Any())
+            {
+                // Add the sheets in reverse, this will add them correctly with less work
+                foreach (var item in this.AddWorksheets.Reverse<WorksheetAddSettings>())
+                {
+                    WorksheetProperties previousSheet = (from sp in sheetProperties
+                                                where sp.SheetId == item.InsertAfterSheetId
+                                        select sp).FirstOrDefault();
+                    
+                    if (previousSheet == null)
+                    {
+                        throw new Exception(string.Format("Sheet name {0} cannot be added because the insertAfterSheetNumber or insertAfterSheetName is now invalid", item.Name));
+                    }
+
+                    WorksheetProperties newWorksheet = new WorksheetProperties();
+                    newWorksheet.SheetId = item.SheetId;
+                    newWorksheet.Name = item.Name;
+                    newWorksheet.CurrentIndex = 0;// TODO Something??
+
+                    sheetProperties.Insert(sheetProperties.IndexOf(previousSheet), newWorksheet);
+                }
+            }
+
+            int index = 1;
+            foreach (WorksheetProperties worksheet in sheetProperties)
+            {
+                if (worksheet.CurrentIndex != index)
+                {
+                    ZipArchiveEntry entry = this.Archive.GetEntry(Worksheet.GetFileName(worksheet.CurrentIndex));
+                    if (entry == null)
+                    {
+                        // TODO better message
+                        throw new Exception("Worksheets could not be rebuilt");
+                    }
+
+
+                }
+                index++;
+            }
+        }
+        
+        public class WorksheetProperties
+        {
+            public int CurrentIndex { get; set; }
+            public int SheetId { get; set; }
+            public string Name { get; set; }
+        }
+
+        /// <summary>
         /// Update [Content_Types].xml file
         /// </summary>
         private void UpdateContentTypes(bool ensureStrings)
         {
-            if (!(ensureStrings || (this.DeleteWorksheets != null && this.DeleteWorksheets.Any())))
+            if (!(ensureStrings ||
+                (this.DeleteWorksheets != null && this.DeleteWorksheets.Any()) ||
+                (this.AddWorksheets != null && this.AddWorksheets.Any())))
             {
                 // Nothing to update
                 return;
@@ -228,7 +384,7 @@ namespace FastExcel
                 {
                     foreach (var item in this.DeleteWorksheets)
                     {
-                        // TODO resuse filename saved on worksheet
+                        // the file name is different for each xml file
                         string fileName = string.Format("/xl/worksheets/sheet{0}.xml", item);
 
                         XElement overrideElement = (from element in overrideElements
@@ -242,6 +398,23 @@ namespace FastExcel
                         }
                     }
                 }
+
+                if (this.AddWorksheets != null && this.AddWorksheets.Any())
+                {
+                    foreach (var item in this.AddWorksheets)
+                    {
+                        // the file name is different for each xml file
+                        string fileName = string.Format("/xl/worksheets/sheet{0}.xml", item.SheetId);
+
+                        XElement overrideElement = new XElement(document.Root.GetDefaultNamespace() + "Override");
+                        overrideElement.Add(new XAttribute("ContentType", "application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"));
+                        overrideElement.Add(new XAttribute("PartName", fileName));
+
+                        document.Root.Add(overrideElement);
+                        update = true;
+                    }
+                }
+
                 if (update)
                 {
                     // Set the stream to the start
@@ -256,44 +429,70 @@ namespace FastExcel
                 }
             }
         }
-        
+
         /// <summary>
-        /// Update xl/workbook.xml file
+        /// Update docProps/app.xml file
         /// </summary>
-        private void UpdateWorkbook()
+        private void UpdateDocPropsApp(string[] sheetNames)
         {
-            if (this.DeleteWorksheets == null || !this.DeleteWorksheets.Any())
+           /* if (sheetNames == null || !sheetNames.Any())
             {
                 // Nothing to update
                 return;
             }
 
-            using (Stream stream = this.Archive.GetEntry("xl/workbook.xml").Open())
+            using (Stream stream = this.Archive.GetEntry("docProps/app.xml ").Open())
             {
                 XDocument document = XDocument.Load(stream);
 
                 if (document == null)
                 {
-                    throw new Exception("Unable to load workbook.xml");
+                    throw new Exception("Unable to load app.xml");
                 }
-                bool update = false;
+                
+                // Update TilesOfParts
 
-                foreach (var item in this.DeleteWorksheets)
+
+
+                // Update HeadingPairs
+
+                if (this.AddWorksheets != null && this.AddWorksheets.Any())
                 {
-                    XElement sheetElement = (from sheet in document.Descendants()
-                                             where sheet.Name.LocalName == "sheet"
-                                             from attribute in sheet.Attributes()
-                                             where attribute.Name == "sheetId" && attribute.Value == item.ToString()
-                                             select sheet).FirstOrDefault();
-                    if (sheetElement != null)
+                    // Add the sheets in reverse, this will add them correctly with less work
+                    foreach (var item in this.AddWorksheets.Reverse<WorksheetAddSettings>())
                     {
-                        sheetElement.Remove();
+                        XElement previousSheetElement = (from sheet in document.Descendants()
+                                                         where sheet.Name.LocalName == "sheet"
+                                                         from attribute in sheet.Attributes()
+                                                         where attribute.Name == "sheetId" && attribute.Value == item.InsertAfterIndex.ToString()
+                                                         select sheet).FirstOrDefault();
+
+                        if (previousSheetElement == null)
+                        {
+                            throw new Exception(string.Format("Sheet name {0} cannot be added because the insertAfterSheetNumber or insertAfterSheetName is now invalid", item.Name));
+                        }
+
+                        XElement newSheetElement = new XElement(document.Root.GetDefaultNamespace() + "sheet");
+                        newSheetElement.Add(new XAttribute("name", item.Name));
+                        newSheetElement.Add(new XAttribute("sheetId", item.Index));
+
+                        previousSheetElement.AddAfterSelf(newSheetElement);
                         update = true;
                     }
                 }
 
                 if (update)
                 {
+                    // Re number sheet ids
+                    XNamespace r = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+                    int id = 1;
+                    foreach (XElement sheetElement in (from sheet in document.Descendants()
+                                                       where sheet.Name.LocalName == "sheet"
+                                                       select sheet))
+                    {
+                        sheetElement.SetAttributeValue(r + "id", string.Format("rId{0}", id++));
+                    }
+
                     //Set the stream to the start
                     stream.Position = 0;
                     // Clear the stream
@@ -304,7 +503,7 @@ namespace FastExcel
                     document.Save(streamWriter);
                     streamWriter.Flush();
                 }
-            }
+            }*/
         }
         
         /// <summary>
@@ -336,10 +535,15 @@ namespace FastExcel
 
                 // Update xl/_rels/workbook.xml.rels file
                 UpdateRelations(ensureSharedStrings);
+
+                // Update xl/workbook.xml file
+                string[] sheetNames = UpdateWorkbook();
+
                 // Update [Content_Types].xml file
                 UpdateContentTypes(ensureSharedStrings);
-                // Update xl/workbook.xml file
-                UpdateWorkbook();
+
+                // Update docProps/app.xml file
+                UpdateDocPropsApp(sheetNames);
             }
 
             this.Archive.Dispose();

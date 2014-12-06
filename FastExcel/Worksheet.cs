@@ -17,16 +17,29 @@ namespace FastExcel
         public IEnumerable<string> Headings { get; set; }
 
         internal int Index { get; set; }
-        internal int Number { get; set; }
         public string Name { get; set; }
-        internal string FileName { get; set; }
-
+        public int ExistingHeadingRows { get; set; }
+        private int? InsertAfterIndex { get; set; }
         public bool Template { get; set; }
 
         internal string Headers { get; set; }
         internal string Footers { get; set; }
 
-        public int ExistingHeadingRows { get; set; }
+        internal string FileName
+        {
+            get
+            {
+                return Worksheet.GetFileName(this.Index);
+            }
+        }
+
+        public static string GetFileName(int index)
+        {
+            return string.Format("xl/worksheets/sheet{0}.xml", index);
+        }
+
+        private const string DEFAULT_HEADERS = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?><worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheetData>";
+        private const string DEFAULT_FOOTERS = "</sheetData></worksheet>";
 
         public Worksheet() { }
 
@@ -227,12 +240,19 @@ namespace FastExcel
         /// <summary>
         /// Get worksheet file name from xl/workbook.xml
         /// </summary>
-        internal void GetWorksheetProperties(ZipArchive archive, int? sheetNumber = null, string sheetName = null)
+        internal void GetWorksheetProperties(FastExcel fastExcel, int? sheetNumber = null, string sheetName = null)
         {
-            //If filename has already been loaded then we can skip this function
-            if (!string.IsNullOrEmpty(this.FileName))
+            GetWorksheetPropertiesAndValidateNewName(fastExcel, sheetNumber, sheetName);
+        }
+
+        private bool GetWorksheetPropertiesAndValidateNewName(FastExcel fastExcel, int? sheetNumber = null, string sheetName = null, string newSheetName = null)
+        {
+            bool newSheetNameExists = false;
+
+            //If index has already been loaded then we can skip this function
+            if (this.Index != 0)
             {
-                return;
+                return true;
             }
 
             if (!sheetNumber.HasValue && string.IsNullOrEmpty(sheetName))
@@ -240,8 +260,7 @@ namespace FastExcel
                 throw new Exception("No worksheet name or number was specified");
             }
 
-            // TODO: May be able to speed up by only loading the sheets element
-            using (Stream stream = archive.GetEntry("xl/workbook.xml").Open())
+            using (Stream stream = fastExcel.Archive.GetEntry("xl/workbook.xml").Open())
             {
                 XDocument document = XDocument.Load(stream);
 
@@ -276,13 +295,31 @@ namespace FastExcel
                     {
                         throw new Exception(string.Format("There is no sheet named '{0}'", sheetName));
                     }
+
+                    if (!string.IsNullOrEmpty(newSheetName))
+                    {
+                        newSheetNameExists = (from sheet in sheetsElements
+                                        from attribute in sheet.Attributes()
+                                                    where attribute.Name == "name" && attribute.Value.Equals(newSheetName, StringComparison.InvariantCultureIgnoreCase)
+                                        select sheet).Any();
+
+                        if (fastExcel.MaxSheetNumber == 0)
+                        {
+                            fastExcel.MaxSheetNumber = (from sheet in sheetsElements
+                                                        from attribute in sheet.Attributes()
+                                                        where attribute.Name == "sheetId"
+                                                        select int.Parse(attribute.Value)).Max();
+                        }
+                    }
                 }
 
                 this.Index = (from attribute in sheetElement.Attributes()
                               where attribute.Name == "sheetId"
                               select int.Parse(attribute.Value)).FirstOrDefault();
 
-                this.FileName = string.Format("xl/worksheets/sheet{0}.xml", this.Index);
+                this.Name = (from attribute in sheetElement.Attributes()
+                              where attribute.Name == "name"
+                              select attribute.Value).FirstOrDefault();
             }
 
             if (!this.Exists)
@@ -290,15 +327,65 @@ namespace FastExcel
                 throw new Exception("No worksheet was found with the name or number was specified");
             }
 
-            this.Number = (sheetNumber ?? 0);
-            this.Name = sheetName;
+            if (string.IsNullOrEmpty(newSheetName))
+            {
+                return false;
+            }
+            else
+            {
+                return !newSheetNameExists;
+            }
         }
 
-        internal void ValidateNewWorksheet()
+        internal void ValidateNewWorksheet(FastExcel fastExcel, int? insertAfterSheetNumber = null, string insertAfterSheetName = null)
         {
             if (string.IsNullOrEmpty(this.Name))
             {
-                // Calculate a new name for the worksheet
+                // TODO possibly could calulcate a new worksheet name
+                throw new Exception("Name for new worksheet is not specified");
+            }
+
+            // Get worksheet details
+            Worksheet previousWorksheet = new Worksheet();
+            bool isNameValid = previousWorksheet.GetWorksheetPropertiesAndValidateNewName(fastExcel, insertAfterSheetNumber, insertAfterSheetName, this.Name);
+            this.InsertAfterIndex = previousWorksheet.Index;
+            
+            if (!isNameValid)
+            {
+                throw new Exception(string.Format("Worksheet name '{0}' already exists", this.Name));
+            }
+
+            fastExcel.MaxSheetNumber += 1;
+            this.Index = fastExcel.MaxSheetNumber;
+
+            if (string.IsNullOrEmpty(this.Headers))
+            {
+                this.Headers = DEFAULT_HEADERS;
+            }
+
+            if (string.IsNullOrEmpty(this.Footers))
+            {
+                this.Footers = DEFAULT_FOOTERS;
+            }
+        }
+
+        internal WorksheetAddSettings AddSettings
+        {
+            get
+            {
+                if (this.InsertAfterIndex.HasValue)
+                {
+                    return new WorksheetAddSettings()
+                    {
+                        Name = this.Name,
+                        SheetId = this.Index,
+                        InsertAfterSheetId = this.InsertAfterIndex.Value
+                    };
+                }
+                else
+                {
+                    return null;
+                }
             }
         }
     }

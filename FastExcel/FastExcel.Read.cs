@@ -28,7 +28,7 @@ namespace FastExcel
 
             Worksheet worksheet = new Worksheet();
             worksheet.ExistingHeadingRows = existingHeadingRows;
-            worksheet.GetWorksheetProperties(this.Archive, sheetNumber, sheetName);
+            worksheet.GetWorksheetProperties(this, sheetNumber, sheetName);
 
             IEnumerable<Row> rows = null;
 

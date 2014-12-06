@@ -56,7 +56,9 @@ namespace FastExcelDemo
             FastExcelReadDemo(outputFile);
             FastExcelReadDemo2(outputFile);
 
-            //FastExcelDeleteWorkSheet(outputFile);
+          //  FastExcelAddWorksheet(outputFile);
+
+          //  FastExcelDeleteWorkSheet(outputFile);
 
             if (EPPlusTest)
             {
@@ -66,6 +68,45 @@ namespace FastExcelDemo
             Console.WriteLine("Press any key to exit...");
             Console.ReadKey();
         }
+
+        /*private void FastExcelAddWorksheet(FileInfo outputFile)
+        {
+
+            Console.WriteLine();
+            Console.WriteLine("DEMO ADD");
+
+            Stopwatch stopwatch = new Stopwatch();
+
+            using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(outputFile))
+            {
+                Worksheet worksheet = new Worksheet();
+                worksheet.Name = "Sheet77";
+
+                List<GenericObject> objectList = new List<GenericObject>();
+
+                for (int rowNumber = 1; rowNumber < NumberOfRecords; rowNumber++)
+                {
+                    GenericObject genericObject = new GenericObject();
+                    genericObject.IntegerColumn1 = 1 * DateTime.Now.Millisecond;
+                    genericObject.IntegerColumn2 = 2 * DateTime.Now.Millisecond;
+                    genericObject.IntegerColumn3 = 3 * DateTime.Now.Millisecond;
+                    genericObject.IntegerColumn4 = 4 * DateTime.Now.Millisecond;
+                    genericObject.IntegerColumn5 = 45678854;
+                    genericObject.DoubleColumn6 = 87.01d;
+                    genericObject.StringColumn7 = "Test 3" + rowNumber;
+                    genericObject.ObjectColumn8 = DateTime.Now.ToLongTimeString();
+
+                    objectList.Add(genericObject);
+                }
+                worksheet.PopulateRows(objectList);
+
+                stopwatch.Start();
+                Console.WriteLine("Writing using IEnumerable<MyObject>...");
+                fastExcel.Add(worksheet, "sheet3");
+            }
+
+            Console.WriteLine(string.Format("Writing IEnumerable<MyObject> took {0} seconds", stopwatch.Elapsed.TotalSeconds));
+        }*/
 
         #region Write Demos
         private void FastExcelWriteDemo(FileInfo templateFile, FileInfo outputFile)
@@ -283,13 +324,13 @@ namespace FastExcelDemo
             public string ObjectColumn8 { get; set; }
         }
 
-        private void FastExcelDeleteWorkSheet(FileInfo outputFile)
+        /*private void FastExcelDeleteWorkSheet(FileInfo outputFile)
         {
             using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(outputFile))
             {
                 fastExcel.Delete(1);
             }
-        }
+        }*/
 
         private void EPPlusDemo(FileInfo templateFile, FileInfo epplusOutputFile)
         {

@@ -117,7 +117,7 @@ namespace FastExcel
             PrepareArchive();
 
             // Open worksheet
-            worksheet.GetWorksheetProperties(this.Archive, sheetNumber, sheetName);
+            worksheet.GetWorksheetProperties(this, sheetNumber, sheetName);
             worksheet.ExistingHeadingRows = existingHeadingRows;
 
             if (this.Archive.Mode != ZipArchiveMode.Update)
