@@ -1,5 +1,7 @@
 #Fast Excel
 
+[![Build status](https://ci.appveyor.com/api/projects/status/5cwbg9ffxqsdeguf/branch/master?svg=true)](https://ci.appveyor.com/project/mrjono1/fastexcel/branch/master)
+
 Currently provides a fast way of reading and writing to *.xlsx Excel files.
 
 More features to come, fell free to suggest something.
