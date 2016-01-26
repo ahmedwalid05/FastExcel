@@ -6,9 +6,9 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("FastExcel")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("A fast way to read and write to Excel *.xlsx files without using the Open XML library.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Jono Clarnette")]
 [assembly: AssemblyProduct("FastExcel")]
 [assembly: AssemblyCopyright("Copyright © Jono Clarnette 2016")]
 [assembly: AssemblyTrademark("")]

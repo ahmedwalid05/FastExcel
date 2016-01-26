@@ -9,7 +9,7 @@
         <licenseUrl>https://github.com/mrjono1/FastExcel/blob/master/LICENSE</licenseUrl>
         <projectUrl>https://github.com/mrjono1/FastExcel</projectUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>A fast way to read and write to Excel *.xlsx files without the overhead of the Open XML library.</description>
+        <description>$description$</description>
         <copyright>Copyright 2016 Jono Clarnette</copyright>
         <tags>fast excel xlsx read write</tags>
     </metadata>
