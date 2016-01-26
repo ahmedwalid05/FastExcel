@@ -7,9 +7,19 @@ using System.Xml.Linq;
 
 namespace FastExcel
 {
+    /// <summary>
+    /// Row that contains the Cells
+    /// </summary>
     public class Row
     {
+        /// <summary>
+        /// The Row Number (Row numbers start at 1)
+        /// </summary>
         public int RowNumber { get; set; }
+
+        /// <summary>
+        /// The collection of cells for this row
+        /// </summary>
         public IEnumerable<Cell> Cells { get; set; }
 
         /// <summary>
@@ -80,6 +90,10 @@ namespace FastExcel
             return row;
         }
 
+        /// <summary>
+        /// Merge this row and the passed one togeather
+        /// </summary>
+        /// <param name="row">Row to be merged into this one</param>
         internal void Merge(Row row)
         {
             // Merge cells

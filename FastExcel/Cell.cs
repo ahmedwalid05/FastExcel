@@ -8,9 +8,19 @@ using System.Xml.Linq;
 
 namespace FastExcel
 {
+    /// <summary>
+    /// Contains the actual value
+    /// </summary>
     public class Cell
     {
+        /// <summary>
+        /// Column Numnber (Starts at 1)
+        /// </summary>
         public int ColumnNumber { get; set; }
+
+        /// <summary>
+        /// The value that is stored
+        /// </summary>
         public object Value { get; set; }
 
         /// <summary>
@@ -28,6 +38,11 @@ namespace FastExcel
             this.Value = value;
         }
 
+        /// <summary>
+        /// Create a new Cell
+        /// </summary>
+        /// <param name="cellElement">Cell</param>
+        /// <param name="sharedStrings">The collection of shared strings used by this document</param>
         public Cell(XElement cellElement, SharedStrings sharedStrings)
         {
             bool isTextRow = (from a in cellElement.Attributes("t")
@@ -84,6 +99,11 @@ namespace FastExcel
         }
 
         //http://stackoverflow.com/questions/181596/how-to-convert-a-column-number-eg-127-into-an-excel-column-eg-aa
+        /// <summary>
+        /// Convert Column Number into Column Name - Character(s) eg 1-A, 2-B
+        /// </summary>
+        /// <param name="columnNumber">Column Number</param>
+        /// <returns>Column Name - Character(s)</returns>
         public static string GetExcelColumnName(int columnNumber)
         {
             int dividend = columnNumber;
@@ -101,6 +121,12 @@ namespace FastExcel
         }
 
         //http://stackoverflow.com/questions/181596/how-to-convert-a-column-number-eg-127-into-an-excel-column-eg-aa
+        /// <summary>
+        /// Covert Column Name - Character(s) into a Column Number eg A-1, B-2, A1 - 1, B9 - 2
+        /// </summary>
+        /// <param name="columnName">Column Name - Character(s) optinally with the Row Number</param>
+        /// <param name="includesRowNumber">Specify if the row number is included</param>
+        /// <returns>Column Number</returns>
         public static int GetExcelColumnNumber(string columnName, bool includesRowNumber = true)
         {
             if (includesRowNumber)

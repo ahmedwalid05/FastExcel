@@ -12,6 +12,9 @@ namespace FastExcel
 {
     public class Worksheet
     {
+        /// <summary>
+        /// Collection of rows in this worksheet
+        /// </summary>
         public IEnumerable<Row> Rows { get; set; }
 
         public IEnumerable<string> Headings { get; set; }
