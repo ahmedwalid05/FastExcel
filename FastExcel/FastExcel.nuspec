@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+    <metadata>
+        <id>$id$</id>
+        <version>$version$</version>
+        <title>$title$</title>
+        <authors>$author$</authors>
+        <owners>$author$</owners>
+        <licenseUrl>https://github.com/mrjono1/FastExcel/blob/master/LICENSE</licenseUrl>
+        <projectUrl>https://github.com/mrjono1/FastExcel</projectUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>A fast way to read and write to Excel *.xlsx files without the overhead of the Open XML library.</description>
+        <copyright>Copyright 2016 Jono Clarnette</copyright>
+        <tags>fast excel xlsx read write</tags>
+    </metadata>
+</package>
