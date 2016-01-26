@@ -134,6 +134,10 @@ namespace FastExcel
             this.Rows = newRows;
         }
 
+        /// <summary>
+        /// Add a row using a collection of value objects
+        /// </summary>
+        /// <param name="cellValues">Collection of objects</param>
         public void AddRow(params object[] cellValues)
         {
             if (this.Rows == null)

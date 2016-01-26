@@ -2,9 +2,12 @@
 
 [![Build status](https://ci.appveyor.com/api/projects/status/5cwbg9ffxqsdeguf/branch/master?svg=true)](https://ci.appveyor.com/project/mrjono1/fastexcel/branch/master)
 
-Currently provides a fast way of reading and writing to *.xlsx Excel files.
+Now available on nuget https://www.nuget.org/packages/FastExcel/
+```
+PM> Install-Package FastExcel
+```
 
-More features to come, fell free to suggest something.
+Currently provides a fast way of reading and writing to *.xlsx Excel files.
 
 I am not using the Open XML SDK to interact with the data but going directly and editing the underlying xml files.
 
