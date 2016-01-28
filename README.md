@@ -1,11 +1,14 @@
 #Fast Excel
 
+####Build
 [![Build status](https://ci.appveyor.com/api/projects/status/5cwbg9ffxqsdeguf/branch/master?svg=true)](https://ci.appveyor.com/project/mrjono1/fastexcel/branch/master)
 
-Now available on nuget https://www.nuget.org/packages/FastExcel/
-```
-PM> Install-Package FastExcel
-```
+####Release
+[![License](http://img.shields.io/:license-MIT-blue.svg)](https://raw.githubusercontent.com/mrjono1/FastExcel/master/LICENSE)
+[![Nuget](https://img.shields.io/nuget/v/FastExcel.svg)](https://www.nuget.org/packages/FastExcel/)
+[![Nuget](https://img.shields.io/nuget/dt/FastExcel.svg)](https://www.nuget.org/packages/FastExcel/)
+
+Insperation for this project came from https://github.com/jsegarra1971/SejExcelExport jsegarra1971 did a great job. I wanted to have my own crack at this problem.
 
 Currently provides a fast way of reading and writing to *.xlsx Excel files.
 
@@ -18,6 +21,11 @@ Check out the demo project for usage and benchmarking.
 This project is not intended to be a replacement for full featured Excel packages with things like formatting, just light weight fast way of interacting with data in Excel.
 
 Below are a few demos check out https://github.com/mrjono1/FastExcel/blob/master/FastExcelDemo/Program.cs for more.
+
+####Installation
+```
+PM> Install-Package FastExcel
+```
 
 ##Write Demo 1
 This demo uses Generic objects, ie any object you wish with public properties
