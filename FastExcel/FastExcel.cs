@@ -4,7 +4,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace FastExcel
@@ -14,11 +13,11 @@ namespace FastExcel
         public FileInfo ExcelFile { get; private set; }
         public FileInfo TemplateFile { get; private set; }
         public bool ReadOnly { get; private set; }
-        public bool CacheWorksheetReferences { get; set; }
-
-        private SharedStrings SharedStrings { get; set; }
+        
+        internal SharedStrings SharedStrings { get; set; }
         internal ZipArchive Archive { get; set; }
         private bool UpdateExisting { get; set; }
+        private bool _filesChecked;
 
         /// <summary>
         /// Maximum sheet number, obtained when a sheet is added
@@ -58,7 +57,7 @@ namespace FastExcel
             CheckFiles();
         }
 
-        private void PrepareArchive(bool openSharedStrings = true)
+        internal void PrepareArchive(bool openSharedStrings = true)
         {
             if (this.Archive == null)
             {
@@ -82,8 +81,13 @@ namespace FastExcel
         /// <summary>
         /// Ensure files are ready for use
         /// </summary>
-        private void CheckFiles()
+        internal void CheckFiles()
         {
+            if (_filesChecked)
+            {
+                return;
+            }
+
             if (this.UpdateExisting)
             {
                 if (this.ExcelFile == null)
@@ -118,6 +122,7 @@ namespace FastExcel
                     throw new Exception(string.Format("Output file '{0}' already exists", this.ExcelFile.FullName));
                 }
             }
+            _filesChecked = true;
         }
 
         /// <summary>

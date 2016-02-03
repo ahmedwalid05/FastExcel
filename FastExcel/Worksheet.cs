@@ -19,7 +19,7 @@ namespace FastExcel
 
         public IEnumerable<string> Headings { get; set; }
 
-        internal int Index { get; set; }
+        public int Index { get; internal set; }
         public string Name { get; set; }
         public int ExistingHeadingRows { get; set; }
         private int? InsertAfterIndex { get; set; }
@@ -27,6 +27,8 @@ namespace FastExcel
 
         internal string Headers { get; set; }
         internal string Footers { get; set; }
+
+        public FastExcel FastExcel { get; private set; }
 
         internal string FileName
         {
@@ -45,6 +47,11 @@ namespace FastExcel
         private const string DEFAULT_FOOTERS = "</sheetData></worksheet>";
 
         public Worksheet() { }
+
+        public Worksheet(FastExcel fastExcel)
+        {
+            FastExcel = fastExcel;
+        }
 
         public void PopulateRows<T>(IEnumerable<T> rows, int existingHeadingRows = 0, bool usePropertiesAsHeadings = false)
         {
@@ -244,6 +251,180 @@ namespace FastExcel
             }
         }
 
+        internal void Read(int? sheetNumber = null, string sheetName = null, int existingHeadingRows = 0)
+        {
+            GetWorksheetProperties(FastExcel, sheetNumber, sheetName);
+            Read(existingHeadingRows);
+        }
+
+        public void Read(int existingHeadingRows = 0)
+        {
+            FastExcel.CheckFiles();
+            FastExcel.PrepareArchive();
+            
+            ExistingHeadingRows = existingHeadingRows;
+            
+            IEnumerable<Row> rows = null;
+
+            List<string> headings = new List<string>();
+            using (Stream stream = FastExcel.Archive.GetEntry(FileName).Open())
+            {
+                XDocument document = XDocument.Load(stream);
+                int skipRows = 0;
+
+                Row possibleHeadingRow = new Row(document.Descendants().Where(d => d.Name.LocalName == "row").FirstOrDefault(), FastExcel.SharedStrings);
+                if (ExistingHeadingRows == 1 && possibleHeadingRow.RowNumber == 1)
+                {
+                    foreach (Cell headerCell in possibleHeadingRow.Cells)
+                    {
+                        headings.Add(headerCell.Value.ToString());
+                    }
+                }
+                rows = GetRows(document.Descendants().Where(d => d.Name.LocalName == "row").Skip(skipRows));
+            }
+
+            Headings = headings;
+            Rows = rows;
+        }
+
+        private IEnumerable<Row> GetRows(IEnumerable<XElement> rowElements)
+        {
+            foreach (var rowElement in rowElements)
+            {
+                yield return new Row(rowElement, FastExcel.SharedStrings);
+            }
+        }
+
+        /// <summary>
+        /// Read the existing sheet and copy some of the existing content
+        /// </summary>
+        /// <param name="stream">Worksheet stream</param>
+        /// <param name="worksheet">Saves the header and footer to the worksheet</param>
+        internal void ReadHeadersAndFooters(StreamReader stream, ref Worksheet worksheet)
+        {
+            StringBuilder headers = new StringBuilder();
+            StringBuilder footers = new StringBuilder();
+
+            bool headersComplete = false;
+            bool rowsComplete = false;
+
+            int existingHeadingRows = worksheet.ExistingHeadingRows;
+
+            while (stream.Peek() >= 0)
+            {
+                string line = stream.ReadLine();
+                int currentLineIndex = 0;
+
+                if (!headersComplete)
+                {
+                    if (line.Contains("<sheetData/>"))
+                    {
+                        currentLineIndex = line.IndexOf("<sheetData/>");
+                        headers.Append(line.Substring(0, currentLineIndex));
+                        //remove the read section from line
+                        line = line.Substring(currentLineIndex, line.Length - currentLineIndex);
+
+                        headers.Append("<sheetData>");
+
+                        // Headers complete now skip any content and start footer
+                        headersComplete = true;
+                        footers = new StringBuilder();
+                        footers.Append("</sheetData>");
+
+                        //There is no rows
+                        rowsComplete = true;
+                    }
+                    else if (line.Contains("<sheetData>"))
+                    {
+                        currentLineIndex = line.IndexOf("<sheetData>");
+                        headers.Append(line.Substring(0, currentLineIndex));
+                        //remove the read section from line
+                        line = line.Substring(currentLineIndex, line.Length - currentLineIndex);
+
+                        headers.Append("<sheetData>");
+
+                        // Headers complete now skip any content and start footer
+                        headersComplete = true;
+                        footers = new StringBuilder();
+                        footers.Append("</sheetData>");
+                    }
+                    else
+                    {
+                        headers.Append(line);
+                    }
+                }
+
+                if (headersComplete && !rowsComplete)
+                {
+                    if (existingHeadingRows == 0)
+                    {
+                        rowsComplete = true;
+                    }
+
+                    if (!rowsComplete)
+                    {
+                        while (!string.IsNullOrEmpty(line) && existingHeadingRows != 0)
+                        {
+                            if (line.Contains("<row"))
+                            {
+                                if (line.Contains("</row>"))
+                                {
+                                    int index = line.IndexOf("<row");
+                                    currentLineIndex = line.IndexOf("</row>") + "</row>".Length;
+                                    headers.Append(line.Substring(index, currentLineIndex - index));
+
+                                    //remove the read section from line
+                                    line = line.Substring(currentLineIndex, line.Length - currentLineIndex);
+                                    existingHeadingRows--;
+                                }
+                                else
+                                {
+                                    int index = line.IndexOf("<row");
+                                    headers.Append(line.Substring(index, line.Length - index));
+                                    line = string.Empty;
+                                }
+                            }
+                            else if (line.Contains("</row>"))
+                            {
+                                currentLineIndex = line.IndexOf("</row>") + "</row>".Length;
+                                headers.Append(line.Substring(0, currentLineIndex));
+
+                                //remove the read section from line
+                                line = line.Substring(currentLineIndex, line.Length - currentLineIndex);
+                                existingHeadingRows--;
+                            }
+                        }
+                    }
+
+                    if (existingHeadingRows == 0)
+                    {
+                        rowsComplete = true;
+                    }
+                }
+
+                if (rowsComplete)
+                {
+                    if (line.Contains("</sheetData>"))
+                    {
+                        int index = line.IndexOf("</sheetData>") + "</sheetData>".Length;
+                        footers.Append(line.Substring(index, line.Length - index));
+                    }
+                    else if (line.Contains("<sheetData/>"))
+                    {
+                        int index = line.IndexOf("<sheetData/>") + "<sheetData/>".Length;
+                        footers.Append(line.Substring(index, line.Length - index));
+                    }
+                    else
+                    {
+                        footers.Append(line);
+                    }
+                }
+            }
+            worksheet.Headers = headers.ToString();
+            worksheet.Footers = footers.ToString();
+        }
+
+
         /// <summary>
         /// Get worksheet file name from xl/workbook.xml
         /// </summary>
@@ -254,7 +435,11 @@ namespace FastExcel
 
         private bool GetWorksheetPropertiesAndValidateNewName(FastExcel fastExcel, int? sheetNumber = null, string sheetName = null, string newSheetName = null)
         {
+            FastExcel = fastExcel;
             bool newSheetNameExists = false;
+
+            FastExcel.CheckFiles();
+            FastExcel.PrepareArchive();
 
             //If index has already been loaded then we can skip this function
             if (this.Index != 0)
@@ -267,7 +452,7 @@ namespace FastExcel
                 throw new Exception("No worksheet name or number was specified");
             }
 
-            using (Stream stream = fastExcel.Archive.GetEntry("xl/workbook.xml").Open())
+            using (Stream stream = FastExcel.Archive.GetEntry("xl/workbook.xml").Open())
             {
                 XDocument document = XDocument.Load(stream);
 
@@ -310,9 +495,9 @@ namespace FastExcel
                                                     where attribute.Name == "name" && attribute.Value.Equals(newSheetName, StringComparison.InvariantCultureIgnoreCase)
                                         select sheet).Any();
 
-                        if (fastExcel.MaxSheetNumber == 0)
+                        if (FastExcel.MaxSheetNumber == 0)
                         {
-                            fastExcel.MaxSheetNumber = (from sheet in sheetsElements
+                            FastExcel.MaxSheetNumber = (from sheet in sheetsElements
                                                         from attribute in sheet.Attributes()
                                                         where attribute.Name == "sheetId"
                                                         select int.Parse(attribute.Value)).Max();
@@ -353,7 +538,7 @@ namespace FastExcel
             }
 
             // Get worksheet details
-            Worksheet previousWorksheet = new Worksheet();
+            Worksheet previousWorksheet = new Worksheet(fastExcel);
             bool isNameValid = previousWorksheet.GetWorksheetPropertiesAndValidateNewName(fastExcel, insertAfterSheetNumber, insertAfterSheetName, this.Name);
             this.InsertAfterIndex = previousWorksheet.Index;
             

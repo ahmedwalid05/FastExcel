@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Cell.cs" />
+    <Compile Include="FastExcel.Worksheets.cs" />
     <Compile Include="Worksheet.cs" />
     <Compile Include="FastExcel.cs" />
     <Compile Include="FastExcel.Update.cs" />

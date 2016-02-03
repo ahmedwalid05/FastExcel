@@ -82,7 +82,7 @@ using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(templateFile, out
 }
 ```
 
-##Read Demo
+##Read Demo 1 Get Worksheet
 
 ```C#
 // Get the input file paths
@@ -94,8 +94,35 @@ DataSet worksheet = null;
 // Create an instance of Fast Excel
 using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile, true))
 {
-    // Read the data
+    // Read the rows using worksheet name
     worksheet = fastExcel.Read("sheet1");
+
+    // Read the rows using the worksheet index
+    // Worksheet indexes are start at 1 not 0
+    // This method is slightly faster to find the underlying file (so slight you probably wouldn't notice)
+    worksheet = fastExcel.Read(1);
+}
+```
+
+##Read Deme 2 Get All Worksheets
+
+```C#
+// Get the input file paths
+FileInfo inputFile = new FileInfo("C:\\Temp\\fileToRead.xlsx");
+
+// Create an instance of Fast Excel
+using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile, true))
+{
+    foreach (var worksheet in fastExcel.Worksheets)
+    {
+        Console.WriteLine(string.Format("Worksheet Name:{0}, Index:{1}", worksheet.Name, worksheet.Index));
+        
+        //To read the rows call read
+        worksheet.Read();
+        var rows = worksheet.Rows().ToArray();
+        //Do something with rows
+        Console.WriteLine(string.Format("Worksheet Rows:{0}", rows.Count()));
+    }
 }
 ```
 
