@@ -51,9 +51,7 @@ namespace FastExcel
                 foreach (var sheetElement in sheetsElements)
                 {
                     var worksheet = new Worksheet(this);
-                    worksheet.Index = (from attribute in sheetElement.Attributes()
-                                  where attribute.Name == "sheetId"
-                                  select int.Parse(attribute.Value)).FirstOrDefault();
+                    worksheet.Index = sheetsElements.IndexOf(sheetElement) + 1;
 
                     worksheet.Name = (from attribute in sheetElement.Attributes()
                                  where attribute.Name == "name"
