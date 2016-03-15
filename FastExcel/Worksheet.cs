@@ -504,11 +504,9 @@ namespace FastExcel
                         }
                     }
                 }
-
-                this.Index = (from attribute in sheetElement.Attributes()
-                              where attribute.Name == "sheetId"
-                              select int.Parse(attribute.Value)).FirstOrDefault();
-
+                               
+                this.Index = sheetsElements.IndexOf(sheetElement)+1;
+                
                 this.Name = (from attribute in sheetElement.Attributes()
                               where attribute.Name == "name"
                               select attribute.Value).FirstOrDefault();
