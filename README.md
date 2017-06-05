@@ -5,8 +5,7 @@
 
 ####Release
 [![License](http://img.shields.io/:license-MIT-blue.svg)](https://raw.githubusercontent.com/mrjono1/FastExcel/master/LICENSE)
-[![Nuget](https://img.shields.io/nuget/v/FastExcel.svg)](https://www.nuget.org/packages/FastExcel/)
-[![Nuget](https://img.shields.io/nuget/dt/FastExcel.svg)](https://www.nuget.org/packages/FastExcel/)
+[![NuGet Badge](https://buildstats.info/nuget/FastExcel)](https://www.nuget.org/packages/FastExcel/)
 
 Insperation for this project came from https://github.com/jsegarra1971/SejExcelExport jsegarra1971 did a great job. I wanted to have my own crack at this problem.
 

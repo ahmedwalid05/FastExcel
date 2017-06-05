@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -65,6 +66,17 @@ namespace FastExcel
             }
         }
 
+
+        private string GetHeaderName(PropertyInfo propertyInfo)
+        {
+            var descriptionAttribute = propertyInfo.GetCustomAttribute(typeof (DescriptionAttribute)) as DescriptionAttribute;
+            if (descriptionAttribute != null && !string.IsNullOrWhiteSpace(descriptionAttribute.Description))
+            {
+                return descriptionAttribute.Description;
+            }
+            return propertyInfo.Name;
+        }
+
         private void PopulateRowsFromObjects<T>(IEnumerable<T> rows, int existingHeadingRows = 0, bool usePropertiesAsHeadings = false)
         {
             int rowNumber = existingHeadingRows + 1;
@@ -75,8 +87,7 @@ namespace FastExcel
             
             if (usePropertiesAsHeadings)
             {
-                this.Headings = (from prop in properties
-                                 select prop.Name);
+                this.Headings = properties.Select(GetHeaderName);
 
                 int headingColumnNumber = 1;
                 IEnumerable<Cell> headingCells = (from h in this.Headings
@@ -504,11 +515,9 @@ namespace FastExcel
                         }
                     }
                 }
-
-                this.Index = (from attribute in sheetElement.Attributes()
-                              where attribute.Name == "sheetId"
-                              select int.Parse(attribute.Value)).FirstOrDefault();
-
+                               
+                this.Index = sheetsElements.IndexOf(sheetElement)+1;
+                
                 this.Name = (from attribute in sheetElement.Attributes()
                               where attribute.Name == "name"
                               select attribute.Value).FirstOrDefault();
