@@ -96,8 +96,9 @@ namespace FastExcel
                 }
                 else if (!this.ExcelFile.Exists)
                 {
+                    string exceptionMessage = string.Format("Input file '{0}' does not exist", this.ExcelFile.FullName);
                     this.ExcelFile = null;
-                    throw new Exception(string.Format("Input file '{0}' does not exist", this.ExcelFile.FullName));
+                    throw new Exception(exceptionMessage);
                 }
             }
             else
@@ -108,8 +109,9 @@ namespace FastExcel
                 }
                 else if (!this.TemplateFile.Exists)
                 {
+                    string exceptionMessage = string.Format("Template file '{0}' was not found", this.TemplateFile.FullName);
                     this.TemplateFile = null;
-                    throw new FileNotFoundException(string.Format("Template file '{0}' was not found", this.TemplateFile.FullName));
+                    throw new FileNotFoundException(exceptionMessage);
                 }
 
                 if (this.ExcelFile == null)
@@ -118,8 +120,9 @@ namespace FastExcel
                 }
                 else if (this.ExcelFile.Exists)
                 {
+                    string exceptionMessage = string.Format("Output file '{0}' already exists", this.ExcelFile.FullName);
                     this.ExcelFile = null;
-                    throw new Exception(string.Format("Output file '{0}' already exists", this.ExcelFile.FullName));
+                    throw new Exception(exceptionMessage);
                 }
             }
             _filesChecked = true;
