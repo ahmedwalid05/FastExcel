@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace FastExcel
@@ -27,23 +24,23 @@ namespace FastExcel
 
         internal SharedStrings(ZipArchive archive)
         {
-            this.ZipArchive = archive;
-            
-            this.SharedStringsExists = true;
+            ZipArchive = archive;
 
-            if (!this.ZipArchive.Entries.Where(entry => entry.FullName == "xl/sharedStrings.xml").Any())
+            SharedStringsExists = true;
+
+            if (!ZipArchive.Entries.Where(entry => entry.FullName == "xl/sharedStrings.xml").Any())
             {
-                this.StringDictionary = new Dictionary<string, int>();
-                this.SharedStringsExists = false;
+                StringDictionary = new Dictionary<string, int>();
+                SharedStringsExists = false;
                 return;
             }
             
-            using (Stream stream = this.ZipArchive.GetEntry("xl/sharedStrings.xml").Open())
+            using (Stream stream = ZipArchive.GetEntry("xl/sharedStrings.xml").Open())
             {
                 if (stream == null)
                 {
-                    this.StringDictionary = new Dictionary<string, int>();
-                    this.SharedStringsExists = false;
+                    StringDictionary = new Dictionary<string, int>();
+                    SharedStringsExists = false;
                     return;
                 }
 
@@ -51,45 +48,45 @@ namespace FastExcel
 
                 if (document == null)
                 {
-                    this.StringDictionary = new Dictionary<string, int>();
-                    this.SharedStringsExists = false;
+                    StringDictionary = new Dictionary<string, int>();
+                    SharedStringsExists = false;
                     return;
                 }
 
                 int i = 0;
-                this.StringDictionary = document.Descendants().Where(d => d.Name.LocalName == "t").Select(e => e.Value).ToDictionary(k=> k,v => i++);
+                StringDictionary = document.Descendants().Where(d => d.Name.LocalName == "t").Select(e => e.Value).ToDictionary(k=> k,v => i++);
             }
         }
 
         internal int AddString(string stringValue)
         {
-            if (this.StringDictionary.ContainsKey(stringValue))
+            if (StringDictionary.ContainsKey(stringValue))
             {
-                return this.StringDictionary[stringValue];
+                return StringDictionary[stringValue];
             }
             else
             {
-                this.PendingChanges = true;
-                this.StringDictionary.Add(stringValue, this.StringDictionary.Count);
+                PendingChanges = true;
+                StringDictionary.Add(stringValue, StringDictionary.Count);
 
                 // Clear String Array used for retrieval
-                if (this.ReadWriteMode && this.StringArray != null)
+                if (ReadWriteMode && StringArray != null)
                 {
-                    this.StringArray.Add(this.StringDictionary.Count - 1, stringValue);
+                    StringArray.Add(StringDictionary.Count - 1, stringValue);
                 }
                 else
                 {
-                    this.StringArray = null;
+                    StringArray = null;
                 }
 
-                return this.StringDictionary.Count - 1;
+                return StringDictionary.Count - 1;
             }
         }
 
         internal void Write()
         {
             // Only update if changes were made
-            if (!this.PendingChanges)
+            if (!PendingChanges)
             {
                 return;
             }
@@ -97,13 +94,13 @@ namespace FastExcel
             StreamWriter streamWriter = null;
             try
             {
-                if (this.SharedStringsExists)
+                if (SharedStringsExists)
                 {
-                    streamWriter = new StreamWriter(this.ZipArchive.GetEntry("xl/sharedStrings.xml").Open());
+                    streamWriter = new StreamWriter(ZipArchive.GetEntry("xl/sharedStrings.xml").Open());
                 }
                 else
                 {
-                    streamWriter = new StreamWriter(this.ZipArchive.CreateEntry("xl/sharedStrings.xml").Open());
+                    streamWriter = new StreamWriter(ZipArchive.CreateEntry("xl/sharedStrings.xml").Open());
                 }
 
                 // TODO instead of saving the headers then writing them back get position where the headers finish then write from there
@@ -113,10 +110,10 @@ namespace FastExcel
                  */
 
                 streamWriter.Write(string.Format("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
-                            "<sst uniqueCount=\"{0}\" count=\"{0}\" xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">", this.StringDictionary.Count));
+                            "<sst uniqueCount=\"{0}\" count=\"{0}\" xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">", StringDictionary.Count));
 
                 // Add Rows
-                foreach (var stringValue in this.StringDictionary)
+                foreach (var stringValue in StringDictionary)
                 {
                     streamWriter.Write(string.Format("<si><t>{0}</t></si>", stringValue.Key));
                 }
@@ -128,7 +125,7 @@ namespace FastExcel
             finally
             {
                 streamWriter.Dispose();
-                this.PendingChanges = false;
+                PendingChanges = false;
             }
         }
         
@@ -148,12 +145,12 @@ namespace FastExcel
 
         internal string GetString(int position)
         {
-            if (this.StringArray == null)
+            if (StringArray == null)
             {
-                this.StringArray = this.StringDictionary.ToDictionary(kv => kv.Value, kv => kv.Key);
+                StringArray = StringDictionary.ToDictionary(kv => kv.Value, kv => kv.Key);
             }
 
-            return this.StringArray[position - 1];
+            return StringArray[position - 1];
         }
     }
 }

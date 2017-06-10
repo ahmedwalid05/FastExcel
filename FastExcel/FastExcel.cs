@@ -141,7 +141,7 @@ namespace FastExcel
                 return;
             }
 
-            using (Stream stream = this.Archive.GetEntry("xl/_rels/workbook.xml.rels").Open())
+            using (Stream stream = Archive.GetEntry("xl/_rels/workbook.xml.rels").Open())
             {
                 XDocument document = XDocument.Load(stream);
 
@@ -216,7 +216,7 @@ namespace FastExcel
             }
 
             List<string> sheetNames = new List<string>();
-            using (Stream stream = this.Archive.GetEntry("xl/workbook.xml").Open())
+            using (Stream stream = Archive.GetEntry("xl/workbook.xml").Open())
             {
                 XDocument document = XDocument.Load(stream);
 
@@ -284,7 +284,7 @@ namespace FastExcel
             // Remove deleted worksheets to sheetProperties
             if (DeleteWorksheets != null && DeleteWorksheets.Any())
             {
-                foreach (var item in this.DeleteWorksheets)
+                foreach (var item in DeleteWorksheets)
                 {
                     WorksheetProperties sheetToDelete = (from sp in sheetProperties
                                         where sp.SheetId == item
@@ -301,7 +301,7 @@ namespace FastExcel
             if (AddWorksheets != null && AddWorksheets.Any())
             {
                 // Add the sheets in reverse, this will add them correctly with less work
-                foreach (var item in this.AddWorksheets.Reverse<WorksheetAddSettings>())
+                foreach (var item in AddWorksheets.Reverse<WorksheetAddSettings>())
                 {
                     WorksheetProperties previousSheet = (from sp in sheetProperties
                                                 where sp.SheetId == item.InsertAfterSheetId
@@ -359,7 +359,7 @@ namespace FastExcel
                 return;
             }
 
-            using (Stream stream = this.Archive.GetEntry("[Content_Types].xml").Open())
+            using (Stream stream = Archive.GetEntry("[Content_Types].xml").Open())
             {
                 XDocument document = XDocument.Load(stream);
 
@@ -535,9 +535,9 @@ namespace FastExcel
                 bool ensureSharedStrings = false;
 
                 // Update or create xl/sharedStrings.xml file
-                if (this.SharedStrings != null)
+                if (SharedStrings != null)
                 {
-                    ensureSharedStrings = this.SharedStrings.PendingChanges;
+                    ensureSharedStrings = SharedStrings.PendingChanges;
                     SharedStrings.Write();
                 }
 

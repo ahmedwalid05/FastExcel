@@ -37,7 +37,7 @@ namespace FastExcel
             PrepareArchive(false);
 
             var worksheets = new List<Worksheet>();
-            using (Stream stream = this.Archive.GetEntry("xl/workbook.xml").Open())
+            using (Stream stream = Archive.GetEntry("xl/workbook.xml").Open())
             {
                 XDocument document = XDocument.Load(stream);
 
