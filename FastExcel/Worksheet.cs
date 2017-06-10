@@ -508,7 +508,7 @@ namespace FastExcel
                 {
                     sheetElement = (from sheet in sheetsElements
                                     from attribute in sheet.Attributes()
-                                    where attribute.Name == "name" && attribute.Value.Equals(sheetName, StringComparison.InvariantCultureIgnoreCase)
+                                    where attribute.Name == "name" && attribute.Value.Equals(sheetName, StringComparison.OrdinalIgnoreCase)
                                     select sheet).FirstOrDefault();
 
                     if (sheetElement == null)
@@ -520,7 +520,7 @@ namespace FastExcel
                     {
                         newSheetNameExists = (from sheet in sheetsElements
                                         from attribute in sheet.Attributes()
-                                                    where attribute.Name == "name" && attribute.Value.Equals(newSheetName, StringComparison.InvariantCultureIgnoreCase)
+                                                    where attribute.Name == "name" && attribute.Value.Equals(newSheetName, StringComparison.OrdinalIgnoreCase)
                                         select sheet).Any();
 
                         if (FastExcel.MaxSheetNumber == 0)

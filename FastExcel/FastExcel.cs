@@ -158,7 +158,7 @@ namespace FastExcel
                     //Ensure SharedStrings
                     XElement relationshipElement = (from element in relationshipElements
                                                     from attribute in element.Attributes()
-                                                    where attribute.Name == "Target" && attribute.Value.Equals("sharedStrings.xml", StringComparison.InvariantCultureIgnoreCase)
+                                                    where attribute.Name == "Target" && attribute.Value.Equals("sharedStrings.xml", StringComparison.OrdinalIgnoreCase)
                                                     select element).FirstOrDefault();
 
                     if (relationshipElement == null)
@@ -375,7 +375,7 @@ namespace FastExcel
                 {
                     XElement overrideElement = (from element in overrideElements
                                                 from attribute in element.Attributes()
-                                                where attribute.Name == "PartName" && attribute.Value.Equals("/xl/sharedStrings.xml", StringComparison.InvariantCultureIgnoreCase)
+                                                where attribute.Name == "PartName" && attribute.Value.Equals("/xl/sharedStrings.xml", StringComparison.OrdinalIgnoreCase)
                                                 select element).FirstOrDefault();
 
                     if (overrideElement == null)
