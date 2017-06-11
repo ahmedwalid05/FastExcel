@@ -34,7 +34,7 @@ namespace FastExcel
                 SharedStringsExists = false;
                 return;
             }
-            
+
             using (Stream stream = ZipArchive.GetEntry("xl/sharedStrings.xml").Open())
             {
                 if (stream == null)
@@ -54,7 +54,7 @@ namespace FastExcel
                 }
 
                 int i = 0;
-                StringDictionary = document.Descendants().Where(d => d.Name.LocalName == "t").Select(e => e.Value).ToDictionary(k=> k,v => i++);
+                StringDictionary = document.Descendants().Where(d => d.Name.LocalName == "t").Select(e => e.Value).ToDictionary(k => k, v => i++);
             }
         }
 
@@ -128,7 +128,7 @@ namespace FastExcel
                 PendingChanges = false;
             }
         }
-        
+
         internal string GetString(string position)
         {
             int pos;

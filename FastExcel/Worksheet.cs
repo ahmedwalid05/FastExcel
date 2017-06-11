@@ -94,16 +94,16 @@ namespace FastExcel
             int rowNumber = existingHeadingRows + 1;
 
             // Get all properties
-            PropertyInfo[] properties = typeof(T).GetProperties();
+            IEnumerable<PropertyInfo> properties = typeof(T).GetRuntimeProperties();
             List<Row> newRows = new List<Row>();
-            
+
             if (usePropertiesAsHeadings)
             {
                 Headings = properties.Select(GetHeaderName);
 
                 int headingColumnNumber = 1;
                 IEnumerable<Cell> headingCells = (from h in Headings
-                                                   select new Cell(headingColumnNumber++, h)).ToArray();
+                                                  select new Cell(headingColumnNumber++, h)).ToArray();
 
                 Row headingRow = new Row(rowNumber++, headingCells);
 
@@ -113,14 +113,14 @@ namespace FastExcel
             foreach (T rowObject in rows)
             {
                 List<Cell> cells = new List<Cell>();
-                
+
                 int columnNumber = 1;
 
                 // Get value from each property
                 foreach (PropertyInfo propertyInfo in properties)
                 {
                     object value = propertyInfo.GetValue(rowObject, null);
-                    if(value != null)
+                    if (value != null)
                     {
                         Cell cell = new Cell(columnNumber, value);
                         cells.Add(cell);
@@ -138,7 +138,7 @@ namespace FastExcel
         private void PopulateRowsFromIEnumerable(IEnumerable<IEnumerable<object>> rows, int existingHeadingRows = 0)
         {
             int rowNumber = existingHeadingRows + 1;
-            
+
             List<Row> newRows = new List<Row>();
 
             foreach (IEnumerable<object> rowOfObjects in rows)
@@ -161,7 +161,7 @@ namespace FastExcel
                 newRows.Add(row);
             }
 
-           Rows = newRows;
+            Rows = newRows;
         }
 
         /// <summary>
@@ -172,24 +172,24 @@ namespace FastExcel
         {
             if (Rows == null)
             {
-               Rows = new List<Row>();
+                Rows = new List<Row>();
             }
 
             List<Cell> cells = new List<Cell>();
 
             int columnNumber = 1;
             foreach (object value in cellValues)
-	        {
+            {
                 if (value != null)
                 {
-		            Cell cell = new Cell(columnNumber++, value);
+                    Cell cell = new Cell(columnNumber++, value);
                     cells.Add(cell);
                 }
                 else
                 {
                     columnNumber++;
                 }
-	        }
+            }
 
             Row row = new Row(Rows.Count() + 1, cells);
             (Rows as List<Row>).Add(row);
@@ -213,7 +213,7 @@ namespace FastExcel
             if (row == null)
             {
                 cell = new Cell(columnNumber, value);
-                row = new Row(rowNumber, new List<Cell>{ cell });
+                row = new Row(rowNumber, new List<Cell> { cell });
                 (Rows as List<Row>).Add(row);
             }
 
@@ -265,7 +265,7 @@ namespace FastExcel
                 }
             }
         }
-        
+
         public bool Exists
         {
             get
@@ -288,9 +288,9 @@ namespace FastExcel
         {
             FastExcel.CheckFiles();
             FastExcel.PrepareArchive();
-            
+
             ExistingHeadingRows = existingHeadingRows;
-            
+
             IEnumerable<Row> rows = null;
 
             List<string> headings = new List<string>();
@@ -518,9 +518,9 @@ namespace FastExcel
                     if (!string.IsNullOrEmpty(newSheetName))
                     {
                         newSheetNameExists = (from sheet in sheetsElements
-                                        from attribute in sheet.Attributes()
-                                                    where attribute.Name == "name" && attribute.Value.Equals(newSheetName, StringComparison.OrdinalIgnoreCase)
-                                        select sheet).Any();
+                                              from attribute in sheet.Attributes()
+                                              where attribute.Name == "name" && attribute.Value.Equals(newSheetName, StringComparison.OrdinalIgnoreCase)
+                                              select sheet).Any();
 
                         if (FastExcel.MaxSheetNumber == 0)
                         {
@@ -531,12 +531,12 @@ namespace FastExcel
                         }
                     }
                 }
-                               
-                Index = sheetsElements.IndexOf(sheetElement)+1;
-                
+
+                Index = sheetsElements.IndexOf(sheetElement) + 1;
+
                 Name = (from attribute in sheetElement.Attributes()
-                              where attribute.Name == "name"
-                              select attribute.Value).FirstOrDefault();
+                        where attribute.Name == "name"
+                        select attribute.Value).FirstOrDefault();
             }
 
             if (!Exists)
@@ -566,7 +566,7 @@ namespace FastExcel
             Worksheet previousWorksheet = new Worksheet(fastExcel);
             bool isNameValid = previousWorksheet.GetWorksheetPropertiesAndValidateNewName(fastExcel, insertAfterSheetNumber, insertAfterSheetName, Name);
             InsertAfterIndex = previousWorksheet.Index;
-            
+
             if (!isNameValid)
             {
                 throw new Exception(string.Format("Worksheet name '{0}' already exists", Name));

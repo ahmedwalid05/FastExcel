@@ -318,7 +318,6 @@ namespace FastExcel
                         Name = item.Name,
                         CurrentIndex = 0// TODO Something??
                     };
-
                     sheetProperties.Insert(sheetProperties.IndexOf(previousSheet), newWorksheet);
                 }
             }
