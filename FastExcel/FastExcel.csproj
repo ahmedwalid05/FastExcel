@@ -12,7 +12,7 @@
     <PackageProjectUrl>https://github.com/mrjono1/FastExcel</PackageProjectUrl>
     <RepositoryUrl>https://github.com/mrjono1/FastExcel</RepositoryUrl>
     <NeutralLanguage>en</NeutralLanguage>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
