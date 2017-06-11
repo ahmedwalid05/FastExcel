@@ -312,10 +312,12 @@ namespace FastExcel
                         throw new Exception(string.Format("Sheet name {0} cannot be added because the insertAfterSheetNumber or insertAfterSheetName is now invalid", item.Name));
                     }
 
-                    WorksheetProperties newWorksheet = new WorksheetProperties();
-                    newWorksheet.SheetId = item.SheetId;
-                    newWorksheet.Name = item.Name;
-                    newWorksheet.CurrentIndex = 0;// TODO Something??
+                    WorksheetProperties newWorksheet = new WorksheetProperties()
+                    {
+                        SheetId = item.SheetId,
+                        Name = item.Name,
+                        CurrentIndex = 0// TODO Something??
+                    };
 
                     sheetProperties.Insert(sheetProperties.IndexOf(previousSheet), newWorksheet);
                 }
