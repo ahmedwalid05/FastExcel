@@ -8,10 +8,22 @@ using System.Xml.Linq;
 
 namespace FastExcel
 {
+    /// <summary>
+    /// Fast Excel
+    /// </summary>
     public partial class FastExcel: IDisposable
     {
+        /// <summary>
+        /// Output excel file
+        /// </summary>
         public FileInfo ExcelFile { get; private set; }
+        /// <summary>
+        /// The template excel file
+        /// </summary>
         public FileInfo TemplateFile { get; private set; }
+        /// <summary>
+        /// Is the excel file read only
+        /// </summary>
         public bool ReadOnly { get; private set; }
         
         internal SharedStrings SharedStrings { get; set; }
@@ -38,6 +50,7 @@ namespace FastExcel
         /// Update an existing excel file
         /// </summary>
         /// <param name="excelFile">location of an existing excel file</param>
+        /// <param name="readOnly">is the file read only</param>
         public FastExcel(FileInfo excelFile, bool readOnly = false) : this(null, excelFile, true, readOnly) {}
         
         /// <summary>
@@ -339,13 +352,6 @@ namespace FastExcel
                 index++;
             }
         }
-        
-        public class WorksheetProperties
-        {
-            public int CurrentIndex { get; set; }
-            public int SheetId { get; set; }
-            public string Name { get; set; }
-        }
 
         /// <summary>
         /// Update [Content_Types].xml file
@@ -524,6 +530,9 @@ namespace FastExcel
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Main disposal function
+        /// </summary>
         protected virtual void Dispose(bool disposing)
         {
             if (Archive == null)

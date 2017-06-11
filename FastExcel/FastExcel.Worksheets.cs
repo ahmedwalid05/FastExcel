@@ -6,6 +6,9 @@ using System.Xml.Linq;
 
 namespace FastExcel
 {
+    /// <summary>
+    /// Fast Excel
+    /// </summary>
     public partial class FastExcel
     {
         private Worksheet[] _worksheets;

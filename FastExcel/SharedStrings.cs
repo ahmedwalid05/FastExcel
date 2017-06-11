@@ -18,8 +18,14 @@ namespace FastExcel
         private bool SharedStringsExists { get; set; }
         private ZipArchive ZipArchive { get; set; }
 
+        /// <summary>
+        /// Is there any pending changes
+        /// </summary>
         public bool PendingChanges { get; private set; }
 
+        /// <summary>
+        /// Is in read/write mode
+        /// </summary>
         public bool ReadWriteMode { get; set; }
 
         internal SharedStrings(ZipArchive archive)

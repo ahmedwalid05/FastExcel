@@ -36,6 +36,9 @@ namespace FastExcel
             Cells = cells;
         }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public Row(XElement rowElement, SharedStrings sharedStrings)
         {
             try

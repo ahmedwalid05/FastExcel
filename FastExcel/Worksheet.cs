@@ -8,6 +8,9 @@ using System.Xml.Linq;
 
 namespace FastExcel
 {
+    /// <summary>
+    /// Excel Worksheet
+    /// </summary>
     public class Worksheet
     {
         /// <summary>
@@ -29,13 +32,23 @@ namespace FastExcel
         /// Name of this worksheet
         /// </summary>
         public string Name { get; set; }
+        /// <summary>
+        /// Is there any existing heading rows
+        /// </summary>
         public int ExistingHeadingRows { get; set; }
         private int? InsertAfterIndex { get; set; }
+        
+        /// <summary>
+        /// Template
+        /// </summary>
         public bool Template { get; set; }
 
         internal string Headers { get; set; }
         internal string Footers { get; set; }
 
+        /// <summary>
+        /// Fast Excel
+        /// </summary>
         public FastExcel FastExcel { get; private set; }
 
         internal string FileName
@@ -57,13 +70,22 @@ namespace FastExcel
         private const string DEFAULT_HEADERS = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?><worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheetData>";
         private const string DEFAULT_FOOTERS = "</sheetData></worksheet>";
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public Worksheet() { }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public Worksheet(FastExcel fastExcel)
         {
             FastExcel = fastExcel;
         }
 
+        /// <summary>
+        /// Populate rows
+        /// </summary>
         public void PopulateRows<T>(IEnumerable<T> rows, int existingHeadingRows = 0, bool usePropertiesAsHeadings = false)
         {
             if ((rows.FirstOrDefault() as IEnumerable<object>) == null)
@@ -266,6 +288,9 @@ namespace FastExcel
             }
         }
 
+        /// <summary>
+        /// Does the file exist
+        /// </summary>
         public bool Exists
         {
             get
