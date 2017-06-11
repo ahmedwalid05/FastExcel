@@ -131,7 +131,8 @@ namespace FastExcel
         
         internal string GetString(string position)
         {
-            if (int.TryParse(position, out int pos))
+            int pos;
+            if (int.TryParse(position, out pos))
             {
                 return GetString(pos + 1);
             }
