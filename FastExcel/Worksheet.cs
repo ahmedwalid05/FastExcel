@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Text;
 using System.IO;
 using System.Xml.Linq;
-using System.ComponentModel.DataAnnotations;
 
 namespace FastExcel
 {
@@ -78,11 +77,11 @@ namespace FastExcel
         }
 
         /// <summary>
-        /// Get Header Column Name from [Display(Name="column1")] or the property name
+        /// Get Header Column Name from [ExcelColumn(Name="column1")] or the property name
         /// </summary>
         private string GetHeaderName(PropertyInfo propertyInfo)
         {
-            var descriptionAttribute = propertyInfo.GetCustomAttribute<DisplayAttribute>();
+            var descriptionAttribute = propertyInfo.GetCustomAttribute<ExcelColumnAttribute>();
             if (descriptionAttribute != null && !string.IsNullOrWhiteSpace(descriptionAttribute.Name))
             {
                 return descriptionAttribute.Name;
