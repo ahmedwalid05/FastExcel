@@ -7,6 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastExcel", "FastExcel\Fast
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFiles", "SolutionFiles", "{9B7439E1-4CE2-48F8-9CD9-BC42BD8D25E2}"
 	ProjectSection(SolutionItems) = preProject
+		appveyor.yml = appveyor.yml
 		ReadMe.md = ReadMe.md
 	EndProjectSection
 EndProject
