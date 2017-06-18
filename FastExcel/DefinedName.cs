@@ -62,8 +62,8 @@ namespace FastExcel
 
             foreach(string reference in references)
             {
-                // If not containing these characters then its a reference that's not supported
-                if (!reference.Contains("!") || !reference.Contains("$"))
+                // If A) is a formula or B) does not contain ! or $ then this reference is not supported
+                if (Regex.IsMatch(reference, @"[\(\)\*\+\-\/]") || !Regex.IsMatch(reference, @"[!$]"))
                     continue;
 
                 CellRange cellRange = new CellRange(reference);
