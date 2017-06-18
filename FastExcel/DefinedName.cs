@@ -98,7 +98,20 @@ namespace FastExcel
             return GetCellRangeByDefinedName(definedName).FirstOrDefault();
         }
 
-        
+        /// <summary>
+        /// Returns all cells in a column by name, within optional row range
+        /// </summary>
+        /// <param name="columnName"></param>
+        /// <param name="rowStart"></param>
+        /// <param name="rowEnd"></param>
+        /// <returns></returns>
+        public IEnumerable<Cell> GetCellsByColumnName(string columnName, int rowStart = 1, int? rowEnd = null)
+        {
+            var columnCells = GetCellRangeByDefinedName(columnName) as List<Cell>;
+            if (rowEnd == null)
+                rowEnd = columnCells.Last().RowNumber;
+            return columnCells.Where(cell=>cell.RowNumber>=rowStart && cell.RowNumber<=rowEnd).ToList();
+        }
     }
 
     /// <summary>
