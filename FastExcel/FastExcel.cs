@@ -89,6 +89,8 @@ namespace FastExcel
             {
                 SharedStrings = new SharedStrings(Archive);
             }
+
+            loadDefinedNames();
         }
 
         /// <summary>
