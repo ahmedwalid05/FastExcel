@@ -47,13 +47,13 @@ namespace FastExcel
         /// Retrieves ranges of cells by their defined name
         /// </summary>
         /// <param name="definedName">Defined Name</param>
-        /// <param name="sheetId">If scoped to a sheet, the sheetId</param>
+        /// <param name="worksheetIndex">If scoped to a sheet, the worksheetIndex</param>
         /// <returns>List of cells encapsulated in another list representing seperate ranges</returns>
-        public IEnumerable<IEnumerable<Cell>> GetCellRangesByDefinedName(string definedName, int? sheetId = null)
+        public IEnumerable<IEnumerable<Cell>> GetCellRangesByDefinedName(string definedName, int? worksheetIndex = null)
         {
             List<List<Cell>> result = new List<List<Cell>>();
 
-            string key = (sheetId == null) ? definedName : definedName + ":" + sheetId;
+            string key = (worksheetIndex == null) ? definedName : definedName + ":" + worksheetIndex;
 
             if (!DefinedNames.ContainsKey(key))
                 return result;
@@ -82,9 +82,9 @@ namespace FastExcel
         /// </summary>
         /// <param name="definedName"></param>
         /// <returns></returns>
-        public IEnumerable<Cell> GetCellRangeByDefinedName(string definedName, int? sheetId = null)
+        public IEnumerable<Cell> GetCellRangeByDefinedName(string definedName, int? worksheetIndex = null)
         {
-            return GetCellRangesByDefinedName(definedName, sheetId).FirstOrDefault();
+            return GetCellRangesByDefinedName(definedName, worksheetIndex).FirstOrDefault();
         }
 
         /// <summary>
@@ -93,9 +93,10 @@ namespace FastExcel
         /// </summary>
         /// <param name="definedName"></param>
         /// <returns></returns>
-        public Cell GetFirstCellByDefinedName(string definedName, int? sheetId = null)
+        public Cell GetFirstCellByDefinedName(string definedName, int? worksheetIndex = null)
         {
-            return GetCellRangeByDefinedName(definedName, sheetId).FirstOrDefault();
+            var result = GetCellRangeByDefinedName(definedName, worksheetIndex);
+            return result != null ? result.FirstOrDefault() : null;
         }
 
         /// <summary>
@@ -122,9 +123,9 @@ namespace FastExcel
     internal class DefinedName
     {
         internal string Name { get; }
-        internal int? SheetId { get; }
+        internal int? worksheetIndex { get; }
         internal string Reference { get; }
-        internal string Key { get { return Name + (SheetId == null ? "" : ":" + SheetId); } }
+        internal string Key { get { return Name + (worksheetIndex == null ? "" : ":" + worksheetIndex); } }
 
         internal DefinedName(XElement e)
         {
@@ -132,7 +133,7 @@ namespace FastExcel
             if (e.Attribute("localSheetId") != null)
                 try
                 {
-                    SheetId = Convert.ToInt32(e.Attribute("localSheetId").Value);
+                    worksheetIndex = Convert.ToInt32(e.Attribute("localSheetId").Value)+1;
                 }
                 catch (Exception exception)
                 {
