@@ -77,14 +77,21 @@ namespace FastExcel
         }
 
         /// <summary>
-        /// Returns first range of cells by defined names
-        /// Use when you know defined name only represents one range
+        /// Gets all cells by defined name
+        /// Like GetCellRangesByCellName, but just retreives all cells in a single list
         /// </summary>
         /// <param name="definedName"></param>
+        /// <param name="worksheetIndex"></param>
         /// <returns></returns>
-        public IEnumerable<Cell> GetCellRangeByDefinedName(string definedName, int? worksheetIndex = null)
+        public IEnumerable<Cell> GetCellsByDefinedName(string definedName, int? worksheetIndex = null)
         {
-            return GetCellRangesByDefinedName(definedName, worksheetIndex).FirstOrDefault();
+            var cells = new List<Cell>();
+            var cellRanges = GetCellRangesByDefinedName(definedName) as List<List<Cell>>;
+
+            foreach (var cellRange in cellRanges)
+                cells.InsertRange(cells.Count, (from cell in cellRange select cell));
+
+            return cells;
         }
 
         /// <summary>
@@ -95,9 +102,9 @@ namespace FastExcel
         /// <returns></returns>
         public Cell GetFirstCellByDefinedName(string definedName, int? worksheetIndex = null)
         {
-            var result = GetCellRangeByDefinedName(definedName, worksheetIndex);
-            return result != null ? result.FirstOrDefault() : null;
+            return GetCellsByDefinedName(definedName, worksheetIndex).FirstOrDefault();
         }
+
 
         /// <summary>
         /// Returns all cells in a column by name, within optional row range
@@ -108,7 +115,7 @@ namespace FastExcel
         /// <returns></returns>
         public IEnumerable<Cell> GetCellsByColumnName(string columnName, int rowStart = 1, int? rowEnd = null)
         {
-            var columnCells = GetCellRangeByDefinedName(columnName) as List<Cell>;
+            var columnCells = GetCellsByDefinedName(columnName) as List<Cell>;
             if (!rowEnd.HasValue)
                 rowEnd = columnCells.Last().RowNumber;
             return columnCells.Where(cell=>cell.RowNumber>=rowStart && cell.RowNumber<=rowEnd).ToList();
