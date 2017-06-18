@@ -349,12 +349,14 @@ namespace FastExcel
         {
             IEnumerable rows;
 
-            if (!cellRange.IsColumn)
+            if (cellRange.RowEnd.HasValue)
                 rows = (from row in Rows
                         where row.RowNumber >= cellRange.RowStart && row.RowNumber <= cellRange.RowEnd
                         select row);
             else
-                rows = Rows;
+                rows = (from row in Rows
+                        where row.RowNumber >= cellRange.RowStart
+                        select row);
 
             List<Cell> rangeResult = new List<Cell>();
             foreach (Row row in rows)

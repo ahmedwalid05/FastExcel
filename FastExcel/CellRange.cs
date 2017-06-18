@@ -15,7 +15,6 @@ namespace FastExcel
             ColumnEnd;
         public int RowStart = 1;
         public int? RowEnd;
-        public bool IsColumn = false;
 
         /// <summary>
         /// Defines a range of cells using a reference string
@@ -31,10 +30,9 @@ namespace FastExcel
             if (range.Contains(":"))
             {
                 string[] splitRange = range.Split(':');
-                IsColumn = splitRange[0].Count(c => c == '$') == 1;
                 ColumnStart = splitRange[0].Split('$')[1];
                 ColumnEnd = splitRange[1].Split('$')[1];
-                if (!IsColumn)
+                if (splitRange[0].Count(c => c == '$') > 1)
                 {
                     RowStart = Convert.ToInt32(splitRange[0].Split('$')[2]);
                     RowEnd = Convert.ToInt32(splitRange[1].Split('$')[2]);
@@ -56,8 +54,6 @@ namespace FastExcel
         /// <param name="rowEnd">last row number</param>
         public CellRange(string columnStart, string columnEnd, int rowStart = 1, int? rowEnd = null)
         {
-            if (columnStart == columnEnd && rowEnd == null)
-                IsColumn = true;
             SheetName = "";
             ColumnStart = columnStart;
             ColumnEnd = columnEnd;
