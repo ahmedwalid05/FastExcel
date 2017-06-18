@@ -95,12 +95,12 @@ namespace FastExcel
         }
 
         /// <summary>
-        /// Returns first cell by defined name
-        /// Use when you know defined name only represents one cell
+        /// Returns cell by defined name
+        /// If theres more than one, this is the first one.
         /// </summary>
         /// <param name="definedName"></param>
         /// <returns></returns>
-        public Cell GetFirstCellByDefinedName(string definedName, int? worksheetIndex = null)
+        public Cell GetCellByDefinedName(string definedName, int? worksheetIndex = null)
         {
             return GetCellsByDefinedName(definedName, worksheetIndex).FirstOrDefault();
         }
