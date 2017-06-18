@@ -21,7 +21,7 @@ namespace FastExcel
         /// Defines a range of cells using a reference string
         /// </summary>
         /// <param name="reference">Reference string i.e. Sheet1!$A$1</param>
-        public CellRange(string reference)
+        internal CellRange(string reference)
         {
             string[] splitReference = reference.Split('!');
 
