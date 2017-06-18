@@ -22,6 +22,11 @@ namespace FastExcel
         public object Value { get; set; }
 
         /// <summary>
+        /// Defined name for column or the column letter(s)
+        /// </summary>
+        public string ColumnName { get; }
+
+        /// <summary>
         /// Create a new Cell
         /// </summary>
         /// <param name="columnNumber">Column number starting at 1</param>
@@ -48,6 +53,8 @@ namespace FastExcel
                               select a).Any();
             string columnName = (from a in cellElement.Attributes("r")
                                  select a.Value).FirstOrDefault();
+
+            ColumnName = worksheet.FastExcel.DefinedNames.FindColumnName(worksheet.Name, Regex.Replace(columnName, @"\d", "")) ?? Regex.Replace(columnName, @"\d", "");
 
             ColumnNumber = GetExcelColumnNumber(columnName);
 
