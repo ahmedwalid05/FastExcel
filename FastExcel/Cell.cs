@@ -34,9 +34,17 @@ namespace FastExcel
         public List<string> CellNames { get; }
 
         /// <summary>
-        /// First defined name assigned to cell or null if none defined
+        /// First defined name assigned to cell or cell Letter + row number if no named defined.
         /// </summary>
-        public string CellName { get { return CellNames.FirstOrDefault(); } }
+        public string CellName
+        {
+            get
+            {
+                if (CellNames.Count>0)
+                    return CellNames.FirstOrDefault();
+                return ColumnName + RowNumber;
+            }
+        }
 
         /// <summary>
         /// Number of the row this cell is on
