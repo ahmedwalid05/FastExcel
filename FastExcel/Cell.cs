@@ -31,7 +31,7 @@ namespace FastExcel
         /// List of defined names assigned to this cell
         /// *Does not include names of ranges this cell is within*
         /// </summary>
-        public List<string> CellNames { get; }
+        public IReadOnlyList<string> CellNames { get; }
 
         /// <summary>
         /// First defined name assigned to cell or cell Letter + row number if no named defined.
