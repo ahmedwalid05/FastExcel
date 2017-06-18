@@ -10,9 +10,8 @@ namespace FastExcel
     /// </summary>
     public class CellRange
     {
-        public string SheetName,
-            ColumnStart,
-            ColumnEnd;
+        internal string SheetName;
+        public string ColumnStart, ColumnEnd;
         public int RowStart = 1;
         public int? RowEnd;
 
@@ -54,7 +53,6 @@ namespace FastExcel
         /// <param name="rowEnd">last row number</param>
         public CellRange(string columnStart, string columnEnd, int rowStart = 1, int? rowEnd = null)
         {
-            SheetName = "";
             ColumnStart = columnStart;
             ColumnEnd = columnEnd;
             RowStart = rowStart;
