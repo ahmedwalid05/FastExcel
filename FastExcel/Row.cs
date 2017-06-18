@@ -57,6 +57,16 @@ namespace FastExcel
             }
         }
 
+        /// <summary>
+        /// Retreive cell that is in column specified
+        /// </summary>
+        /// <param name="columnName">Column letter or defined name</param>
+        /// <returns>Matching cell or null if not found</returns>
+        public Cell GetCellByColumnName(string columnName)
+        {
+            return (from c in Cells where c.ColumnName == columnName select c).FirstOrDefault();
+        }
+
         private IEnumerable<Cell> GetCells(XElement rowElement, Worksheet worksheet)
         {
             foreach (XElement cellElement in rowElement.Elements())
