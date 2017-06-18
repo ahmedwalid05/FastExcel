@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
 namespace FastExcel
@@ -40,6 +42,63 @@ namespace FastExcel
             }
             DefinedNames = definedNames;
         }
+
+        /// <summary>
+        /// Retrieves ranges of cells by their defined name
+        /// </summary>
+        /// <param name="definedName">Defined Name</param>
+        /// <param name="sheetId">If scoped to a sheet, the sheetId</param>
+        /// <returns>List of cells encapsulated in another list representing seperate ranges</returns>
+        public IEnumerable<IEnumerable<Cell>> GetCellRangesByDefinedName(string definedName, int? sheetId = null)
+        {
+            List<List<Cell>> result = new List<List<Cell>>();
+
+            string key = (sheetId == null) ? definedName : definedName + ":" + sheetId;
+
+            if (!DefinedNames.ContainsKey(key))
+                return result;
+
+            string[] references = DefinedNames[key].Reference.Split(',');
+
+            foreach(string reference in references)
+            {
+                // If not containing these characters then its a reference that's not supported
+                if (!reference.Contains("!") || !reference.Contains("$"))
+                    continue;
+
+                CellRange cellRange = new CellRange(reference);
+
+                Worksheet worksheet = Read(cellRange.SheetName);
+
+                result.Add(worksheet.GetCellsInRange(cellRange).ToList());
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Returns first range of cells by defined names
+        /// Use when you know defined name only represents one range
+        /// </summary>
+        /// <param name="definedName"></param>
+        /// <returns></returns>
+        public IEnumerable<Cell> GetCellRangeByDefinedName(string definedName)
+        {
+            return GetCellRangesByDefinedName(definedName).FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Returns first cell by defined name
+        /// Use when you know defined name only represents one cell
+        /// </summary>
+        /// <param name="definedName"></param>
+        /// <returns></returns>
+        public Cell GetFirstCellByDefinedName(string definedName)
+        {
+            return GetCellRangeByDefinedName(definedName).FirstOrDefault();
+        }
+
+        
     }
 
     /// <summary>
@@ -83,14 +142,14 @@ namespace FastExcel
         /// <param name="definedNames"></param>
         /// <param name="sheetName">Name of sheet containing cell</param>
         /// <param name="columnLetter">Column letter of cell</param>
-        /// <param name="rowNumber">Row number of cell(this is string as thats datatype when reading from XML)</param>
+        /// <param name="rowNumber">Row number of cell</param>
         /// <returns>
         /// List of cell names that is assigned to this cell. Does not include names which this cell is within range.
         /// Empty List if none found
         /// </returns>
-        internal static List<string> FindCellNames(this IReadOnlyDictionary<string, DefinedName> definedNames, string sheetName, string columnLetter, string rowNumber)
+        internal static List<string> FindCellNames(this IReadOnlyDictionary<string, DefinedName> definedNames, string sheetName, string columnLetter, int rowNumber)
         {
-            return (from e in definedNames where e.Value.Reference.Contains(sheetName + "!$" + columnLetter.ToUpper() + "$" + rowNumber.ToUpper()) select e.Value.Name).ToList();
+            return (from e in definedNames where e.Value.Reference.Contains(sheetName + "!$" + columnLetter.ToUpper() + "$" + rowNumber.ToString()) select e.Value.Name).ToList();
         }
 
         /// <summary>

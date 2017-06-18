@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -22,9 +23,25 @@ namespace FastExcel
         public object Value { get; set; }
 
         /// <summary>
-        /// Defined name for column or the column letter(s)
+        /// Defined name or the column letter(s) for column this cell is in
         /// </summary>
         public string ColumnName { get; }
+
+        /// <summary>
+        /// List of defined names assigned to this cell
+        /// *Does not include names of ranges this cell is within*
+        /// </summary>
+        public List<string> CellNames { get; }
+
+        /// <summary>
+        /// First defined name assigned to cell or null if none defined
+        /// </summary>
+        public string CellName { get { return CellNames.FirstOrDefault(); } }
+
+        /// <summary>
+        /// Number of the row this cell is on
+        /// </summary>
+        public int RowNumber { get; }
 
         /// <summary>
         /// Create a new Cell
@@ -54,7 +71,13 @@ namespace FastExcel
             string columnName = (from a in cellElement.Attributes("r")
                                  select a.Value).FirstOrDefault();
 
-            ColumnName = worksheet.FastExcel.DefinedNames.FindColumnName(worksheet.Name, Regex.Replace(columnName, @"\d", "")) ?? Regex.Replace(columnName, @"\d", "");
+            string columnLetter = Regex.Replace(columnName, @"\d", "");
+
+            RowNumber = Convert.ToInt32(Regex.Replace(columnName, @"[^\d]", ""));
+
+            ColumnName = worksheet.FastExcel.DefinedNames.FindColumnName(worksheet.Name, columnLetter) ?? columnLetter;
+
+            CellNames = worksheet.FastExcel.DefinedNames.FindCellNames(worksheet.Name, columnLetter, RowNumber);
 
             ColumnNumber = GetExcelColumnNumber(columnName);
 

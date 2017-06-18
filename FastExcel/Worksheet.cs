@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.IO;
 using System.Xml.Linq;
+using System.Collections;
 
 namespace FastExcel
 {
@@ -337,6 +338,34 @@ namespace FastExcel
 
             Headings = headings;
             Rows = rows;
+        }
+
+        /// <summary>
+        /// Returns cells using provided range
+        /// </summary>
+        /// <param name="cellRange">Definition of range to use</param>
+        /// <returns></returns>
+        public IEnumerable<Cell> GetCellsInRange(CellRange cellRange)
+        {
+            IEnumerable rows;
+
+            if (!cellRange.IsColumn)
+                rows = (from row in Rows
+                        where row.RowNumber >= cellRange.RowStart && row.RowNumber <= cellRange.RowEnd
+                        select row);
+            else
+                rows = Rows;
+
+            List<Cell> rangeResult = new List<Cell>();
+            foreach (Row row in rows)
+            {
+                rangeResult.InsertRange(rangeResult.Count,
+                    (from cell in row.Cells
+                     where cell.ColumnNumber >= Cell.GetExcelColumnNumber(cellRange.ColumnStart) && cell.ColumnNumber <= Cell.GetExcelColumnNumber(cellRange.ColumnEnd)
+                     select cell).ToList());
+            }
+
+            return rangeResult;
         }
 
         private IEnumerable<Row> GetRows(IEnumerable<XElement> rowElements)
