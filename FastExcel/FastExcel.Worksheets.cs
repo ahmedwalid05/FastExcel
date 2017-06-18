@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace FastExcel
 {
+    /// <summary>
+    /// Fast Excel
+    /// </summary>
     public partial class FastExcel
     {
         private Worksheet[] _worksheets;
@@ -37,7 +38,7 @@ namespace FastExcel
             PrepareArchive(false);
 
             var worksheets = new List<Worksheet>();
-            using (Stream stream = this.Archive.GetEntry("xl/workbook.xml").Open())
+            using (Stream stream = Archive.GetEntry("xl/workbook.xml").Open())
             {
                 XDocument document = XDocument.Load(stream);
 

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace FastExcel
@@ -33,15 +32,18 @@ namespace FastExcel
             {
                 throw new Exception("Row numbers starting at 1");
             }
-            this.RowNumber = rowNumber;
-            this.Cells = cells;
+            RowNumber = rowNumber;
+            Cells = cells;
         }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public Row(XElement rowElement, SharedStrings sharedStrings)
         {
             try
             {
-                this.RowNumber = (from a in rowElement.Attributes("r")
+                RowNumber = (from a in rowElement.Attributes("r")
                              select int.Parse(a.Value)).First();
             }
             catch (Exception ex)
@@ -51,7 +53,7 @@ namespace FastExcel
                         
             if (rowElement.HasElements)
             {
-                this.Cells = GetCells(rowElement, sharedStrings);
+                Cells = GetCells(rowElement, sharedStrings);
             }
         }
 
@@ -71,14 +73,14 @@ namespace FastExcel
         {
             StringBuilder row = new StringBuilder();
 
-            if (this.Cells != null && Cells.Any())
+            if (Cells != null && Cells.Any())
             {
-                row.AppendFormat("<row r=\"{0}\">", this.RowNumber);
+                row.AppendFormat("<row r=\"{0}\">", RowNumber);
                 try
                 {
-                    foreach (Cell cell in this.Cells)
+                    foreach (Cell cell in Cells)
                     {
-                        row.Append(cell.ToXmlString(sharedStrings, this.RowNumber));
+                        row.Append(cell.ToXmlString(sharedStrings, RowNumber));
                     }
                 }
                 finally
@@ -98,7 +100,7 @@ namespace FastExcel
         {
             // Merge cells
             List<Cell> outputList = new List<Cell>();
-            foreach (var cell in this.Cells.Union(row.Cells).GroupBy(c => c.ColumnNumber))
+            foreach (var cell in Cells.Union(row.Cells).GroupBy(c => c.ColumnNumber))
             {
                 int count = cell.Count();
                 if (count == 1)
@@ -114,7 +116,7 @@ namespace FastExcel
             }
 
             // Sort
-            this.Cells = (from c in outputList
+            Cells = (from c in outputList
                           orderby c.ColumnNumber
                           select c);
         }

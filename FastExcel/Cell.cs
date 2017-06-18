@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 
 namespace FastExcel
@@ -34,8 +32,8 @@ namespace FastExcel
             {
                 throw new Exception("Column numbers starting at 1");
             }
-            this.ColumnNumber = columnNumber;
-            this.Value = value;
+            ColumnNumber = columnNumber;
+            Value = value;
         }
 
         /// <summary>
@@ -51,15 +49,15 @@ namespace FastExcel
             string columnName = (from a in cellElement.Attributes("r")
                                  select a.Value).FirstOrDefault();
 
-            this.ColumnNumber = GetExcelColumnNumber(columnName);
+            ColumnNumber = GetExcelColumnNumber(columnName);
 
             if (isTextRow)
             {
-                this.Value = sharedStrings.GetString(cellElement.Value);
+                Value = sharedStrings.GetString(cellElement.Value);
             }
             else
             {
-                this.Value = cellElement.Value;
+                Value = cellElement.Value;
             }
         }
 
@@ -67,20 +65,20 @@ namespace FastExcel
         {
             StringBuilder cell = new StringBuilder();
 
-            if (this.Value != null)
+            if (Value != null)
             {
                 bool isString = false;
-                object value = this.Value;
+                object value = Value;
 
-                if (this.Value is int)
+                if (Value is int)
                 {
                     isString = false;
                 }
-                else if (this.Value is double)
+                else if (Value is double)
                 {
                     isString = false;
                 }
-                else if (this.Value is string)
+                else if (Value is string)
                 {
                     isString = true;
                 }
@@ -90,7 +88,7 @@ namespace FastExcel
                     value = sharedStrings.AddString(value.ToString());
                 }
 
-                cell.AppendFormat("<c r=\"{0}{1}\"{2}>", GetExcelColumnName(this.ColumnNumber), rowNumber, (isString ? " t=\"s\"" : string.Empty));
+                cell.AppendFormat("<c r=\"{0}{1}\"{2}>", GetExcelColumnName(ColumnNumber), rowNumber, (isString ? " t=\"s\"" : string.Empty));
                 cell.AppendFormat("<v>{0}</v>", value);
                 cell.Append("</c>");
             }
@@ -154,7 +152,7 @@ namespace FastExcel
         /// <param name="cell">Cell to merge</param>
         public void Merge(Cell cell)
         {
-            this.Value = cell.Value;
+            Value = cell.Value;
         }
     }
 }
