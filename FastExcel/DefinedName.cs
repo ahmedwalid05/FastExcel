@@ -53,7 +53,7 @@ namespace FastExcel
         {
             List<List<Cell>> result = new List<List<Cell>>();
 
-            string key = (worksheetIndex == null) ? definedName : definedName + ":" + worksheetIndex;
+            string key = (!worksheetIndex.HasValue ? definedName : definedName + ":" + worksheetIndex);
 
             if (!DefinedNames.ContainsKey(key))
                 return result;
@@ -109,7 +109,7 @@ namespace FastExcel
         public IEnumerable<Cell> GetCellsByColumnName(string columnName, int rowStart = 1, int? rowEnd = null)
         {
             var columnCells = GetCellRangeByDefinedName(columnName) as List<Cell>;
-            if (rowEnd == null)
+            if (!rowEnd.HasValue)
                 rowEnd = columnCells.Last().RowNumber;
             return columnCells.Where(cell=>cell.RowNumber>=rowStart && cell.RowNumber<=rowEnd).ToList();
         }
@@ -125,7 +125,7 @@ namespace FastExcel
         internal string Name { get; }
         internal int? worksheetIndex { get; }
         internal string Reference { get; }
-        internal string Key { get { return Name + (worksheetIndex == null ? "" : ":" + worksheetIndex); } }
+        internal string Key { get { return Name + (!worksheetIndex.HasValue ? "" : ":" + worksheetIndex); } }
 
         internal DefinedName(XElement e)
         {
