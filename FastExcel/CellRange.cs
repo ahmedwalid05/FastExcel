@@ -57,7 +57,7 @@ namespace FastExcel
         /// <param name="rowEnd">last row number</param>
         public CellRange(string sheetName, string columnStart, string columnEnd, int rowStart = 1, int? rowEnd = null)
         {
-            if (columnStart == ColumnEnd && rowEnd == null)
+            if (columnStart == columnEnd && rowEnd == null)
                 IsColumn = true;
             SheetName = sheetName;
             ColumnStart = columnStart;
