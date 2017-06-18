@@ -82,9 +82,9 @@ namespace FastExcel
         /// </summary>
         /// <param name="definedName"></param>
         /// <returns></returns>
-        public IEnumerable<Cell> GetCellRangeByDefinedName(string definedName)
+        public IEnumerable<Cell> GetCellRangeByDefinedName(string definedName, int? sheetId = null)
         {
-            return GetCellRangesByDefinedName(definedName).FirstOrDefault();
+            return GetCellRangesByDefinedName(definedName, sheetId).FirstOrDefault();
         }
 
         /// <summary>
@@ -93,9 +93,9 @@ namespace FastExcel
         /// </summary>
         /// <param name="definedName"></param>
         /// <returns></returns>
-        public Cell GetFirstCellByDefinedName(string definedName)
+        public Cell GetFirstCellByDefinedName(string definedName, int? sheetId = null)
         {
-            return GetCellRangeByDefinedName(definedName).FirstOrDefault();
+            return GetCellRangeByDefinedName(definedName, sheetId).FirstOrDefault();
         }
 
         /// <summary>
