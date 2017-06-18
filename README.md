@@ -1,32 +1,36 @@
-#Fast Excel
+# Fast Excel
 
-####Build
+#### Build / Release
 [![Build status](https://ci.appveyor.com/api/projects/status/5cwbg9ffxqsdeguf/branch/master?svg=true)](https://ci.appveyor.com/project/mrjono1/fastexcel/branch/master)
-
-####Release
 [![License](http://img.shields.io/:license-MIT-blue.svg)](https://raw.githubusercontent.com/mrjono1/FastExcel/master/LICENSE)
 [![NuGet Badge](https://buildstats.info/nuget/FastExcel)](https://www.nuget.org/packages/FastExcel/)
 
-Insperation for this project came from https://github.com/jsegarra1971/SejExcelExport jsegarra1971 did a great job. I wanted to have my own crack at this problem.
+#### About
+- Insperation for this project came from https://github.com/jsegarra1971/SejExcelExport jsegarra1971 did a great job. I wanted to have my own crack at this problem.
+- Provides a fast way of reading and writing to *.xlsx Excel files.
+- Does not use the Open XML SDK to interact with the data but going directly and editing the underlying xml files.
+- This project is not intended to be a replacement for full featured Excel packages with things like formatting, just light weight fast way of interacting with data in Excel.
 
-Currently provides a fast way of reading and writing to *.xlsx Excel files.
+#### Version 2 (prerelease)
+- Contribute using Visual Studio 2017
+- Built using .NetStandard 1.3 (https://docs.microsoft.com/en-us/dotnet/standard/library) so it *should* run on
+	- .Net Core 1.0
+	- .Net Framework 4.6
+	- Mono
+	- Xamarin.iOS
+	- Xamarin.Androud
+	- Universal Windows Platform
 
-I am not using the Open XML SDK to interact with the data but going directly and editing the underlying xml files.
+#### Version 1
+- Built using .Net Framework 4.5
+- Contribute using Visual Studio 2015
 
-.Net version 4.5 is required because it uses System.IO.Compression
-
-Check out the demo project for usage and benchmarking.
-
-This project is not intended to be a replacement for full featured Excel packages with things like formatting, just light weight fast way of interacting with data in Excel.
-
-Below are a few demos check out https://github.com/mrjono1/FastExcel/blob/master/FastExcelDemo/Program.cs for more.
-
-####Installation
+#### Installation
 ```
 PM> Install-Package FastExcel
 ```
 
-##Write Demo 1
+## Write Demo 1
 This demo uses Generic objects, ie any object you wish with public properties
 ```C#
 using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(outputFile))
@@ -47,7 +51,7 @@ using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(outputFile))
 }
 ```
 
-##Write Demo 2
+## Write Demo 2
 This demo lets you specify exactly which cell you are writing to
 
 ```C#
@@ -81,7 +85,7 @@ using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(templateFile, out
 }
 ```
 
-##Read Demo 1 Get Worksheet
+## Read Demo 1 Get Worksheet
 
 ```C#
 // Get the input file paths
@@ -103,7 +107,7 @@ using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile, true))
 }
 ```
 
-##Read Deme 2 Get All Worksheets
+## Read Deme 2 Get All Worksheets
 
 ```C#
 // Get the input file paths
@@ -125,7 +129,7 @@ using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile, true))
 }
 ```
 
-##Update Demo
+## Update Demo
 
 ```C#
 // Get the input file paths

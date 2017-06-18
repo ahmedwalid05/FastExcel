@@ -3,9 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 
 namespace FastExcel
 {
@@ -17,7 +14,7 @@ namespace FastExcel
         /// <param name="worksheet">A dataset</param>
         public void Write(Worksheet worksheet)
         {
-            this.Write(worksheet, null, null);
+            Write(worksheet, null, null);
         }
 
         /// <summary>
@@ -28,7 +25,7 @@ namespace FastExcel
         /// <param name="existingHeadingRows">How many rows in the template sheet you would like to keep</param>
         public void Write(Worksheet worksheet, int sheetNumber, int existingHeadingRows = 0)
         {
-            this.Write(worksheet, sheetNumber, null, existingHeadingRows);
+            Write(worksheet, sheetNumber, null, existingHeadingRows);
         }
 
         /// <summary>
@@ -39,7 +36,7 @@ namespace FastExcel
         /// <param name="existingHeadingRows">How many rows in the template sheet you would like to keep</param>
         public void Write(Worksheet worksheet, string sheetName, int existingHeadingRows = 0)
         {
-            this.Write(worksheet, null, sheetName, existingHeadingRows);
+            Write(worksheet, null, sheetName, existingHeadingRows);
         }
 
         /// <summary>
@@ -53,7 +50,7 @@ namespace FastExcel
         {
             Worksheet data = new Worksheet();
             data.PopulateRows<T>(rows);
-            this.Write(data, sheetNumber, null, existingHeadingRows);
+            Write(data, sheetNumber, null, existingHeadingRows);
         }
 
         /// <summary>
@@ -67,7 +64,7 @@ namespace FastExcel
         {
             Worksheet data = new Worksheet();
             data.PopulateRows<T>(rows, existingHeadingRows);
-            this.Write(data, null, sheetName, existingHeadingRows);
+            Write(data, null, sheetName, existingHeadingRows);
         }
 
         /// <summary>
@@ -81,7 +78,7 @@ namespace FastExcel
         {
             Worksheet data = new Worksheet();
             data.PopulateRows<T>(objectList, 0, usePropertiesAsHeadings);
-            this.Write(data, sheetNumber, null, 0);
+            Write(data, sheetNumber, null, 0);
         }
 
         /// <summary>
@@ -95,7 +92,7 @@ namespace FastExcel
         {
             Worksheet data = new Worksheet();
             data.PopulateRows<T>(rows, 0,usePropertiesAsHeadings);
-            this.Write(data, null, sheetName, 0);
+            Write(data, null, sheetName, 0);
         }
 
         private void Write(Worksheet worksheet, int? sheetNumber = null, string sheetName = null, int existingHeadingRows = 0)
@@ -104,9 +101,9 @@ namespace FastExcel
 
             try
             {
-                if (!this.UpdateExisting)
+                if (!UpdateExisting)
                 {
-                    File.Copy(this.TemplateFile.FullName, this.ExcelFile.FullName);
+                    File.Copy(TemplateFile.FullName, ExcelFile.FullName);
                 }
             }
             catch (Exception ex)
@@ -120,7 +117,7 @@ namespace FastExcel
             worksheet.GetWorksheetProperties(this, sheetNumber, sheetName);
             worksheet.ExistingHeadingRows = existingHeadingRows;
 
-            if (this.Archive.Mode != ZipArchiveMode.Update)
+            if (Archive.Mode != ZipArchiveMode.Update)
             {
                 throw new Exception("FastExcel is in ReadOnly mode so cannot perform a write");
             }
@@ -131,7 +128,7 @@ namespace FastExcel
                 throw new Exception("Existing Heading Rows was specified but some or all will be overridden by data rows. Check DataSet.Row.RowNumber against ExistingHeadingRows");
             }
 
-            using (Stream stream = this.Archive.GetEntry(worksheet.FileName).Open())
+            using (Stream stream = Archive.GetEntry(worksheet.FileName).Open())
             {
                 // Open worksheet and read the data at the top and bottom of the sheet
                 StreamReader streamReader = new StreamReader(stream);
@@ -150,14 +147,14 @@ namespace FastExcel
                     worksheet.Headers = null;
                 }
 
-                this.SharedStrings.ReadWriteMode = true;
+                SharedStrings.ReadWriteMode = true;
 
                 // Add Rows
                 foreach (Row row in worksheet.Rows)
                 {
-                    streamWriter.Write(row.ToXmlString(this.SharedStrings));
+                    streamWriter.Write(row.ToXmlString(SharedStrings));
                 }
-                this.SharedStrings.ReadWriteMode = false;
+                SharedStrings.ReadWriteMode = false;
 
                 //Add Footers
                 streamWriter.Write(worksheet.Footers);

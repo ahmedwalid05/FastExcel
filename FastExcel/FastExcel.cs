@@ -8,10 +8,22 @@ using System.Xml.Linq;
 
 namespace FastExcel
 {
+    /// <summary>
+    /// Fast Excel
+    /// </summary>
     public partial class FastExcel: IDisposable
     {
+        /// <summary>
+        /// Output excel file
+        /// </summary>
         public FileInfo ExcelFile { get; private set; }
+        /// <summary>
+        /// The template excel file
+        /// </summary>
         public FileInfo TemplateFile { get; private set; }
+        /// <summary>
+        /// Is the excel file read only
+        /// </summary>
         public bool ReadOnly { get; private set; }
         
         internal SharedStrings SharedStrings { get; set; }
@@ -38,6 +50,7 @@ namespace FastExcel
         /// Update an existing excel file
         /// </summary>
         /// <param name="excelFile">location of an existing excel file</param>
+        /// <param name="readOnly">is the file read only</param>
         public FastExcel(FileInfo excelFile, bool readOnly = false) : this(null, excelFile, true, readOnly) {}
         
         /// <summary>
@@ -49,32 +62,32 @@ namespace FastExcel
 
         private FastExcel(FileInfo templateFile, FileInfo excelFile, bool updateExisting, bool readOnly = false)
         {
-            this.TemplateFile = templateFile;
-            this.ExcelFile = excelFile;
-            this.UpdateExisting = updateExisting;
-            this.ReadOnly = readOnly;
+            TemplateFile = templateFile;
+            ExcelFile = excelFile;
+            UpdateExisting = updateExisting;
+            ReadOnly = readOnly;
 
             CheckFiles();
         }
 
         internal void PrepareArchive(bool openSharedStrings = true)
         {
-            if (this.Archive == null)
+            if (Archive == null)
             {
-                if (this.ReadOnly)
+                if (ReadOnly)
                 {
-                    Archive = ZipFile.Open(this.ExcelFile.FullName, ZipArchiveMode.Read);
+                    Archive = ZipFile.Open(ExcelFile.FullName, ZipArchiveMode.Read);
                 }
                 else
                 {
-                    Archive = ZipFile.Open(this.ExcelFile.FullName, ZipArchiveMode.Update);
+                    Archive = ZipFile.Open(ExcelFile.FullName, ZipArchiveMode.Update);
                 }
             }
 
             // Get Strings file
-            if (this.SharedStrings == null && openSharedStrings)
+            if (SharedStrings == null && openSharedStrings)
             {
-                this.SharedStrings = new SharedStrings(this.Archive);
+                SharedStrings = new SharedStrings(Archive);
             }
         }
 
@@ -88,40 +101,40 @@ namespace FastExcel
                 return;
             }
 
-            if (this.UpdateExisting)
+            if (UpdateExisting)
             {
-                if (this.ExcelFile == null)
+                if (ExcelFile == null)
                 {
                     throw new Exception("No input file name was supplied");
                 }
-                else if (!this.ExcelFile.Exists)
+                else if (!ExcelFile.Exists)
                 {
-                    string exceptionMessage = string.Format("Input file '{0}' does not exist", this.ExcelFile.FullName);
-                    this.ExcelFile = null;
+                    string exceptionMessage = string.Format("Input file '{0}' does not exist", ExcelFile.FullName);
+                    ExcelFile = null;
                     throw new Exception(exceptionMessage);
                 }
             }
             else
             {
-                if (this.TemplateFile == null)
+                if (TemplateFile == null)
                 {
                     throw new Exception("No Template file was supplied");
                 }
-                else if (!this.TemplateFile.Exists)
+                else if (!TemplateFile.Exists)
                 {
-                    string exceptionMessage = string.Format("Template file '{0}' was not found", this.TemplateFile.FullName);
-                    this.TemplateFile = null;
+                    string exceptionMessage = string.Format("Template file '{0}' was not found", TemplateFile.FullName);
+                    TemplateFile = null;
                     throw new FileNotFoundException(exceptionMessage);
                 }
 
-                if (this.ExcelFile == null)
+                if (ExcelFile == null)
                 {
                     throw new Exception("No Ouput file name was supplied");
                 }
-                else if (this.ExcelFile.Exists)
+                else if (ExcelFile.Exists)
                 {
-                    string exceptionMessage = string.Format("Output file '{0}' already exists", this.ExcelFile.FullName);
-                    this.ExcelFile = null;
+                    string exceptionMessage = string.Format("Output file '{0}' already exists", ExcelFile.FullName);
+                    ExcelFile = null;
                     throw new Exception(exceptionMessage);
                 }
             }
@@ -134,14 +147,14 @@ namespace FastExcel
         private void UpdateRelations(bool ensureStrings)
         {
             if (!(ensureStrings || 
-                (this.DeleteWorksheets != null && this.DeleteWorksheets.Any()) || 
-                (this.AddWorksheets != null && this.AddWorksheets.Any())))
+                (DeleteWorksheets != null && DeleteWorksheets.Any()) || 
+                (AddWorksheets != null && AddWorksheets.Any())))
             {
                 // Nothing to update
                 return;
             }
 
-            using (Stream stream = this.Archive.GetEntry("xl/_rels/workbook.xml.rels").Open())
+            using (Stream stream = Archive.GetEntry("xl/_rels/workbook.xml.rels").Open())
             {
                 XDocument document = XDocument.Load(stream);
 
@@ -158,7 +171,7 @@ namespace FastExcel
                     //Ensure SharedStrings
                     XElement relationshipElement = (from element in relationshipElements
                                                     from attribute in element.Attributes()
-                                                    where attribute.Name == "Target" && attribute.Value.Equals("sharedStrings.xml", StringComparison.InvariantCultureIgnoreCase)
+                                                    where attribute.Name == "Target" && attribute.Value.Equals("sharedStrings.xml", StringComparison.OrdinalIgnoreCase)
                                                     select element).FirstOrDefault();
 
                     if (relationshipElement == null)
@@ -174,8 +187,8 @@ namespace FastExcel
                 }
 
                 // Remove all references to sheets from this file as they are not requried
-                if ((this.DeleteWorksheets != null && this.DeleteWorksheets.Any()) ||
-                (this.AddWorksheets != null && this.AddWorksheets.Any()))
+                if ((DeleteWorksheets != null && DeleteWorksheets.Any()) ||
+                (AddWorksheets != null && AddWorksheets.Any()))
                 {
                     XElement[] worksheetElements = (from element in relationshipElements
                                                     from attribute in element.Attributes()
@@ -208,15 +221,15 @@ namespace FastExcel
         /// </summary>
         private string[] UpdateWorkbook()
         {
-            if (!(this.DeleteWorksheets != null && this.DeleteWorksheets.Any() ||
-                (this.AddWorksheets != null && this.AddWorksheets.Any())))
+            if (!(DeleteWorksheets != null && DeleteWorksheets.Any() ||
+                (AddWorksheets != null && AddWorksheets.Any())))
             {
                 // Nothing to update
                 return null;
             }
 
             List<string> sheetNames = new List<string>();
-            using (Stream stream = this.Archive.GetEntry("xl/workbook.xml").Open())
+            using (Stream stream = Archive.GetEntry("xl/workbook.xml").Open())
             {
                 XDocument document = XDocument.Load(stream);
 
@@ -264,8 +277,8 @@ namespace FastExcel
         /// </summary>
         private void RenameAndRebildWorksheetProperties(XElement[] sheets)
         {
-            if (!((this.DeleteWorksheets != null && this.DeleteWorksheets.Any()) ||
-                (this.AddWorksheets != null && this.AddWorksheets.Any())))
+            if (!((DeleteWorksheets != null && DeleteWorksheets.Any()) ||
+                (AddWorksheets != null && AddWorksheets.Any())))
             {
                 // Nothing to update
                 return;
@@ -282,9 +295,9 @@ namespace FastExcel
                                                          }).ToList();
 
             // Remove deleted worksheets to sheetProperties
-            if (this.DeleteWorksheets != null && this.DeleteWorksheets.Any())
+            if (DeleteWorksheets != null && DeleteWorksheets.Any())
             {
-                foreach (var item in this.DeleteWorksheets)
+                foreach (var item in DeleteWorksheets)
                 {
                     WorksheetProperties sheetToDelete = (from sp in sheetProperties
                                         where sp.SheetId == item
@@ -298,10 +311,10 @@ namespace FastExcel
             }
 
             // Add new worksheets to sheetProperties
-            if (this.AddWorksheets != null && this.AddWorksheets.Any())
+            if (AddWorksheets != null && AddWorksheets.Any())
             {
                 // Add the sheets in reverse, this will add them correctly with less work
-                foreach (var item in this.AddWorksheets.Reverse<WorksheetAddSettings>())
+                foreach (var item in AddWorksheets.Reverse<WorksheetAddSettings>())
                 {
                     WorksheetProperties previousSheet = (from sp in sheetProperties
                                                 where sp.SheetId == item.InsertAfterSheetId
@@ -312,11 +325,12 @@ namespace FastExcel
                         throw new Exception(string.Format("Sheet name {0} cannot be added because the insertAfterSheetNumber or insertAfterSheetName is now invalid", item.Name));
                     }
 
-                    WorksheetProperties newWorksheet = new WorksheetProperties();
-                    newWorksheet.SheetId = item.SheetId;
-                    newWorksheet.Name = item.Name;
-                    newWorksheet.CurrentIndex = 0;// TODO Something??
-
+                    WorksheetProperties newWorksheet = new WorksheetProperties()
+                    {
+                        SheetId = item.SheetId,
+                        Name = item.Name,
+                        CurrentIndex = 0// TODO Something??
+                    };
                     sheetProperties.Insert(sheetProperties.IndexOf(previousSheet), newWorksheet);
                 }
             }
@@ -326,7 +340,7 @@ namespace FastExcel
             {
                 if (worksheet.CurrentIndex != index)
                 {
-                    ZipArchiveEntry entry = this.Archive.GetEntry(Worksheet.GetFileName(worksheet.CurrentIndex));
+                    ZipArchiveEntry entry = Archive.GetEntry(Worksheet.GetFileName(worksheet.CurrentIndex));
                     if (entry == null)
                     {
                         // TODO better message
@@ -338,13 +352,6 @@ namespace FastExcel
                 index++;
             }
         }
-        
-        public class WorksheetProperties
-        {
-            public int CurrentIndex { get; set; }
-            public int SheetId { get; set; }
-            public string Name { get; set; }
-        }
 
         /// <summary>
         /// Update [Content_Types].xml file
@@ -352,14 +359,14 @@ namespace FastExcel
         private void UpdateContentTypes(bool ensureStrings)
         {
             if (!(ensureStrings ||
-                (this.DeleteWorksheets != null && this.DeleteWorksheets.Any()) ||
-                (this.AddWorksheets != null && this.AddWorksheets.Any())))
+                (DeleteWorksheets != null && DeleteWorksheets.Any()) ||
+                (AddWorksheets != null && AddWorksheets.Any())))
             {
                 // Nothing to update
                 return;
             }
 
-            using (Stream stream = this.Archive.GetEntry("[Content_Types].xml").Open())
+            using (Stream stream = Archive.GetEntry("[Content_Types].xml").Open())
             {
                 XDocument document = XDocument.Load(stream);
 
@@ -375,7 +382,7 @@ namespace FastExcel
                 {
                     XElement overrideElement = (from element in overrideElements
                                                 from attribute in element.Attributes()
-                                                where attribute.Name == "PartName" && attribute.Value.Equals("/xl/sharedStrings.xml", StringComparison.InvariantCultureIgnoreCase)
+                                                where attribute.Name == "PartName" && attribute.Value.Equals("/xl/sharedStrings.xml", StringComparison.OrdinalIgnoreCase)
                                                 select element).FirstOrDefault();
 
                     if (overrideElement == null)
@@ -388,9 +395,9 @@ namespace FastExcel
                         update = true;
                     }
                 }
-                if (this.DeleteWorksheets != null && this.DeleteWorksheets.Any())
+                if (DeleteWorksheets != null && DeleteWorksheets.Any())
                 {
-                    foreach (var item in this.DeleteWorksheets)
+                    foreach (var item in DeleteWorksheets)
                     {
                         // the file name is different for each xml file
                         string fileName = string.Format("/xl/worksheets/sheet{0}.xml", item);
@@ -407,9 +414,9 @@ namespace FastExcel
                     }
                 }
 
-                if (this.AddWorksheets != null && this.AddWorksheets.Any())
+                if (AddWorksheets != null && AddWorksheets.Any())
                 {
-                    foreach (var item in this.AddWorksheets)
+                    foreach (var item in AddWorksheets)
                     {
                         // the file name is different for each xml file
                         string fileName = string.Format("/xl/worksheets/sheet{0}.xml", item.SheetId);
@@ -523,22 +530,25 @@ namespace FastExcel
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Main disposal function
+        /// </summary>
         protected virtual void Dispose(bool disposing)
         {
-            if (this.Archive == null)
+            if (Archive == null)
             {
                 return;
             }
 
-            if (this.Archive.Mode != ZipArchiveMode.Read)
+            if (Archive.Mode != ZipArchiveMode.Read)
             {
                 bool ensureSharedStrings = false;
 
                 // Update or create xl/sharedStrings.xml file
-                if (this.SharedStrings != null)
+                if (SharedStrings != null)
                 {
-                    ensureSharedStrings = this.SharedStrings.PendingChanges;
-                    this.SharedStrings.Write();
+                    ensureSharedStrings = SharedStrings.PendingChanges;
+                    SharedStrings.Write();
                 }
 
                 // Update xl/_rels/workbook.xml.rels file
@@ -554,7 +564,7 @@ namespace FastExcel
                 UpdateDocPropsApp(sheetNames);
             }
 
-            this.Archive.Dispose();
+            Archive.Dispose();
         }
     }
 }
