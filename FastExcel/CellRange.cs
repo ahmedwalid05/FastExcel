@@ -50,33 +50,19 @@ namespace FastExcel
         /// <summary>
         /// Defines a cell range using varibles
         /// </summary>
-        /// <param name="sheetName">Name of sheet</param>
-        /// <param name="columnStart">Column Letter start</param>
-        /// <param name="columnEnd">Column Letter end</param>
-        /// <param name="rowStart">First row number</param>
-        /// <param name="rowEnd">last row number</param>
-        public CellRange(string sheetName, string columnStart, string columnEnd, int rowStart = 1, int? rowEnd = null)
-        {
-            if (columnStart == columnEnd && rowEnd == null)
-                IsColumn = true;
-            SheetName = sheetName;
-            ColumnStart = columnStart;
-            ColumnEnd = columnEnd;
-            RowStart = rowStart;
-            RowEnd = rowEnd;
-        }
-
-        /// <summary>
-        /// Defines a cell range using varibles
-        /// </summary>
         /// <param name="columnStart">Column Letter start</param>
         /// <param name="columnEnd">Column Letter end</param>
         /// <param name="rowStart">First row number</param>
         /// <param name="rowEnd">last row number</param>
         public CellRange(string columnStart, string columnEnd, int rowStart = 1, int? rowEnd = null)
-           : this("", columnStart, columnEnd, rowStart, rowEnd)
         {
-            
+            if (columnStart == columnEnd && rowEnd == null)
+                IsColumn = true;
+            SheetName = "";
+            ColumnStart = columnStart;
+            ColumnEnd = columnEnd;
+            RowStart = rowStart;
+            RowEnd = rowEnd;
         }
     }
 }
