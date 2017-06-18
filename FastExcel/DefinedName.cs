@@ -29,7 +29,7 @@ namespace FastExcel
             }
             if (document == null)
             {
-                throw new DefinedNameLoadException("Unable to load workbook.xml file stream");
+                throw new DefinedNameLoadException("Unable to load workbook.xml from open stream. Probable corrupt file.");
             }
 
             var definedNames = new Dictionary<string, DefinedName>();
