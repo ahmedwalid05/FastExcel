@@ -41,7 +41,7 @@ namespace FastExcel
         /// </summary>
         /// <param name="cellElement">Cell</param>
         /// <param name="sharedStrings">The collection of shared strings used by this document</param>
-        public Cell(XElement cellElement, SharedStrings sharedStrings)
+        public Cell(XElement cellElement, Worksheet worksheet)
         {
             bool isTextRow = (from a in cellElement.Attributes("t")
                               where a.Value == "s"
@@ -53,7 +53,7 @@ namespace FastExcel
 
             if (isTextRow)
             {
-                Value = sharedStrings.GetString(cellElement.Value);
+                Value = worksheet.FastExcel.SharedStrings.GetString(cellElement.Value);
             }
             else
             {

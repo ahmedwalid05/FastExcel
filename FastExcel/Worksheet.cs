@@ -324,7 +324,7 @@ namespace FastExcel
                 XDocument document = XDocument.Load(stream);
                 int skipRows = 0;
 
-                Row possibleHeadingRow = new Row(document.Descendants().Where(d => d.Name.LocalName == "row").FirstOrDefault(), FastExcel.SharedStrings);
+                Row possibleHeadingRow = new Row(document.Descendants().Where(d => d.Name.LocalName == "row").FirstOrDefault(), this);
                 if (ExistingHeadingRows == 1 && possibleHeadingRow.RowNumber == 1)
                 {
                     foreach (Cell headerCell in possibleHeadingRow.Cells)
@@ -343,7 +343,7 @@ namespace FastExcel
         {
             foreach (var rowElement in rowElements)
             {
-                yield return new Row(rowElement, FastExcel.SharedStrings);
+                yield return new Row(rowElement, this);
             }
         }
 
