@@ -16,28 +16,31 @@ namespace FastExcel
 
         private void loadDefinedNames()
         {
-            using (Stream stream = Archive.GetEntry("xl/workbook.xml").Open())
+            XDocument document;
+            try
             {
-                XDocument document = XDocument.Load(stream);
-
-                if (document == null)
-                {
-                    throw new Exception("Unable to load workbook.xml");
-                }
-
-                var definedNames = new Dictionary<string, DefinedName>();
-
-                foreach (var e in (from d2 in document.Descendants().Where(dx => dx.Name.LocalName == "definedNames").Descendants()
-                                   select d2))
-                {
-                    var currentDefinedName = new DefinedName(e);
-                    definedNames.Add(currentDefinedName.Key, currentDefinedName);
-                }
-                DefinedNames = definedNames;
+                document = XDocument.Load(Archive.GetEntry("xl/workbook.xml").Open());
             }
+            catch (Exception exception)
+            {
+                throw new DefinedNameLoadException("Unable to open stream to read internal workbook.xml file", exception);
+            }
+            if (document == null)
+            {
+                throw new DefinedNameLoadException("Unable to load workbook.xml file stream");
+            }
+
+            var definedNames = new Dictionary<string, DefinedName>();
+
+            foreach (var e in (from d2 in document.Descendants().Where(dx => dx.Name.LocalName == "definedNames").Descendants()
+                               select d2))
+            {
+                var currentDefinedName = new DefinedName(e);
+                definedNames.Add(currentDefinedName.Key, currentDefinedName);
+            }
+            DefinedNames = definedNames;
         }
     }
-
 
     /// <summary>
     /// Reads/hold information from XElement representing a stored DefinedName
@@ -61,16 +64,19 @@ namespace FastExcel
                 }
                 catch (Exception exception)
                 {
+                    // In a well formed file, this should never happen.
                     throw new DefinedNameLoadException("Error reading localSheetId value for DefinedName: '" + Name + "'", exception);
                 }
             Reference = e.Value;
         }
     }
+
     /// <summary>
     /// Extensions to use on Dictionary of DefinedNames
     /// </summary>
     internal static class DefinedNamesExtensions
     {
+
         /// <summary>
         /// Finds all the cell names for a given cell
         /// </summary>
@@ -86,6 +92,7 @@ namespace FastExcel
         {
             return (from e in definedNames where e.Value.Reference.Contains(sheetName + "!$" + columnLetter.ToUpper() + "$" + rowNumber.ToUpper()) select e.Value.Name).ToList();
         }
+
         /// <summary>
         /// Finds the column name for a given column letter
         /// </summary>
@@ -98,10 +105,11 @@ namespace FastExcel
             columnLetter = columnLetter.ToUpper();
             return (from e in definedNames where e.Value.Reference == sheetName + "!$" + columnLetter + ":$" + columnLetter select e.Value.Name).FirstOrDefault();
         }
-
-        
     }
 
+    /// <summary>
+    /// Exception used during loading process
+    /// </summary>
     public class DefinedNameLoadException : Exception
     {
         public DefinedNameLoadException(string message, Exception innerException = null)
