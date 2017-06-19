@@ -38,16 +38,4 @@ namespace FastExcel
             Reference = e.Value;
         }
     }
-
-    /// <summary>
-    /// Exception used during loading process
-    /// </summary>
-    public class DefinedNameLoadException : Exception
-    {
-        public DefinedNameLoadException(string message, Exception innerException = null)
-            : base(message, innerException)
-        {
-
-        }
-    }
 }
