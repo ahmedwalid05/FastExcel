@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace FastExcel
 {
@@ -19,8 +20,13 @@ namespace FastExcel
         /// Defines a range of cells using a reference string
         /// </summary>
         /// <param name="reference">Reference string i.e. Sheet1!$A$1</param>
+        /// <exception cref="ArgumentException">Thrown when reference is invalid or not supported</exception>
         internal CellRange(string reference)
         {
+
+            if (!Regex.IsMatch(reference, @"^[^\[\]\*\/\\\?\:].*\!\$[A-z]{1,4}:?\$"))
+                throw new ArgumentException("CellRange reference argument is invalid or not supported.");
+
             string[] splitReference = reference.Split('!');
 
             SheetName = splitReference[0];
