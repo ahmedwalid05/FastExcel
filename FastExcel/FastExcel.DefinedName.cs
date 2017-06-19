@@ -87,7 +87,7 @@ namespace FastExcel
             var cellRanges = GetCellRangesByDefinedName(definedName) as List<List<Cell>>;
 
             foreach (var cellRange in cellRanges)
-                cells.InsertRange(cells.Count, (from cell in cellRange select cell));
+                cells.InsertRange(cells.Count, cellRange);
 
             return cells;
         }
