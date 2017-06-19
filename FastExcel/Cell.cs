@@ -40,7 +40,7 @@ namespace FastExcel
         {
             get
             {
-                if (CellNames.Count>0)
+                if (CellNames.Any())
                     return CellNames.FirstOrDefault();
                 return ColumnName + RowNumber;
             }
