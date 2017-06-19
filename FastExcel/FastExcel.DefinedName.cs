@@ -10,7 +10,16 @@ namespace FastExcel
         /// <summary>
         /// Dictionary of defined names
         /// </summary>
-        internal IReadOnlyDictionary<string, DefinedName> DefinedNames { get; private set; }
+        internal IReadOnlyDictionary<string, DefinedName> DefinedNames
+        {
+            get
+            {
+                if (_definedNames == null)
+                    LoadDefinedNames();
+                return _definedNames;
+            }
+        }
+        private Dictionary<string, DefinedName> _definedNames;
 
         private void LoadDefinedNames()
         {
@@ -28,15 +37,15 @@ namespace FastExcel
                 throw new DefinedNameLoadException("Unable to load workbook.xml from open stream. Probable corrupt file.");
             }
 
-            var definedNames = new Dictionary<string, DefinedName>();
+            _definedNames = new Dictionary<string, DefinedName>();
 
             foreach (var e in (from d2 in document.Descendants().Where(dx => dx.Name.LocalName == "definedNames").Descendants()
                                select d2))
             {
                 var currentDefinedName = new DefinedName(e);
-                definedNames.Add(currentDefinedName.Key, currentDefinedName);
+                _definedNames.Add(currentDefinedName.Key, currentDefinedName);
             }
-            DefinedNames = definedNames;
+
         }
 
         /// <summary>
