@@ -14,7 +14,7 @@ namespace FastExcel
         /// </summary>
         internal IReadOnlyDictionary<string, DefinedName> DefinedNames { get; private set; }
 
-        private void loadDefinedNames()
+        private void LoadDefinedNames()
         {
             XDocument document;
             try
