@@ -63,6 +63,8 @@ namespace FastExcel
                 throw new Exception("Column numbers starting at 1");
             }
             ColumnNumber = columnNumber;
+            ColumnName = GetExcelColumnName(columnNumber);
+            RowNumber = 0;
             Value = value;
         }
 
