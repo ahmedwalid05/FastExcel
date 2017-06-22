@@ -72,7 +72,7 @@ namespace FastExcel
         /// Create a new Cell
         /// </summary>
         /// <param name="cellElement">Cell</param>
-        /// <param name="sharedStrings">The collection of shared strings used by this document</param>
+        /// <param name="worksheet">The worksheet that this cell is on</param>
         public Cell(XElement cellElement, Worksheet worksheet)
         {
             bool isTextRow = (from a in cellElement.Attributes("t")

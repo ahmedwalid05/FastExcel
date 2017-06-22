@@ -71,7 +71,8 @@ namespace FastExcel
                 try
                 {
                     cellRange = new CellRange(reference);
-                } catch (ArgumentException)
+                }
+                catch (ArgumentException)
                 {
                     // reference is invalid or not supported
                     continue;
@@ -107,14 +108,11 @@ namespace FastExcel
         /// Returns cell by defined name
         /// If theres more than one, this is the first one.
         /// </summary>
-        /// <param name="definedName"></param>
-        /// <returns></returns>
         public Cell GetCellByDefinedName(string definedName, int? worksheetIndex = null)
         {
             return GetCellsByDefinedName(definedName, worksheetIndex).FirstOrDefault();
         }
-
-
+        
         /// <summary>
         /// Returns all cells in a column by name, within optional row range
         /// </summary>
@@ -130,5 +128,4 @@ namespace FastExcel
             return columnCells.Where(cell => cell.RowNumber >= rowStart && cell.RowNumber <= rowEnd).ToList();
         }
     }
-
 }

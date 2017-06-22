@@ -1,19 +1,19 @@
 # Fast Excel
 
 #### Build / Release
-[![Build status](https://ci.appveyor.com/api/projects/status/5cwbg9ffxqsdeguf/branch/master?svg=true)](https://ci.appveyor.com/project/mrjono1/fastexcel/branch/master)
+[![Build status](https://ci.appveyor.com/api/projects/status/tcabp7tnn8dq5l05/branch/master?svg=true)](https://ci.appveyor.com/project/mrjono1/fastexcel-43v9o/branch/master)
 [![License](http://img.shields.io/:license-MIT-blue.svg)](https://raw.githubusercontent.com/mrjono1/FastExcel/master/LICENSE)
-[![NuGet Badge](https://buildstats.info/nuget/FastExcel)](https://www.nuget.org/packages/FastExcel/)
+[![NuGet Badge](https://buildstats.info/nuget/FastExcel?includePreReleases=true)](https://www.nuget.org/packages/FastExcel/)
 
 #### About
-- Insperation for this project came from https://github.com/jsegarra1971/SejExcelExport jsegarra1971 did a great job. I wanted to have my own crack at this problem.
 - Provides a fast way of reading and writing to *.xlsx Excel files.
+- Small memory footprint while running
 - Does not use the Open XML SDK to interact with the data but going directly and editing the underlying xml files.
 - This project is not intended to be a replacement for full featured Excel packages with things like formatting, just light weight fast way of interacting with data in Excel.
 
 #### Version 2 (prerelease)
 - Contribute using Visual Studio 2017
-- Built using .NetStandard 1.3 (https://docs.microsoft.com/en-us/dotnet/standard/library) so it *should* run on
+- Built using [.NetStandard](https://docs.microsoft.com/en-us/dotnet/standard/library) 1.3 so it should run on
 	- .Net Core 1.0
 	- .Net Framework 4.6
 	- Mono
@@ -21,9 +21,12 @@
 	- Xamarin.Androud
 	- Universal Windows Platform
 
-#### Version 1
+#### Version 1 (old)
+[![Build status](https://ci.appveyor.com/api/projects/status/5cwbg9ffxqsdeguf/branch/master?svg=true)](https://ci.appveyor.com/project/mrjono1/fastexcel/branch/master)
+[![NuGet Badge](https://buildstats.info/nuget/FastExcel)](https://www.nuget.org/packages/FastExcel/)
 - Built using .Net Framework 4.5
 - Contribute using Visual Studio 2015
+- This version may not be up to date
 
 #### Installation
 ```
@@ -159,3 +162,9 @@ using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile))
     fastExcel.Update(worksheet, "sheet1");
 }
 ```
+
+### Thanks to
+- Sibz
+- paritoshmmmec
+
+- Insperation for this project came from [SejExcelExport](https://github.com/jsegarra1971/SejExcelExport) by jsegarra1971 who did a great job. I wanted to have my own crack at this problem.
