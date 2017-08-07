@@ -110,7 +110,7 @@ using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile, true))
 }
 ```
 
-## Read Deme 2 Get All Worksheets
+## Read Demo 2 Get All Worksheets
 
 ```C#
 // Get the input file paths
