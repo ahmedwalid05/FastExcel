@@ -110,7 +110,7 @@ using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile, true))
 }
 ```
 
-## Read Deme 2 Get All Worksheets
+## Read Demo 2 Get All Worksheets
 
 ```C#
 // Get the input file paths
@@ -125,7 +125,7 @@ using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile, true))
         
         //To read the rows call read
         worksheet.Read();
-        var rows = worksheet.Rows().ToArray();
+        var rows = worksheet.Rows.ToArray();
         //Do something with rows
         Console.WriteLine(string.Format("Worksheet Rows:{0}", rows.Count()));
     }
