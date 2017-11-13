@@ -446,6 +446,16 @@ namespace FastExcel
         }
 
         /// <summary>
+        /// Retrieves the index for given worksheet name
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns>1 based index of sheet or 0 if not found</returns>
+        public int GetWorksheetIndexFromName(string name)
+        {
+            return (from worksheet in Worksheets where worksheet.Name == name select worksheet.Index).FirstOrDefault();
+        }
+
+        /// <summary>
         /// Update docProps/app.xml file
         /// </summary>
         private void UpdateDocPropsApp(string[] sheetNames)

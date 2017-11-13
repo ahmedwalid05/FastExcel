@@ -39,7 +39,7 @@ namespace FastExcel
         /// <summary>
         /// Constructor
         /// </summary>
-        public Row(XElement rowElement, SharedStrings sharedStrings)
+        public Row(XElement rowElement, Worksheet worksheet)
         {
             try
             {
@@ -53,15 +53,25 @@ namespace FastExcel
                         
             if (rowElement.HasElements)
             {
-                Cells = GetCells(rowElement, sharedStrings);
+                Cells = GetCells(rowElement, worksheet);
             }
         }
 
-        private IEnumerable<Cell> GetCells(XElement rowElement, SharedStrings sharedStrings)
+        /// <summary>
+        /// Retreive cell that is in column specified
+        /// </summary>
+        /// <param name="columnName">Column letter or defined name</param>
+        /// <returns>Matching cell or null if not found</returns>
+        public Cell GetCellByColumnName(string columnName)
+        {
+            return (from c in Cells where c.ColumnName == columnName select c).FirstOrDefault();
+        }
+
+        private IEnumerable<Cell> GetCells(XElement rowElement, Worksheet worksheet)
         {
             foreach (XElement cellElement in rowElement.Elements())
             {
-                Cell cell = new Cell(cellElement, sharedStrings);
+                Cell cell = new Cell(cellElement, worksheet);
                 if (cell.Value != null)
                 {
                     yield return cell;

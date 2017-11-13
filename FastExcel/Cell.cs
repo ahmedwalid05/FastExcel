@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -22,6 +23,35 @@ namespace FastExcel
         public object Value { get; set; }
 
         /// <summary>
+        /// Defined name or the column letter(s) for column this cell is in
+        /// </summary>
+        public string ColumnName { get; }
+
+        /// <summary>
+        /// List of defined names assigned to this cell
+        /// *Does not include names of ranges this cell is within*
+        /// </summary>
+        public IReadOnlyList<string> CellNames { get; }
+
+        /// <summary>
+        /// First defined name assigned to cell or cell Letter + row number if no named defined.
+        /// </summary>
+        public string CellName
+        {
+            get
+            {
+                if (CellNames.Any())
+                    return CellNames.FirstOrDefault();
+                return ColumnName + RowNumber;
+            }
+        }
+
+        /// <summary>
+        /// Number of the row this cell is on
+        /// </summary>
+        public int RowNumber { get; }
+
+        /// <summary>
         /// Create a new Cell
         /// </summary>
         /// <param name="columnNumber">Column number starting at 1</param>
@@ -33,6 +63,8 @@ namespace FastExcel
                 throw new Exception("Column numbers starting at 1");
             }
             ColumnNumber = columnNumber;
+            ColumnName = GetExcelColumnName(columnNumber);
+            RowNumber = 0;
             Value = value;
         }
 
@@ -41,7 +73,7 @@ namespace FastExcel
         /// </summary>
         /// <param name="cellElement">Cell</param>
         /// <param name="sharedStrings">The collection of shared strings used by this document</param>
-        public Cell(XElement cellElement, SharedStrings sharedStrings)
+        public Cell(XElement cellElement, Worksheet worksheet)
         {
             bool isTextRow = (from a in cellElement.Attributes("t")
                               where a.Value == "s"
@@ -49,11 +81,19 @@ namespace FastExcel
             string columnName = (from a in cellElement.Attributes("r")
                                  select a.Value).FirstOrDefault();
 
+            string columnLetter = Regex.Replace(columnName, @"\d", "");
+
+            RowNumber = Convert.ToInt32(Regex.Replace(columnName, @"[^\d]", ""));
+
+            ColumnName = worksheet.FastExcel.DefinedNames.FindColumnName(worksheet.Name, columnLetter) ?? columnLetter;
+
+            CellNames = worksheet.FastExcel.DefinedNames.FindCellNames(worksheet.Name, columnLetter, RowNumber);
+
             ColumnNumber = GetExcelColumnNumber(columnName);
 
             if (isTextRow)
             {
-                Value = sharedStrings.GetString(cellElement.Value);
+                Value = worksheet.FastExcel.SharedStrings.GetString(cellElement.Value);
             }
             else
             {
