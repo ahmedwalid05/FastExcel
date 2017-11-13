@@ -75,6 +75,11 @@ namespace FastExcel
         /// <param name="sharedStrings">The collection of shared strings used by this document</param>
         public Cell(XElement cellElement, Worksheet worksheet)
         {
+
+            string cellValue = cellElement.HasElements && cellElement.Descendants().Any(descendant => descendant.Name == "v")
+                    ? cellElement.Descendants().Where(descendant => descendant.Name == "v").First().Value
+                    : cellElement.Value;
+
             bool isTextRow = (from a in cellElement.Attributes("t")
                               where a.Value == "s"
                               select a).Any();
@@ -93,11 +98,11 @@ namespace FastExcel
 
             if (isTextRow)
             {
-                Value = worksheet.FastExcel.SharedStrings.GetString(cellElement.Value);
+                Value = worksheet.FastExcel.SharedStrings.GetString(cellValue);
             }
             else
             {
-                Value = cellElement.Value;
+                Value = cellValue;
             }
         }
 
