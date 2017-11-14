@@ -76,8 +76,8 @@ namespace FastExcel
         public Cell(XElement cellElement, Worksheet worksheet)
         {
 
-            string cellValue = cellElement.HasElements && cellElement.Descendants().Any(descendant => descendant.Name == "v")
-                    ? cellElement.Descendants().Where(descendant => descendant.Name == "v").First().Value
+            string cellValue = cellElement.HasElements && cellElement.Descendants().Any(descendant => descendant.Name.LocalName == "v")
+                    ? cellElement.Descendants().Where(descendant => descendant.Name.LocalName == "v").First().Value
                     : cellElement.Value;
 
             bool isTextRow = (from a in cellElement.Attributes("t")
