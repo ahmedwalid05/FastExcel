@@ -26,7 +26,12 @@ namespace FastExcel
         /// Defined name or the column letter(s) for column this cell is in
         /// </summary>
         public string ColumnName { get; }
-
+        
+        /// <summary>
+        /// Raw underlying XElement of cell
+        /// </summary>
+        public XElement XElement { get; }
+        
         /// <summary>
         /// List of defined names assigned to this cell
         /// *Does not include names of ranges this cell is within*
@@ -90,6 +95,8 @@ namespace FastExcel
             CellNames = worksheet.FastExcel.DefinedNames.FindCellNames(worksheet.Name, columnLetter, RowNumber);
 
             ColumnNumber = GetExcelColumnNumber(columnName);
+
+            XElement = cellElement;
 
             if (isTextRow)
             {
