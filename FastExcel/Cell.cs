@@ -104,7 +104,19 @@ namespace FastExcel
             }
             else
             {
-                Value = cellElement.Value;
+                // cellElement.Value will give a concatenated Value + reference/calculation
+
+                var node = cellElement.Elements().Where(x => x.Name.LocalName == "v").SingleOrDefault();
+
+                if (node != null)
+                {
+                    Value = node.Value;
+                }
+                else
+                {
+                    Value = cellElement.Value;
+                }
+                
             }
         }
 
