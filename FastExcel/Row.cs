@@ -67,18 +67,20 @@ namespace FastExcel
             return (from c in Cells where c.ColumnName == columnName select c).FirstOrDefault();
         }
 
+        // <summary>
+        // Get all cells in this row.
+        // </summary>
         private IEnumerable<Cell> GetCells(XElement rowElement, Worksheet worksheet)
         {
             foreach (XElement cellElement in rowElement.Elements())
             {
-                Cell cell = new Cell(cellElement, worksheet);
-                if (cell.Value != null)
-                {
-                    yield return cell;
-                }
+                yeild new Cell(cellElement, worksheet);
             }
         }
 
+        // <summary>
+        // Output Row as an Xml element with cells nested
+        // </summary>
         internal StringBuilder ToXmlString(SharedStrings sharedStrings)
         {
             StringBuilder row = new StringBuilder();
