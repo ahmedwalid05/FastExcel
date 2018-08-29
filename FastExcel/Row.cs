@@ -74,7 +74,7 @@ namespace FastExcel
         {
             foreach (XElement cellElement in rowElement.Elements())
             {
-                yield new Cell(cellElement, worksheet);
+                yield return new Cell(cellElement, worksheet);
             }
         }
 
