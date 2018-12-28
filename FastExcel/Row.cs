@@ -83,7 +83,7 @@ namespace FastExcel
         // </summary>
         internal StringBuilder ToXmlString(SharedStrings sharedStrings)
         {
-            StringBuilder row = new StringBuilder();
+            var row = new StringBuilder();
 
             if (Cells != null && Cells.Any())
             {
@@ -111,7 +111,7 @@ namespace FastExcel
         internal void Merge(Row row)
         {
             // Merge cells
-            List<Cell> outputList = new List<Cell>();
+            var outputList = new List<Cell>();
             foreach (var cell in Cells.Union(row.Cells).GroupBy(c => c.ColumnNumber))
             {
                 int count = cell.Count();

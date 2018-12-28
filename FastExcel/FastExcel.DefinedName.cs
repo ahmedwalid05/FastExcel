@@ -15,7 +15,10 @@ namespace FastExcel
             get
             {
                 if (_definedNames == null)
+                {
                     LoadDefinedNames();
+                }
+
                 return _definedNames;
             }
         }
@@ -56,12 +59,14 @@ namespace FastExcel
         /// <returns>List of cells encapsulated in another list representing seperate ranges</returns>
         public IEnumerable<IEnumerable<Cell>> GetCellRangesByDefinedName(string definedName, int? worksheetIndex = null)
         {
-            List<List<Cell>> result = new List<List<Cell>>();
+            var result = new List<List<Cell>>();
 
-            string key = (!worksheetIndex.HasValue ? definedName : definedName + ":" + worksheetIndex);
+            string key = !worksheetIndex.HasValue ? definedName : definedName + ":" + worksheetIndex;
 
             if (!DefinedNames.ContainsKey(key))
+            {
                 return result;
+            }
 
             string[] references = DefinedNames[key].Reference.Split(',');
 
@@ -99,7 +104,9 @@ namespace FastExcel
             var cellRanges = GetCellRangesByDefinedName(definedName) as List<List<Cell>>;
 
             foreach (var cellRange in cellRanges)
+            {
                 cells.InsertRange(cells.Count, cellRange);
+            }
 
             return cells;
         }
@@ -124,7 +131,10 @@ namespace FastExcel
         {
             var columnCells = GetCellsByDefinedName(columnName) as List<Cell>;
             if (!rowEnd.HasValue)
+            {
                 rowEnd = columnCells.Last().RowNumber;
+            }
+
             return columnCells.Where(cell => cell.RowNumber >= rowStart && cell.RowNumber <= rowEnd).ToList();
         }
     }

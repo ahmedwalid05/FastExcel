@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace FastExcel
+﻿namespace FastExcel
 {
     /// <summary>
     /// Extra properties for a worksheet

@@ -50,7 +50,7 @@ namespace FastExcel
                     return;
                 }
 
-                XDocument document = XDocument.Load(stream);
+                var document = XDocument.Load(stream);
 
                 if (document == null)
                 {
@@ -137,8 +137,7 @@ namespace FastExcel
 
         internal string GetString(string position)
         {
-            int pos;
-            if (int.TryParse(position, out pos))
+            if (int.TryParse(position, out int pos))
             {
                 return GetString(pos + 1);
             }

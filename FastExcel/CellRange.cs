@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace FastExcel
@@ -37,7 +35,9 @@ namespace FastExcel
         internal CellRange(string reference)
         {
             if (!Regex.IsMatch(reference, @"^[^\[\]\*\/\\\?\:]{1,31}\!\$[A-z]{1,4}:?\$"))
+            {
                 throw new ArgumentException("CellRange reference argument is invalid or not supported.");
+            }
 
             string[] splitReference = reference.Split('!');
 

@@ -48,9 +48,9 @@ namespace FastExcel
         /// <param name="existingHeadingRows">How many rows in the template sheet you would like to keep</param>
         public void Write<T>(IEnumerable<T> rows, int sheetNumber, int existingHeadingRows = 0)
         {
-            Worksheet data = new Worksheet();
-            data.PopulateRows<T>(rows);
-            Write(data, sheetNumber, null, existingHeadingRows);
+            var worksheet = new Worksheet();
+            worksheet.PopulateRows<T>(rows);
+            Write(worksheet, sheetNumber, null, existingHeadingRows);
         }
 
         /// <summary>
@@ -62,9 +62,9 @@ namespace FastExcel
         /// <param name="existingHeadingRows">How many rows in the template sheet you would like to keep</param>
         public void Write<T>(IEnumerable<T> rows, string sheetName, int existingHeadingRows = 0)
         {
-            Worksheet data = new Worksheet();
-            data.PopulateRows<T>(rows, existingHeadingRows);
-            Write(data, null, sheetName, existingHeadingRows);
+            var worksheet = new Worksheet();
+            worksheet.PopulateRows<T>(rows, existingHeadingRows);
+            Write(worksheet, null, sheetName, existingHeadingRows);
         }
 
         /// <summary>
@@ -76,9 +76,9 @@ namespace FastExcel
         /// <param name="usePropertiesAsHeadings">Use property names from object list as headings</param>
         public void Write<T>(IEnumerable<T> objectList, int sheetNumber, bool usePropertiesAsHeadings)
         {
-            Worksheet data = new Worksheet();
-            data.PopulateRows<T>(objectList, 0, usePropertiesAsHeadings);
-            Write(data, sheetNumber, null, 0);
+            var worksheet = new Worksheet();
+            worksheet.PopulateRows<T>(objectList, 0, usePropertiesAsHeadings);
+            Write(worksheet, sheetNumber, null, 0);
         }
 
         /// <summary>
@@ -90,9 +90,9 @@ namespace FastExcel
         /// <param name="usePropertiesAsHeadings">Use property names from object list as headings</param>
         public void Write<T>(IEnumerable<T> rows, string sheetName, bool usePropertiesAsHeadings)
         {
-            Worksheet data = new Worksheet();
-            data.PopulateRows<T>(rows, 0,usePropertiesAsHeadings);
-            Write(data, null, sheetName, 0);
+            var worksheet = new Worksheet();
+            worksheet.PopulateRows<T>(rows, 0,usePropertiesAsHeadings);
+            Write(worksheet, null, sheetName, 0);
         }
 
         private void Write(Worksheet worksheet, int? sheetNumber = null, string sheetName = null, int existingHeadingRows = 0)
@@ -131,14 +131,14 @@ namespace FastExcel
             using (Stream stream = Archive.GetEntry(worksheet.FileName).Open())
             {
                 // Open worksheet and read the data at the top and bottom of the sheet
-                StreamReader streamReader = new StreamReader(stream);
+                var streamReader = new StreamReader(stream);
                 worksheet.ReadHeadersAndFooters(streamReader, ref worksheet);
                 
                 //Set the stream to the start
                 stream.Position = 0;
 
                 // Open the stream so we can override all content of the sheet
-                StreamWriter streamWriter = new StreamWriter(stream);
+                var streamWriter = new StreamWriter(stream);
 
                 // TODO instead of saving the headers then writing them back get position where the headers finish then write from there
                 streamWriter.Write(worksheet.Headers);
@@ -150,7 +150,7 @@ namespace FastExcel
                 SharedStrings.ReadWriteMode = true;
 
                 // Add Rows
-                foreach (Row row in worksheet.Rows)
+                foreach (var row in worksheet.Rows)
                 {
                     streamWriter.Write(row.ToXmlString(SharedStrings));
                 }

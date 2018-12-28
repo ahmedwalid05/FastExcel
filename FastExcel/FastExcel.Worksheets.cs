@@ -47,16 +47,18 @@ namespace FastExcel
                     throw new Exception("Unable to load workbook.xml");
                 }
 
-                List<XElement> sheetsElements = document.Descendants().Where(d => d.Name.LocalName == "sheet").ToList();
+                var sheetsElements = document.Descendants().Where(d => d.Name.LocalName == "sheet").ToList();
 
                 foreach (var sheetElement in sheetsElements)
                 {
-                    var worksheet = new Worksheet(this);
-                    worksheet.Index = sheetsElements.IndexOf(sheetElement) + 1;
+                    var worksheet = new Worksheet(this)
+                    {
+                        Index = sheetsElements.IndexOf(sheetElement) + 1,
 
-                    worksheet.Name = (from attribute in sheetElement.Attributes()
-                                 where attribute.Name == "name"
-                                 select attribute.Value).FirstOrDefault();
+                        Name = (from attribute in sheetElement.Attributes()
+                                where attribute.Name == "name"
+                                select attribute.Value).FirstOrDefault()
+                    };
 
                     worksheets.Add(worksheet);
                 }
