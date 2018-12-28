@@ -94,7 +94,7 @@ using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(templateFile, out
 FileInfo inputFile = new FileInfo("C:\\Temp\\input.xlsx");
 
 //Create a worksheet
-DataSet worksheet = null;
+Worksheet worksheet = null;
 
 // Create an instance of Fast Excel
 using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile, true))
