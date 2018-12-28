@@ -35,11 +35,15 @@ PM> Install-Package FastExcel
 ## Write Demo 1
 This demo uses Generic objects, ie any object you wish with public properties
 ```C#
-using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(outputFile))
+// Get your template and output file paths
+var templateFile = new FileInfo("C:\\Temp\\Template.xlsx");
+var outputFile = new FileInfo("C:\\Temp\\output.xlsx");
+
+using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(templateFile, outputFile))
 {
     List<MyObject> objectList = new List<MyObject>();
 
-    for (int rowNumber = 1; rowNumber < NumberOfRecords; rowNumber++)
+    for (int rowNumber = 1; rowNumber < 100000; rowNumber++)
     {
         MyObject genericObject = new MyObject();
         genericObject.StringColumn1 = "A string " + rowNumber.ToString();
@@ -51,6 +55,13 @@ using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(outputFile))
     }
     fastExcel.Write(objectList, "sheet3", true);
 }
+public class MyObject
+{
+    public string StringColumn1 { get; set; }
+    public int IntegerColumn2 { get; set; }
+    public double DoubleColumn3 { get; set; }
+    public string ObjectColumn4 { get; set; }
+}
 ```
 
 ## Write Demo 2
@@ -58,12 +69,12 @@ This demo lets you specify exactly which cell you are writing to
 
 ```C#
 // Get your template and output file paths
-FileInfo templateFile = new FileInfo("Template.xlsx");
-FileInfo outputFile = new FileInfo("C:\\Temp\\output.xlsx");
+var templateFile = new FileInfo("C:\\Temp\\Template.xlsx");
+var outputFile = new FileInfo("C:\\Temp\\output.xlsx");
 
 //Create a worksheet with some rows
-Worksheet worksheet = new Worksheet();
-List<Row> rows = new List<Row>();
+var worksheet = new Worksheet();
+var rows = new List<Row>();
 for (int rowNumber = 1; rowNumber < 100000; rowNumber++)
 {
     List<Cell> cells = new List<Cell>();
@@ -90,8 +101,8 @@ using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(templateFile, out
 ## Read Demo 1 Get Worksheet
 
 ```C#
-// Get the input file paths
-FileInfo inputFile = new FileInfo("C:\\Temp\\input.xlsx");
+// Get the input file path
+var inputFile = new FileInfo("C:\\Temp\\input.xlsx");
 
 //Create a worksheet
 Worksheet worksheet = null;
@@ -112,8 +123,8 @@ using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile, true))
 ## Read Demo 2 Get All Worksheets
 
 ```C#
-// Get the input file paths
-FileInfo inputFile = new FileInfo("C:\\Temp\\fileToRead.xlsx");
+// Get the input file path
+var inputFile = new FileInfo("C:\\Temp\\fileToRead.xlsx");
 
 // Create an instance of Fast Excel
 using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile, true))
@@ -134,14 +145,14 @@ using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile, true))
 ## Update Demo
 
 ```C#
-// Get the input file paths
-FileInfo inputFile = new FileInfo("C:\\Temp\\input.xlsx");
+// Get the input file path
+var inputFile = new FileInfo("C:\\Temp\\input.xlsx");
 
 //Create a some rows in a worksheet
-Worksheet worksheet = new Worksheet();
-List<Row> rows = new List<Row>();
-                
-for (int rowNumber = 1; rowNumber < NumberOfRecords; rowNumber+= 50)
+var worksheet = new Worksheet();
+var rows = new List<Row>();
+
+for (int rowNumber = 1; rowNumber < 100000; rowNumber += 50)
 {
     List<Cell> cells = new List<Cell>();
     for (int columnNumber = 1; columnNumber < 13; columnNumber+= 2)
