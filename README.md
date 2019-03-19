@@ -11,21 +11,21 @@
 - Does not use the Open XML SDK to interact with the data but going directly and editing the underlying xml files.
 - This project is not intended to be a replacement for full featured Excel packages with things like formatting, just light weight fast way of interacting with data in Excel.
 
+#### Version 3
+- Contribute using Visual Studio 2017
+- Built using [.NetStandard](https://docs.microsoft.com/en-us/dotnet/standard/library) 2 targeting:
+	- .Net Core 2.0
+	- .Net Framework 4.6.1
+
 #### Version 2
 - Contribute using Visual Studio 2017
-- Built using [.NetStandard](https://docs.microsoft.com/en-us/dotnet/standard/library) 1.3 so it should run on
+- Built using [.NetStandard](https://docs.microsoft.com/en-us/dotnet/standard/library) 1.3 targeting:
 	- .Net Core 1.0
 	- .Net Framework 4.6
-	- Mono
-	- Xamarin.iOS
-	- Xamarin.Androud
-	- Universal Windows Platform
 
 #### Version 1 (old)
-[![Build status](https://ci.appveyor.com/api/projects/status/5cwbg9ffxqsdeguf/branch/master?svg=true)](https://ci.appveyor.com/project/mrjono1/fastexcel/branch/master)
 - Built using .Net Framework 4.5
 - Contribute using Visual Studio 2015
-- This version may not be up to date
 
 #### Installation
 ```
