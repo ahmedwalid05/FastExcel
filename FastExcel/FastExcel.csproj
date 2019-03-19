@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>FastExcel</PackageId>
     <Authors>Jono Clarnette</Authors>
     <Description>A fast way to read and write to Excel *.xlsx files without using the Open XML library.</Description>
