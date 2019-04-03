@@ -121,7 +121,7 @@ namespace FastExcel
                     object value = table.Rows[rowIndex].ItemArray[columnIndex];
                     if (value == null) continue;
 
-                    var cell = new Cell(j + 1, value);
+                    var cell = new Cell(columnIndex + 1, value);
                     cells.Add(cell);
                 }
 
