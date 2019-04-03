@@ -6,6 +6,7 @@ using System.Text;
 using System.IO;
 using System.Xml.Linq;
 using System.Collections;
+using System.Data;
 
 namespace FastExcel
 {
@@ -97,6 +98,38 @@ namespace FastExcel
             {
                 PopulateRowsFromIEnumerable(rows as IEnumerable<IEnumerable<object>>, existingHeadingRows);
             }
+        }
+
+        /// <summary>
+        /// Populate rows from datatable
+        /// </summary>
+        public void PopulateRowsFromDataTable(DataTable table, int existingHeadingRows = 0)
+        {
+            var rowNumber = existingHeadingRows + 1;
+            var headingColumnNumber = 1;
+
+            var headingCells = (from c in table.Columns.OfType<DataColumn>() select new Cell(headingColumnNumber++, c.ColumnName)).ToArray();
+            var headingRow = new Row(rowNumber++, headingCells);
+            var newRows = new List<Row>() { headingRow };
+
+            for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
+            {
+                var cells = new List<Cell>();
+
+                for (var columnIndex = 0; columnIndex < table.Columns.Count; columnIndex++)
+                {
+                    object value = table.Rows[rowIndex].ItemArray[columnIndex];
+                    if (value == null) continue;
+
+                    var cell = new Cell(j + 1, value);
+                    cells.Add(cell);
+                }
+
+                var row = new Row(rowNumber++, cells);
+                newRows.Add(row);
+            }
+
+            Rows = newRows;
         }
 
         /// <summary>
