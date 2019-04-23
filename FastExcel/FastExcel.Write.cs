@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -92,6 +93,16 @@ namespace FastExcel
         {
             var worksheet = new Worksheet();
             worksheet.PopulateRows<T>(rows, 0,usePropertiesAsHeadings);
+            Write(worksheet, null, sheetName, 0);
+        }
+
+        /// <summary>
+        /// Write a excel from datatable
+        /// </summary>
+        public void Write(DataTable table, string sheetName)
+        {
+            var worksheet = new Worksheet();
+            worksheet.PopulateRowsFromDataTable(table, 0);
             Write(worksheet, null, sheetName, 0);
         }
 
