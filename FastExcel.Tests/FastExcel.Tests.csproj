@@ -17,12 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="ResourcesTests\EmptyFileInput.xlsx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="ResourcesTests\EmptyFileOutput.xlsx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="ResourcesTests\RouteMaster.xlsx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

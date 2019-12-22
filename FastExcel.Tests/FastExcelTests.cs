@@ -6,6 +6,8 @@ namespace FastExcel.Tests
 {
     public class FastExcelTests
     {
+        private static readonly string ResourcesPath = Path.Combine(Environment.CurrentDirectory, "ResourcesTests");
+
         [Fact]
         public void FileNotExist_NewFastExcelWithInvalidInputFile_ThrowsFileNotFoundException()
         {
@@ -43,10 +45,10 @@ namespace FastExcel.Tests
         [Fact]
         public void FilesExist_NewFastExcelWithExistOutputFile_ThrowsFileNotFoundException()
         {
-            var templateFilePath = Path.Combine(ResourcesPath, "EmptyFileInput.xlsx");
+            var templateFilePath = Path.Combine(ResourcesPath, "RouteMaster.xlsx");
             var templateFile = new FileInfo(templateFilePath);
 
-            var outputFilePath = Path.Combine(ResourcesPath, "EmptyFileOutput.xlsx");
+            var outputFilePath = Path.Combine(ResourcesPath, "RouteMaster.xlsx");
             var outputFile = new FileInfo(outputFilePath);
 
             var action = new Action(() =>
@@ -75,7 +77,5 @@ namespace FastExcel.Tests
             var exception = Record.Exception(action);
             Assert.Null(exception);
         }
-
-        private static readonly string ResourcesPath = Path.Combine(Environment.CurrentDirectory, "ResourcesTests");
     }
 }
