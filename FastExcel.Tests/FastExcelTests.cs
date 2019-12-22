@@ -58,6 +58,24 @@ namespace FastExcel.Tests
             Assert.Equal($"Output file '{outputFilePath}' already exists", exception.Message);
         }
 
+        [Fact]
+        public void InputFile_ReadExcelWithNullReference_ExceptionIsNull()
+        {
+            var inputFilePath = Path.Combine(ResourcesPath, "RouteMaster.xlsx");
+            var inputFile = new FileInfo(inputFilePath);
+
+            var action = new Action(() =>
+            {
+                using (var fastExcel = new FastExcel(inputFile, true))
+                {
+                    var worksheet = fastExcel.Read(1, 1);
+                }
+            });
+
+            var exception = Record.Exception(action);
+            Assert.Null(exception);
+        }
+
         private static readonly string ResourcesPath = Path.Combine(Environment.CurrentDirectory, "ResourcesTests");
     }
 }
