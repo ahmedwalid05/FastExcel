@@ -3,12 +3,14 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26430.13
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastExcel", "FastExcel\FastExcel.csproj", "{098C9195-D0E2-446A-B059-40E3FD729D42}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FastExcel", "FastExcel\FastExcel.csproj", "{098C9195-D0E2-446A-B059-40E3FD729D42}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFiles", "SolutionFiles", "{9B7439E1-4CE2-48F8-9CD9-BC42BD8D25E2}"
 	ProjectSection(SolutionItems) = preProject
 		ReadMe.md = ReadMe.md
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastExcel.Tests", "FastExcel.Tests\FastExcel.Tests.csproj", "{65290D5C-1AE2-47BC-8ACD-4DAE7648B4CD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,8 +22,15 @@ Global
 		{098C9195-D0E2-446A-B059-40E3FD729D42}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{098C9195-D0E2-446A-B059-40E3FD729D42}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{098C9195-D0E2-446A-B059-40E3FD729D42}.Release|Any CPU.Build.0 = Release|Any CPU
+		{65290D5C-1AE2-47BC-8ACD-4DAE7648B4CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{65290D5C-1AE2-47BC-8ACD-4DAE7648B4CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{65290D5C-1AE2-47BC-8ACD-4DAE7648B4CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{65290D5C-1AE2-47BC-8ACD-4DAE7648B4CD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E850E2E9-27BF-4F7B-87AB-B7BE3BDDE098}
 	EndGlobalSection
 EndGlobal
