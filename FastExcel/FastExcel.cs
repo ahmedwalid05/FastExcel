@@ -13,14 +13,10 @@ namespace FastExcel
     /// </summary>
     public partial class FastExcel: IDisposable
     {
-        /// <summary>
-        /// Output excel file
-        /// </summary>
-        public FileInfo ExcelFile { get; private set; }
-        /// <summary>
-        /// The template excel file
-        /// </summary>
-        public FileInfo TemplateFile { get; private set; }
+        
+        private Stream ExcelFileStream { get; set; }
+        private Stream TemplateFileStream { get; set; }
+        
         /// <summary>
         /// Is the excel file read only
         /// </summary>
@@ -60,13 +56,43 @@ namespace FastExcel
         /// <param name="excelFile">location of where a new excel file will be saved to</param>
         public FastExcel(FileInfo templateFile, FileInfo excelFile) :this(templateFile, excelFile, false, false) {}
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="templateFile"></param>
+        /// <param name="excelFile"></param>
+        /// <param name="updateExisting"></param>
+        /// <param name="readOnly"></param>
         private FastExcel(FileInfo templateFile, FileInfo excelFile, bool updateExisting, bool readOnly = false)
         {
-            TemplateFile = templateFile;
-            ExcelFile = excelFile;
+            TemplateFileStream = new FileStream(templateFile.FullName,FileMode.Open,FileAccess.Read);
+            ExcelFileStream = updateExisting 
+                ? new FileStream(excelFile.FullName, FileMode.Open, FileAccess.ReadWrite) 
+                : new FileStream(excelFile.FullName, FileMode.OpenOrCreate, FileAccess.ReadWrite);
             UpdateExisting = updateExisting;
             ReadOnly = readOnly;
 
+            CheckFiles();
+        }
+
+        /// <summary>
+        /// Update an existing excel file stream
+        /// </summary>
+        /// <param name="excelStream"></param>
+        public FastExcel(Stream excelStream) : this(null, excelStream, true) {}
+        
+        /// <summary>
+        /// Create a new excel file from a template
+        /// </summary>
+        /// <param name="templateStream">Input Template Stream</param>
+        /// <param name="excelStream">Output Excel Stream</param>
+        /// <param name="updateExisting"></param>
+        /// <param name="readOnly"></param>
+        public FastExcel(Stream templateStream, Stream excelStream, bool updateExisting = false, bool readOnly = false) {
+            TemplateFileStream = templateStream;
+            ExcelFileStream = excelStream;
+            UpdateExisting = updateExisting;
+            ReadOnly = readOnly;
             CheckFiles();
         }
 
@@ -76,11 +102,11 @@ namespace FastExcel
             {
                 if (ReadOnly)
                 {
-                    Archive = ZipFile.Open(ExcelFile.FullName, ZipArchiveMode.Read);
+                    Archive= new ZipArchive(ExcelFileStream, ZipArchiveMode.Read);
                 }
                 else
                 {
-                    Archive = ZipFile.Open(ExcelFile.FullName, ZipArchiveMode.Update);
+                    Archive = new ZipArchive(ExcelFileStream, ZipArchiveMode.Update);
                 }
             }
 
@@ -103,38 +129,25 @@ namespace FastExcel
 
             if (UpdateExisting)
             {
-                if (ExcelFile == null)
+                if (ExcelFileStream?.Length == 0)
                 {
                     throw new Exception("No input file name was supplied");
-                }
-                else if (!ExcelFile.Exists)
-                {
-                    var exceptionMessage = $"Input file '{ExcelFile.FullName}' does not exist";
-                    ExcelFile = null;
-                    throw new FileNotFoundException(exceptionMessage);
                 }
             }
             else
             {
-                if (TemplateFile == null)
+                if (TemplateFileStream == null)
                 {
                     throw new Exception("No Template file was supplied");
                 }
-                else if (!TemplateFile.Exists)
-                {
-                    var exceptionMessage = $"Template file '{TemplateFile.FullName}' was not found";
-                    TemplateFile = null;
-                    throw new FileNotFoundException(exceptionMessage);
-                }
 
-                if (ExcelFile == null)
+                if (ExcelFileStream == null)
                 {
                     throw new Exception("No Ouput file name was supplied");
                 }
-                else if (ExcelFile.Exists)
+                else if (ExcelFileStream.Length > 0)
                 {
-                    var exceptionMessage = $"Output file '{ExcelFile.FullName}' already exists";
-                    ExcelFile = null;
+                    var exceptionMessage = $"Output file  already exists";
                     throw new Exception(exceptionMessage);
                 }
             }

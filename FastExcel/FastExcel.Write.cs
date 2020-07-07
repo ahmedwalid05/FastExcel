@@ -114,7 +114,7 @@ namespace FastExcel
             {
                 if (!UpdateExisting)
                 {
-                    File.Copy(TemplateFile.FullName, ExcelFile.FullName);
+                    TemplateFileStream.CopyTo(ExcelFileStream);
                 }
             }
             catch (Exception ex)
