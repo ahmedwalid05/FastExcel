@@ -1,5 +1,8 @@
 # Fast Excel
 
+Looking for maintainers maybe a new owner, I haven't done any dotnet for what seems like a while now. I don't even have dotnet installed on my computer at the moment.
+
+
 #### Build / Release
 [![Build status](https://ci.appveyor.com/api/projects/status/tcabp7tnn8dq5l05/branch/master?svg=true)](https://ci.appveyor.com/project/mrjono1/fastexcel-43v9o/branch/master)
 [![License](http://img.shields.io/:license-MIT-blue.svg)](https://raw.githubusercontent.com/mrjono1/FastExcel/master/LICENSE)
