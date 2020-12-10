@@ -3,19 +3,19 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>FastExcel</PackageId>
-    <Authors>Jono Clarnette</Authors>
+    <Authors>Jono Clarnette, Ahmed Massoud</Authors>
     <Description>A fast way to read and write to Excel *.xlsx files without using the Open XML library.</Description>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Copyright>Copyright 2016-2017 Jono Clarnette</Copyright>
+    <Copyright>Copyright 2016-2020 Jono Clarnette</Copyright>
     <PackageTags>fast excel xlsx read write</PackageTags>
-    <PackageLicenseUrl>https://github.com/mrjono1/FastExcel/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/mrjono1/FastExcel</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/mrjono1/FastExcel</RepositoryUrl>
+    <PackageLicenseUrl>https://github.com/ahmedwalid05/FastExcel/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/ahmedwalid05/FastExcel</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ahmedwalid05/FastExcel</RepositoryUrl>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
-    <Version>1.0.0</Version>
+    <Version>3.0.11</Version>
   </PropertyGroup>
 
   <PropertyGroup>

@@ -1,11 +1,9 @@
 # Fast Excel
 
-Looking for maintainers maybe a new owner, I haven't done any dotnet for what seems like a while now. I don't even have dotnet installed on my computer at the moment.
-
 
 #### Build / Release
-[![Build status](https://ci.appveyor.com/api/projects/status/tcabp7tnn8dq5l05/branch/master?svg=true)](https://ci.appveyor.com/project/mrjono1/fastexcel-43v9o/branch/master)
-[![License](http://img.shields.io/:license-MIT-blue.svg)](https://raw.githubusercontent.com/mrjono1/FastExcel/master/LICENSE)
+[![Build status](https://github.com/ahmedwalid05/FastExcel-Private/workflows/.NET%20Core/badge.svg)]()
+[![License](http://img.shields.io/:license-MIT-blue.svg)](https://raw.githubusercontent.com/ahmedwalid05/FastExcel/master/LICENSE)
 [![NuGet Badge](https://buildstats.info/nuget/FastExcel)](https://www.nuget.org/packages/FastExcel/)
 
 #### About
@@ -181,3 +179,4 @@ using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile))
 - paritoshmmmec
 
 - Insperation for this project came from [SejExcelExport](https://github.com/jsegarra1971/SejExcelExport) by jsegarra1971 who did a great job. I wanted to have my own crack at this problem.
+- mrjono1 The creater of this library
