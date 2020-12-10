@@ -11,6 +11,34 @@ namespace FastExcel {
     /// Fast Excel
     /// </summary>
     public partial class FastExcel : IDisposable {
+
+        /// <summary>
+        ///  Output excel file
+        /// </summary>
+        public FileInfo ExcelFile
+        {
+            get {
+                if (_excelFile == null)
+                {
+                    throw new ApplicationException("ExcelFile was not provided");
+                }
+                return _excelFile;
+            }
+        }
+        /// <summary>
+        /// The template excel file
+        /// </summary>
+        public FileInfo TemplateFile{
+            get
+            {
+                if (_templateFile == null)
+                {
+                    throw new ApplicationException("TemplateFile was not provided");
+                }
+
+                return _templateFile;
+            }
+        }
         private Stream ExcelFileStream { get; set; }
         private Stream TemplateFileStream { get; set; }
 
@@ -23,6 +51,8 @@ namespace FastExcel {
         internal ZipArchive Archive { get; set; }
         private bool UpdateExisting { get; set; }
         private bool _filesChecked;
+        private readonly FileInfo _excelFile;
+        private readonly FileInfo _templateFile;
 
         /// <summary>
         /// Maximum sheet number, obtained when a sheet is added
@@ -79,7 +109,8 @@ namespace FastExcel {
                     throw new FileNotFoundException(exceptionMessage);
                 }
             }
-
+            _templateFile = templateFile;
+            _excelFile = excelFile;
             TemplateFileStream = templateFile !=  null ? new FileStream(templateFile.FullName, FileMode.Open, FileAccess.Read) : null;
             ExcelFileStream = updateExisting
                 ? new FileStream(excelFile.FullName, FileMode.Open, readOnly ? FileAccess.Read : FileAccess.ReadWrite)
@@ -105,6 +136,14 @@ namespace FastExcel {
         /// <param name="updateExisting"></param>
         /// <param name="readOnly"></param>
         public FastExcel(Stream templateStream, Stream excelStream, bool updateExisting = false, bool readOnly = false) {
+            if (templateStream is FileStream templatefileStream)
+            {
+                _templateFile = new FileInfo(templatefileStream.Name);
+            }
+            if (excelStream is FileStream excelFileStream)
+            {
+                _excelFile = new FileInfo(excelFileStream.Name);
+            }
             TemplateFileStream = templateStream;
             ExcelFileStream = excelStream;
             UpdateExisting = updateExisting;

@@ -16,7 +16,7 @@ namespace FastExcel.Tests
 
             var action = new Action(() =>
             {
-                using (var fastExcel = new FastExcel(inputFile)) ;
+                using (var fastExcel = new FastExcel(inputFile));
             });
 
             var exception = Assert.Throws<FileNotFoundException>(action);
@@ -26,7 +26,6 @@ namespace FastExcel.Tests
         [Fact]
         public void FileNotExist_NewFastExcelWithInvalidTemplateFile_ThrowsFileNotFoundException()
         {
-
             var templateFilePath = Path.Combine(Environment.CurrentDirectory, "templateFilePath_not_exist.xlsx");
             var templateFile = new FileInfo(templateFilePath);
 
@@ -76,6 +75,18 @@ namespace FastExcel.Tests
 
             var exception = Record.Exception(action);
             Assert.Null(exception);
+        }
+
+        [Fact]
+        public void ThrowsErrorIfInitializedWithStreamAndFileInfoIsAccessed()
+        {
+            using var inputMemorystream = new MemoryStream(new byte[] {0x1});
+            using var outputMemorystream = new MemoryStream();
+            var fastExcel = new FastExcel(inputMemorystream, outputMemorystream);
+            var exception = Assert.Throws<ApplicationException>(() => fastExcel.ExcelFile);
+            Assert.Equal($"ExcelFile was not provided", exception.Message);
+            exception = Assert.Throws<ApplicationException>(() => fastExcel.TemplateFile);
+            Assert.Equal($"TemplateFile was not provided", exception.Message);
         }
     }
 }
