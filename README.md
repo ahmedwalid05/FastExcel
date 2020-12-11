@@ -2,7 +2,7 @@
 
 
 #### Build / Release
-![Build status](https://github.com/ahmedwalid05/FastExcel/workflows/build/badge.svg)]
+![Build status](https://github.com/ahmedwalid05/FastExcel/workflows/Build/badge.svg)
 [![License](http://img.shields.io/:license-MIT-blue.svg)](https://raw.githubusercontent.com/ahmedwalid05/FastExcel/master/LICENSE)
 [![NuGet Badge](https://buildstats.info/nuget/FastExcel)](https://www.nuget.org/packages/FastExcel/)
 
