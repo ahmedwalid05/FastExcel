@@ -17,17 +17,6 @@
 - Built using [.NetStandard](https://docs.microsoft.com/en-us/dotnet/standard/library) 2 targeting:
 	- .Net Core 2.0
 	- .Net Framework 4.6.1
-
-#### Version 2
-- Contribute using Visual Studio 2017
-- Built using [.NetStandard](https://docs.microsoft.com/en-us/dotnet/standard/library) 1.3 targeting:
-	- .Net Core 1.0
-	- .Net Framework 4.6
-
-#### Version 1 (old)
-- Built using .Net Framework 4.5
-- Contribute using Visual Studio 2015
-
 #### Installation
 ```
 PM> Install-Package FastExcel
