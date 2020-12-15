@@ -2,6 +2,7 @@
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace FastExcel
@@ -60,7 +61,7 @@ namespace FastExcel
                 }
 
                 int i = 0;
-                StringDictionary = document.Descendants().Where(d => d.Name.LocalName == "t").Select(e => e.Value).ToDictionary(k => k, v => i++);
+                StringDictionary = document.Descendants().Where(d => d.Name.LocalName == "t").Select(e => e.Value).Select(e => XmlConvert.DecodeName(e)).ToDictionary(k => k, v => i++);
             }
         }
 
@@ -121,7 +122,7 @@ namespace FastExcel
                 // Add Rows
                 foreach (var stringValue in StringDictionary)
                 {
-                    streamWriter.Write(string.Format("<si><t>{0}</t></si>", stringValue.Key));
+                    streamWriter.Write(string.Format("<si><t>{0}</t></si>", XmlConvert.EncodeName(stringValue.Key)));
                 }
 
                 //Add Footers
