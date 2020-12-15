@@ -213,5 +213,10 @@ namespace FastExcel
         {
             Value = cell.Value;
         }
+
+        public override string ToString()
+        {
+            return Value.ToString();
+        }
     }
 }

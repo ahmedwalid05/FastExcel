@@ -301,7 +301,9 @@ namespace FastExcel
             }
 
             // Merge rows
-            data.Rows = MergeRows(data.Rows);
+            Rows = data.MergeRows(Rows);
+            // data.Rows = MergeRows(data.Rows);
+
         }
 
         private IEnumerable<Row> MergeRows(IEnumerable<Row> rows)
@@ -358,7 +360,7 @@ namespace FastExcel
                 var document = XDocument.Load(stream);
                 int skipRows = 0;
 
-                var rowElement = document.Descendants().Where(d => d.Name.LocalName == "row").FirstOrDefault();
+                var rowElement = document.Descendants().FirstOrDefault(d => d.Name.LocalName == "row");
                 if (rowElement != null)
                 {
                     var possibleHeadingRow = new Row(rowElement, this);
@@ -531,7 +533,8 @@ namespace FastExcel
                     if (line.Contains("</sheetData>"))
                     {
                         int index = line.IndexOf("</sheetData>") + "</sheetData>".Length;
-                        footers.Append(line.Substring(index, line.Length - index));
+                        var foot = line.Substring(index, line.Length - index);
+                        footers.Append(foot);
                     }
                     else if (line.Contains("<sheetData/>"))
                     {

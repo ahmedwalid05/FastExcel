@@ -144,7 +144,7 @@ namespace FastExcel
                 // Open worksheet and read the data at the top and bottom of the sheet
                 var streamReader = new StreamReader(stream);
                 worksheet.ReadHeadersAndFooters(streamReader, ref worksheet);
-                
+
                 //Set the stream to the start
                 stream.Position = 0;
 
@@ -174,8 +174,9 @@ namespace FastExcel
                     worksheet.Footers = null;
                 }
                 streamWriter.Flush();
+                stream.SetLength(stream.Position);
             }
         }
-
+        
     }
 }

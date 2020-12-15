@@ -29,7 +29,12 @@
 
             Worksheet currentData = Read(sheetNumber, sheetName);
             currentData.Merge(data);
-            Write(currentData);
+            if(sheetName!=null)
+                Write(currentData, sheetName);
+            else if(sheetNumber!=null)
+                Write(currentData, sheetNumber);
+            else
+                Write(currentData);
         }
     }
 }

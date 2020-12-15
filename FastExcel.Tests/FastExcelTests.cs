@@ -1,12 +1,33 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace FastExcel.Tests
 {
     public class FastExcelTests
     {
         private static readonly string ResourcesPath = Path.Combine(Environment.CurrentDirectory, "ResourcesTests");
+        private static readonly string TemplateFilePath = Path.Combine(ResourcesPath, "template.xlsx");
+
+        private static readonly CellRow TestCellRow = new CellRow()
+        {
+            StringColumn1 = "&",
+            IntegerColumn2 = 45678854,
+            DoubleColumn3 = 87.01d,
+            ObjectColumn4 = DateTime.Now
+        };
+
+        private readonly ITestOutputHelper output;
+
+        public FastExcelTests(ITestOutputHelper output)
+        {
+            this.output = output;
+        }
 
         [Fact]
         public void FileNotExist_NewFastExcelWithInvalidInputFile_ThrowsFileNotFoundException()
@@ -16,7 +37,7 @@ namespace FastExcel.Tests
 
             var action = new Action(() =>
             {
-                using (var fastExcel = new FastExcel(inputFile));
+                using (var fastExcel = new FastExcel(inputFile)) ;
             });
 
             var exception = Assert.Throws<FileNotFoundException>(action);
@@ -88,5 +109,133 @@ namespace FastExcel.Tests
             exception = Assert.Throws<ApplicationException>(() => fastExcel.TemplateFile);
             Assert.Equal($"TemplateFile was not provided", exception.Message);
         }
+
+        [Fact]
+        public string FileRead_ReadingSpecialCharacters_Read()
+        {
+            var inputFilePath = new FileInfo(Path.Combine(ResourcesPath, "special-char.xlsx"));
+            return FileRead_ReadingSpecialCharactersCore_Read(inputFilePath);
+        }
+
+        private string FileRead_ReadingSpecialCharactersCore_Read(FileInfo inputFile)
+        {
+            inputFile.Refresh();
+            using var fastExcel = new FastExcel(inputFile);
+            var worksheet = fastExcel.Read("sheet1");
+            var rows = worksheet.Rows;
+
+            foreach (var item in rows)
+            {
+                foreach (var cell in item.Cells)
+                {
+                    output.WriteLine(cell.ToString());
+                }
+            }
+
+            var row = rows.ToArray()[1].Cells.ToArray();
+            Assert.Equal(TestCellRow.StringColumn1, row[0].Value);
+            //TODO - Add tests for data-types when implemented 
+
+            return "Passed";
+        }
+
+        [Fact]
+        public string FileWrite_WritingOneRow_Wrote()
+        {
+            var inputFilePath = new FileInfo(Path.Combine(ResourcesPath, "temp.xlsx"));
+            if (inputFilePath.Exists)
+                inputFilePath.Delete();
+            inputFilePath.Refresh();
+            var templateFilePath = new FileInfo(TemplateFilePath);
+            using (var fastExcel = new FastExcel(templateFilePath, inputFilePath))
+            {
+                List<CellRow> objectList = new List<CellRow>();
+
+                objectList.Add(TestCellRow);
+                fastExcel.Write(objectList, "sheet1", true);
+            }
+
+
+            return FileRead_ReadingSpecialCharactersCore_Read(inputFilePath);
+        }
+
+        [Fact]
+        public string FileUpdate_UpdatingEmptyFile_Updated()
+        {
+            var worksheet = new Worksheet();
+            var cells = new List<CellRow>();
+            cells.Add(TestCellRow);
+
+            worksheet.PopulateRows(cells, usePropertiesAsHeadings: true);
+            var templateFile = new FileInfo(TemplateFilePath);
+            var inputFile = templateFile.CopyTo(Path.Combine(ResourcesPath, "temp1.xlsx"), true);
+
+            using (var fastExcel = new FastExcel(inputFile))
+            {
+                // Read the data
+                fastExcel.Update(worksheet, "Sheet1");
+            }
+
+
+            return FileRead_ReadingSpecialCharactersCore_Read(inputFile);
+        }
+        [Fact]
+        public string FileUpdate_UpdatingWithOneRow_Updated()
+        {
+            var worksheet = new Worksheet();
+            var cells = new List<CellRow> {TestCellRow};
+
+            worksheet.PopulateRows(cells, usePropertiesAsHeadings: true);
+
+            var templateFile = new FileInfo(Path.Combine(ResourcesPath, "OneRowFile.xlsx"));
+            var inputFile = templateFile.CopyTo(Path.Combine(ResourcesPath, "temp.xlsx"), true);
+            using (var fastExcel = new FastExcel(inputFile))
+            {
+                
+                fastExcel.Update(worksheet, "Sheet1");
+            }
+
+            return FileRead_ReadingSpecialCharactersCore_Read(inputFile);
+        }
+        [Fact]
+        public string FileUpdate_WriteAndUpdatingWithOneRow_Updated()
+        {
+            var worksheet = new Worksheet();
+            var cells = new List<CellRow>();
+            cells.Add(TestCellRow);
+
+            worksheet.PopulateRows(cells, usePropertiesAsHeadings: true);
+
+            var templateFile = new FileInfo(TemplateFilePath);
+            var inputFile = new FileInfo(Path.Combine(ResourcesPath, "temp.xlsx"));
+            if (inputFile.Exists)
+            {
+                inputFile.Delete();
+                inputFile.Refresh();
+            }
+
+
+            //Writing Data One Row
+            using (var fastExcel = new FastExcel(templateFile, inputFile))
+            {
+                fastExcel.Write(worksheet, "Sheet1");
+            }
+
+            inputFile.Refresh();
+            using (var fastExcel = new FastExcel(inputFile))
+            {
+                fastExcel.Update(worksheet, "Sheet1");
+            }
+
+            return FileRead_ReadingSpecialCharactersCore_Read(inputFile);
+        }
+    }
+
+    public class CellRow
+    {
+        public string StringColumn1 { get; set; }
+        public int IntegerColumn2 { get; set; }
+        public double DoubleColumn3 { get; set; }
+        public DateTime ObjectColumn4 { get; set; }
     }
 }
