@@ -110,13 +110,6 @@ namespace FastExcel.Tests
             Assert.Equal($"TemplateFile was not provided", exception.Message);
         }
 
-        [Fact]
-        public string FileRead_ReadingSpecialCharacters_Read()
-        {
-            var inputFilePath = new FileInfo(Path.Combine(ResourcesPath, "special-char.xlsx"));
-            return FileRead_ReadingSpecialCharactersCore_Read(inputFilePath);
-        }
-
         private string FileRead_ReadingSpecialCharactersCore_Read(FileInfo inputFile)
         {
             inputFile.Refresh();
@@ -138,6 +131,17 @@ namespace FastExcel.Tests
 
             return "Passed";
         }
+
+        
+       
+        [Fact]
+        public string FileRead_ReadingSpecialCharacters_Read()
+        {
+            var inputFilePath = new FileInfo(Path.Combine(ResourcesPath, "special-char.xlsx"));
+            return FileRead_ReadingSpecialCharactersCore_Read(inputFilePath);
+        }
+
+        
 
         [Fact]
         public string FileWrite_WritingOneRow_Wrote()
