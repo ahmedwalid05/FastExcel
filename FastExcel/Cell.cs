@@ -214,6 +214,10 @@ namespace FastExcel
             Value = cell.Value;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns>Cell's Value</returns>
         public override string ToString()
         {
             return Value.ToString();

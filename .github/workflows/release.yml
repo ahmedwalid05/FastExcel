@@ -24,33 +24,28 @@ jobs:
       - name: publish on version change
         id: publish_nuget
         uses: rohith/publish-nuget@v2
-        with:
-          # Filepath of the project to be packaged, relative to root of repository
-          PROJECT_FILE_PATH: FastExcel/FastExcel.csproj
-          
-          # NuGet package id, used for version detection & defaults to project name
-          # PACKAGE_NAME: Core
-          
-          # Filepath with version info, relative to root of repository & defaults to PROJECT_FILE_PATH
-          # VERSION_FILE_PATH: Directory.Build.props
-
-          # Regex pattern to extract version info in a capturing group
-          # VERSION_REGEX: ^\s*<Version>(.*)<\/Version>\s*$
-          
-          # Useful with external providers like Nerdbank.GitVersioning, ignores VERSION_FILE_PATH & VERSION_REGEX
-          # VERSION_STATIC: 1.0.0
-
-          # Flag to toggle git tagging, enabled by default
-          # TAG_COMMIT: true
-
-          # Format of the git tag, [*] gets replaced with actual version
-          # TAG_FORMAT: v*
-
-          # API key to authenticate with NuGet server
+        with:          
+          PROJECT_FILE_PATH: FastExcel/FastExcel.csproj  
           NUGET_KEY: ${{secrets.NUGET_KEY}}
-
-          # NuGet server uri hosting the packages, defaults to https://api.nuget.org
-          # NUGET_SOURCE: https://api.nuget.org
-
-          # Flag to toggle pushing symbols along with nuget package to the server, disabled by default
-          # INCLUDE_SYMBOLS: false
+      - name: Create Release
+        if: ${{ success() && steps.publish_nuget.outputs.VERSION != ''  && steps.publish_nuget.outputs.VERSION != null }}
+        id: create_release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.publish_nuget.outputs.VERSION }}
+          release_name: Release ${{ steps.publish_nuget.outputs.VERSION }}
+          draft: false
+          prerelease: false
+      - name: Upload Release Asset
+        if: ${{ success() && steps.publish_nuget.outputs.VERSION != ''  && steps.publish_nuget.outputs.VERSION != null }}
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.publish_nuget.outputs.PACKAGE_PATH }}
+          asset_name: ${{ steps.publish_nuget.outputs.PACKAGE_NAME }}
+          asset_content_type: application/zip
