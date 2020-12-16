@@ -60,8 +60,18 @@ namespace FastExcel
                     return;
                 }
 
+                // int i = 0;
+                // StringDictionary = document.Descendants().Where(d => d.Name.LocalName == "t").Select(e => e.Value).Select(XmlConvert.DecodeName).to
+                //     .ToDictionary(k => k, v => i++);
                 int i = 0;
-                StringDictionary = document.Descendants().Where(d => d.Name.LocalName == "t").Select(e => e.Value).Select(e => XmlConvert.DecodeName(e)).ToDictionary(k => k, v => i++);
+                StringDictionary = new Dictionary<string, int>();
+                List<string> StringList = new List<string>();
+                StringList = document.Descendants().Where(d => d.Name.LocalName == "t").Select(e => XmlConvert.DecodeName(e.Value)).ToList();
+                foreach (string currentString in StringList)
+                {
+                    if (!StringDictionary.ContainsKey(currentString))
+                        StringDictionary.Add(currentString, i++);
+                }
             }
         }
 

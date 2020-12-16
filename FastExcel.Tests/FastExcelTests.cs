@@ -132,8 +132,7 @@ namespace FastExcel.Tests
             return "Passed";
         }
 
-        
-       
+
         [Fact]
         public string FileRead_ReadingSpecialCharacters_Read()
         {
@@ -141,7 +140,6 @@ namespace FastExcel.Tests
             return FileRead_ReadingSpecialCharactersCore_Read(inputFilePath);
         }
 
-        
 
         [Fact]
         public string FileWrite_WritingOneRow_Wrote()
@@ -183,6 +181,7 @@ namespace FastExcel.Tests
 
             return FileRead_ReadingSpecialCharactersCore_Read(inputFile);
         }
+
         [Fact]
         public string FileUpdate_UpdatingWithOneRow_Updated()
         {
@@ -195,12 +194,12 @@ namespace FastExcel.Tests
             var inputFile = templateFile.CopyTo(Path.Combine(ResourcesPath, "temp.xlsx"), true);
             using (var fastExcel = new FastExcel(inputFile))
             {
-                
                 fastExcel.Update(worksheet, "Sheet1");
             }
 
             return FileRead_ReadingSpecialCharactersCore_Read(inputFile);
         }
+
         [Fact]
         public string FileUpdate_WriteAndUpdatingWithOneRow_Updated()
         {
@@ -232,6 +231,16 @@ namespace FastExcel.Tests
             }
 
             return FileRead_ReadingSpecialCharactersCore_Read(inputFile);
+        }
+
+        [Fact]
+        public string FileRead_ReadSameStringKey_Read()
+        {
+            var inputFile = new FileInfo(Path.Combine(ResourcesPath, "SameKey.xlsx"));
+
+            using var fastExcel = new FastExcel(inputFile, true);
+            var sheet = fastExcel.Read(1);
+            return sheet.Name;
         }
     }
 
