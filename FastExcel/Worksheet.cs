@@ -220,6 +220,49 @@ namespace FastExcel
 
             Rows = newRows;
         }
+        
+        /// <summary>
+        /// Convert Rows back to Object
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="rows"></param>
+        /// <returns></returns>
+        public List<T> MapToObject<T>(IEnumerable<Row> rows, int existingHeadingRows = 0)
+        {
+            int rowNumber = existingHeadingRows + 1;
+
+            var collectionType = typeof(List<>).MakeGenericType(typeof(T));
+            var list = Activator.CreateInstance(collectionType);
+
+            var addMethod = collectionType.GetMethod("Add");
+          
+            // Get all property for map
+            IEnumerable<PropertyInfo> properties = typeof(T).GetRuntimeProperties();
+            foreach (Row row in rows.Skip(existingHeadingRows))
+            {
+                int propertyIndex = 1;
+                var objectInstance = Activator.CreateInstance(typeof(T));
+                foreach (PropertyInfo propertyInfo in properties)
+                {
+                    var colName = Cell.GetExcelColumnName(propertyIndex);
+                    if (row.Cells.Where(x => x.ColumnName == colName && x.RowNumber == rowNumber).Any())
+                    {
+                        var value = row.Cells.Where(x => x.ColumnName == colName && x.RowNumber == rowNumber).SingleOrDefault().Value;
+                        if (propertyInfo.PropertyType == typeof(DateTime))
+                        {
+                            double dateValue;
+                            if (double.TryParse(value.ToString(), out dateValue))
+                                value = DateTime.FromOADate(dateValue);
+                        }
+                        propertyInfo.SetValue(objectInstance, Convert.ChangeType(value,propertyInfo.PropertyType));
+                    }
+                    propertyIndex++;
+                }
+                rowNumber++;
+                addMethod.Invoke(list, new object[] { objectInstance });
+            }
+            return (List<T>)list;
+        }
 
         /// <summary>
         /// Add a row using a collection of value objects
