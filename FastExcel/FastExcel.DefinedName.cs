@@ -5,7 +5,7 @@ using System.Xml.Linq;
 
 namespace FastExcel
 {
-    partial class FastExcel
+    public partial class FastExcel
     {
         /// <summary>
         /// Dictionary of defined names
@@ -48,7 +48,6 @@ namespace FastExcel
                 var currentDefinedName = new DefinedName(e);
                 _definedNames.Add(currentDefinedName.Key, currentDefinedName);
             }
-
         }
 
         /// <summary>
@@ -93,12 +92,14 @@ namespace FastExcel
 
         /// <summary>
         /// Gets all cells by defined name
-        /// Like GetCellRangesByCellName, but just retreives all cells in a single list
+        /// Like GetCellRangesByCellName, but just retrieves all cells in a single list
         /// </summary>
         /// <param name="definedName"></param>
         /// <param name="worksheetIndex"></param>
         /// <returns></returns>
+#pragma warning disable RCS1163 // Unused parameter.
         public IEnumerable<Cell> GetCellsByDefinedName(string definedName, int? worksheetIndex = null)
+#pragma warning restore RCS1163 // Unused parameter.
         {
             var cells = new List<Cell>();
             var cellRanges = GetCellRangesByDefinedName(definedName) as List<List<Cell>>;
@@ -119,7 +120,7 @@ namespace FastExcel
         {
             return GetCellsByDefinedName(definedName, worksheetIndex).FirstOrDefault();
         }
-        
+
         /// <summary>
         /// Returns all cells in a column by name, within optional row range
         /// </summary>

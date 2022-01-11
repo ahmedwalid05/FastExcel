@@ -13,11 +13,11 @@ namespace FastExcel
     public class SharedStrings
     {
         //A dictionary is a lot faster than a list
-        private Dictionary<string, int> StringDictionary { get; set; }
+        private Dictionary<string, int> StringDictionary { get; }
         private Dictionary<int, string> StringArray { get; set; }
 
-        private bool SharedStringsExists { get; set; }
-        private ZipArchive ZipArchive { get; set; }
+        private bool SharedStringsExists { get; }
+        private ZipArchive ZipArchive { get; }
 
         /// <summary>
         /// Is there any pending changes
@@ -35,43 +35,41 @@ namespace FastExcel
 
             SharedStringsExists = true;
 
-            if (!ZipArchive.Entries.Where(entry => entry.FullName == "xl/sharedStrings.xml").Any())
+            if (!ZipArchive.Entries.Any(entry => entry.FullName == "xl/sharedStrings.xml"))
             {
                 StringDictionary = new Dictionary<string, int>();
                 SharedStringsExists = false;
                 return;
             }
 
-            using (Stream stream = ZipArchive.GetEntry("xl/sharedStrings.xml").Open())
+            using Stream stream = ZipArchive.GetEntry("xl/sharedStrings.xml").Open();
+            if (stream == null)
             {
-                if (stream == null)
-                {
-                    StringDictionary = new Dictionary<string, int>();
-                    SharedStringsExists = false;
-                    return;
-                }
-
-                var document = XDocument.Load(stream);
-
-                if (document == null)
-                {
-                    StringDictionary = new Dictionary<string, int>();
-                    SharedStringsExists = false;
-                    return;
-                }
-
-                // int i = 0;
-                // StringDictionary = document.Descendants().Where(d => d.Name.LocalName == "t").Select(e => e.Value).Select(XmlConvert.DecodeName).to
-                //     .ToDictionary(k => k, v => i++);
-                int i = 0;
                 StringDictionary = new Dictionary<string, int>();
-                List<string> StringList = new List<string>();
-                StringList = document.Descendants().Where(d => d.Name.LocalName == "t").Select(e => XmlConvert.DecodeName(e.Value)).ToList();
-                foreach (string currentString in StringList)
-                {
-                    if (!StringDictionary.ContainsKey(currentString))
-                        StringDictionary.Add(currentString, i++);
-                }
+                SharedStringsExists = false;
+                return;
+            }
+
+            var document = XDocument.Load(stream);
+
+            if (document == null)
+            {
+                StringDictionary = new Dictionary<string, int>();
+                SharedStringsExists = false;
+                return;
+            }
+
+            // int i = 0;
+            // StringDictionary = document.Descendants().Where(d => d.Name.LocalName == "t").Select(e => e.Value).Select(XmlConvert.DecodeName).to
+            //     .ToDictionary(k => k, v => i++);
+            int i = 0;
+            StringDictionary = new Dictionary<string, int>();
+            List<string> StringList = new List<string>();
+            StringList = document.Descendants().Where(d => d.Name.LocalName == "t").Select(e => XmlConvert.DecodeName(e.Value)).ToList();
+            foreach (string currentString in StringList)
+            {
+                if (!StringDictionary.ContainsKey(currentString))
+                    StringDictionary.Add(currentString, i++);
             }
         }
 

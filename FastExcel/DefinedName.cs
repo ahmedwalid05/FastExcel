@@ -3,7 +3,6 @@ using System.Xml.Linq;
 
 namespace FastExcel
 {
-
     /// <summary>
     /// Reads/hold information from XElement representing a stored DefinedName
     /// A defined name is an alias for a cell, multiple cells, a range of cells or multiple ranges of cells
@@ -23,7 +22,7 @@ namespace FastExcel
             {
                 try
                 {
-                    WorksheetIndex = Convert.ToInt32(e.Attribute("localSheetId").Value)+1;
+                    WorksheetIndex = Convert.ToInt32(e.Attribute("localSheetId").Value) + 1;
                 }
                 catch (Exception exception)
                 {

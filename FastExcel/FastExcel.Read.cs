@@ -37,7 +37,7 @@ namespace FastExcel
             else
             {
                 worksheet = (from w in Worksheets
-                             where (sheetNumber.HasValue && sheetNumber.Value == w.Index) ||
+                             where (sheetNumber == w.Index) ||
                                     (sheetName == w.Name)
                              select w).SingleOrDefault();
                 worksheet.Read(existingHeadingRows);

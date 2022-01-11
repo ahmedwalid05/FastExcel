@@ -1,25 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <PackageId>FastExcel</PackageId>
     <Authors>Jono Clarnette, Ahmed Massoud</Authors>
     <Description>A fast way to read and write to Excel *.xlsx files without using the Open XML library.</Description>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Copyright>Copyright 2016-2020 Jono Clarnette</Copyright>
     <PackageTags>fast excel xlsx read write</PackageTags>
-    <PackageLicenseUrl>https://github.com/ahmedwalid05/FastExcel/blob/master/LICENSE</PackageLicenseUrl>
+	<license>https://github.com/ahmedwalid05/FastExcel/blob/master/LICENSE</license>
+    <!--<PackageLicenseUrl>https://github.com/ahmedwalid05/FastExcel/blob/master/LICENSE</PackageLicenseUrl>-->
     <PackageProjectUrl>https://github.com/ahmedwalid05/FastExcel</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ahmedwalid05/FastExcel</RepositoryUrl>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <FileVersion>1.0.0.0</FileVersion>
-    <Version>3.0.13</Version>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <FileVersion>1.1.0.0</FileVersion>
+    <Version>3.1.0</Version>
   </PropertyGroup>
 
   <PropertyGroup>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\FastExcel.xml</DocumentationFile>
   </PropertyGroup>
-
 </Project>

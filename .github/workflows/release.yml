@@ -8,11 +8,11 @@ jobs:
     name: build, pack & publish
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2.4.0
       - name: Setup dotnet
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v1.9.0
         with:
-          dotnet-version: 3.1.x
+          dotnet-version: 6.x
       - name: Install dependencies
         run: dotnet restore
       - name: Build
@@ -23,7 +23,7 @@ jobs:
       # Publish
       - name: publish on version change
         id: publish_nuget
-        uses: rohith/publish-nuget@v2
+        uses: brandedoutcast/publish-nuget@v2.5.5
         with:          
           PROJECT_FILE_PATH: FastExcel/FastExcel.csproj  
           NUGET_KEY: ${{secrets.NUGET_KEY}}

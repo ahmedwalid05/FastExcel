@@ -12,6 +12,13 @@
 - Does not use the Open XML SDK to interact with the data but going directly and editing the underlying xml files.
 - This project is not intended to be a replacement for full featured Excel packages with things like formatting, just light weight fast way of interacting with data in Excel.
 
+#### Version 3.1
+- Contribute using Visual Studio 2019
+- Built using [.NetStandard](https://docs.microsoft.com/en-us/dotnet/standard/library) 2.1 targeting:
+	- .Net Standard 2.1
+    - .Net 5.0
+    - .Net 6.0
+
 #### Version 3
 - Contribute using Visual Studio 2017
 - Built using [.NetStandard](https://docs.microsoft.com/en-us/dotnet/standard/library) 2 targeting:
