@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <PackageId>FastExcel</PackageId>
@@ -22,5 +21,4 @@
   <PropertyGroup>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\FastExcel.xml</DocumentationFile>
   </PropertyGroup>
-
 </Project>
