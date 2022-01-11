@@ -71,6 +71,7 @@ namespace FastExcel
 
         private const string DEFAULT_HEADERS = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?><worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheetData>";
         private const string DEFAULT_FOOTERS = "</sheetData></worksheet>";
+        private const string SINGLE_SHEET = "worksheets/sheet.xml";
 
         /// <summary>
         /// Constructor
@@ -354,7 +355,8 @@ namespace FastExcel
             IEnumerable<Row> rows = null;
 
             var headings = new List<string>();
-            using (Stream stream = FastExcel.Archive.GetEntry(FileName).Open())
+            string filename = DecideFilename();
+            using (Stream stream = FastExcel.Archive.GetEntry(filename).Open())
             {
                 var document = XDocument.Load(stream);
                 const int skipRows = 0;
@@ -376,6 +378,18 @@ namespace FastExcel
 
             Headings = headings;
             Rows = rows;
+        }
+
+        /// <summary>
+        /// Check if single sheet exists, and use that name accordingly.
+        /// </summary>
+        /// <returns>Filename</returns>
+        private string DecideFilename()
+        {
+            var filename = FastExcel.Archive.Entries.FirstOrDefault(x => x.FullName.Contains(SINGLE_SHEET))?.FullName;
+            if (filename == null)
+                filename = FileName;
+            return filename;
         }
 
         /// <summary>
