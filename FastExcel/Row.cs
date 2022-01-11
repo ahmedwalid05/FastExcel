@@ -50,7 +50,7 @@ namespace FastExcel
             {
                 throw new Exception("Row Number not found", ex);
             }
-                        
+
             if (rowElement.HasElements)
             {
                 Cells = GetCells(rowElement, worksheet);
@@ -70,7 +70,7 @@ namespace FastExcel
         // <summary>
         // Get all cells in this row.
         // </summary>
-        private IEnumerable<Cell> GetCells(XElement rowElement, Worksheet worksheet)
+        private static IEnumerable<Cell> GetCells(XElement rowElement, Worksheet worksheet)
         {
             foreach (XElement cellElement in rowElement.Elements())
             {
@@ -85,7 +85,7 @@ namespace FastExcel
         {
             var row = new StringBuilder();
 
-            if (Cells != null && Cells.Any())
+            if (Cells?.Any() == true)
             {
                 row.AppendFormat("<row r=\"{0}\">", RowNumber);
                 try
@@ -129,8 +129,8 @@ namespace FastExcel
 
             // Sort
             Cells = (from c in outputList
-                          orderby c.ColumnNumber
-                          select c);
+                     orderby c.ColumnNumber
+                     select c);
         }
     }
 }

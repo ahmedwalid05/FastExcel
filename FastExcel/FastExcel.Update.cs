@@ -29,9 +29,9 @@
 
             Worksheet currentData = Read(sheetNumber, sheetName);
             currentData.Merge(data);
-            if(sheetName!=null)
+            if (sheetName != null)
                 Write(currentData, sheetName);
-            else if(sheetNumber!=null)
+            else if (sheetNumber != null)
                 Write(currentData, sheetNumber);
             else
                 Write(currentData);

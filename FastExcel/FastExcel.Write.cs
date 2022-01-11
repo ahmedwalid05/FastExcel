@@ -92,7 +92,7 @@ namespace FastExcel
         public void Write<T>(IEnumerable<T> rows, string sheetName, bool usePropertiesAsHeadings)
         {
             var worksheet = new Worksheet();
-            worksheet.PopulateRows<T>(rows, 0,usePropertiesAsHeadings);
+            worksheet.PopulateRows<T>(rows, 0, usePropertiesAsHeadings);
             Write(worksheet, null, sheetName, 0);
         }
 
@@ -134,49 +134,46 @@ namespace FastExcel
             }
 
             // Check if ExistingHeadingRows will be overridden by the dataset
-            if (worksheet.ExistingHeadingRows != 0 && worksheet.Rows.Where(r => r.RowNumber <= worksheet.ExistingHeadingRows).Any())
+            if (worksheet.ExistingHeadingRows != 0 && worksheet.Rows.Any(r => r.RowNumber <= worksheet.ExistingHeadingRows))
             {
                 throw new Exception("Existing Heading Rows was specified but some or all will be overridden by data rows. Check DataSet.Row.RowNumber against ExistingHeadingRows");
             }
 
-            using (Stream stream = Archive.GetEntry(worksheet.FileName).Open())
+            using Stream stream = Archive.GetEntry(worksheet.FileName).Open();
+            // Open worksheet and read the data at the top and bottom of the sheet
+            var streamReader = new StreamReader(stream);
+            worksheet.ReadHeadersAndFooters(streamReader, ref worksheet);
+
+            //Set the stream to the start
+            stream.Position = 0;
+
+            // Open the stream so we can override all content of the sheet
+            var streamWriter = new StreamWriter(stream);
+
+            // TODO instead of saving the headers then writing them back get position where the headers finish then write from there
+            streamWriter.Write(worksheet.Headers);
+            if (!worksheet.Template)
             {
-                // Open worksheet and read the data at the top and bottom of the sheet
-                var streamReader = new StreamReader(stream);
-                worksheet.ReadHeadersAndFooters(streamReader, ref worksheet);
-
-                //Set the stream to the start
-                stream.Position = 0;
-
-                // Open the stream so we can override all content of the sheet
-                var streamWriter = new StreamWriter(stream);
-
-                // TODO instead of saving the headers then writing them back get position where the headers finish then write from there
-                streamWriter.Write(worksheet.Headers);
-                if (!worksheet.Template)
-                {
-                    worksheet.Headers = null;
-                }
-
-                SharedStrings.ReadWriteMode = true;
-
-                // Add Rows
-                foreach (var row in worksheet.Rows)
-                {
-                    streamWriter.Write(row.ToXmlString(SharedStrings));
-                }
-                SharedStrings.ReadWriteMode = false;
-
-                //Add Footers
-                streamWriter.Write(worksheet.Footers);
-                if (!worksheet.Template)
-                {
-                    worksheet.Footers = null;
-                }
-                streamWriter.Flush();
-                stream.SetLength(stream.Position);
+                worksheet.Headers = null;
             }
+
+            SharedStrings.ReadWriteMode = true;
+
+            // Add Rows
+            foreach (var row in worksheet.Rows)
+            {
+                streamWriter.Write(row.ToXmlString(SharedStrings));
+            }
+            SharedStrings.ReadWriteMode = false;
+
+            //Add Footers
+            streamWriter.Write(worksheet.Footers);
+            if (!worksheet.Template)
+            {
+                worksheet.Footers = null;
+            }
+            streamWriter.Flush();
+            stream.SetLength(stream.Position);
         }
-        
     }
 }

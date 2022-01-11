@@ -1,12 +1,12 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Data;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.IO;
 using System.Xml.Linq;
-using System.Collections;
-using System.Data;
 
 namespace FastExcel
 {
@@ -39,11 +39,11 @@ namespace FastExcel
         /// </summary>
         public int ExistingHeadingRows { get; set; }
         private int? InsertAfterIndex { get; set; }
-        
+
         /// <summary>
         /// Template
         /// </summary>
-        public bool Template { get; set; }
+        public bool Template { get; }
 
         internal string Headers { get; set; }
         internal string Footers { get; set; }
@@ -90,7 +90,7 @@ namespace FastExcel
         /// </summary>
         public void PopulateRows<T>(IEnumerable<T> rows, int existingHeadingRows = 0, bool usePropertiesAsHeadings = false)
         {
-            if ((rows.FirstOrDefault() as IEnumerable<object>) == null)
+            if (!(rows.FirstOrDefault() is IEnumerable<object>))
             {
                 PopulateRowsFromObjects(rows, existingHeadingRows, usePropertiesAsHeadings);
             }
@@ -101,7 +101,7 @@ namespace FastExcel
         }
 
         /// <summary>
-        /// Populate rows from datatable
+        /// Populate rows from data table
         /// </summary>
         public void PopulateRowsFromDataTable(DataTable table, int existingHeadingRows = 0)
         {
@@ -248,7 +248,7 @@ namespace FastExcel
             }
 
             var row = new Row(Rows.Count() + 1, cells);
-            (Rows as List<Row>).Add(row);
+            (Rows as List<Row>)?.Add(row);
         }
 
         /// <summary>
@@ -270,7 +270,7 @@ namespace FastExcel
             {
                 cell = new Cell(columnNumber, value);
                 row = new Row(rowNumber, new List<Cell> { cell });
-                (Rows as List<Row>).Add(row);
+                (Rows as List<Row>)?.Add(row);
             }
 
             if (cell == null)
@@ -282,10 +282,9 @@ namespace FastExcel
                 if (cell == null)
                 {
                     cell = new Cell(columnNumber, value);
-                    (row.Cells as List<Cell>).Add(cell);
+                    (row.Cells as List<Cell>)?.Add(cell);
                 }
             }
-
         }
 
         /// <summary>
@@ -295,7 +294,7 @@ namespace FastExcel
         public void Merge(Worksheet data)
         {
             // Merge headings
-            if (Headings == null || !Headings.Any())
+            if (Headings?.Any() != true)
             {
                 Headings = data.Headings;
             }
@@ -358,7 +357,7 @@ namespace FastExcel
             using (Stream stream = FastExcel.Archive.GetEntry(FileName).Open())
             {
                 var document = XDocument.Load(stream);
-                int skipRows = 0;
+                const int skipRows = 0;
 
                 var rowElement = document.Descendants().FirstOrDefault(d => d.Name.LocalName == "row");
                 if (rowElement != null)
@@ -439,16 +438,15 @@ namespace FastExcel
             while (stream.Peek() >= 0)
             {
                 string line = stream.ReadLine();
-                int currentLineIndex = 0;
-
+                int currentLineIndex;
                 if (!headersComplete)
                 {
                     if (line.Contains("<sheetData/>"))
                     {
                         currentLineIndex = line.IndexOf("<sheetData/>");
-                        headers.Append(line.Substring(0, currentLineIndex));
+                        headers.Append(line, 0, currentLineIndex);
                         //remove the read section from line
-                        line = line.Substring(currentLineIndex, line.Length - currentLineIndex);
+                        line = line[currentLineIndex..];
 
                         headers.Append("<sheetData>");
 
@@ -463,9 +461,9 @@ namespace FastExcel
                     else if (line.Contains("<sheetData>"))
                     {
                         currentLineIndex = line.IndexOf("<sheetData>");
-                        headers.Append(line.Substring(0, currentLineIndex));
+                        headers.Append(line, 0, currentLineIndex);
                         //remove the read section from line
-                        line = line.Substring(currentLineIndex, line.Length - currentLineIndex);
+                        line = line[currentLineIndex..];
 
                         headers.Append("<sheetData>");
 
@@ -497,26 +495,26 @@ namespace FastExcel
                                 {
                                     int index = line.IndexOf("<row");
                                     currentLineIndex = line.IndexOf("</row>") + "</row>".Length;
-                                    headers.Append(line.Substring(index, currentLineIndex - index));
+                                    headers.Append(line, index, currentLineIndex - index);
 
                                     //remove the read section from line
-                                    line = line.Substring(currentLineIndex, line.Length - currentLineIndex);
+                                    line = line[currentLineIndex..];
                                     existingHeadingRows--;
                                 }
                                 else
                                 {
                                     int index = line.IndexOf("<row");
-                                    headers.Append(line.Substring(index, line.Length - index));
+                                    headers.Append(line, index, line.Length - index);
                                     line = string.Empty;
                                 }
                             }
                             else if (line.Contains("</row>"))
                             {
                                 currentLineIndex = line.IndexOf("</row>") + "</row>".Length;
-                                headers.Append(line.Substring(0, currentLineIndex));
+                                headers.Append(line, 0, currentLineIndex);
 
                                 //remove the read section from line
-                                line = line.Substring(currentLineIndex, line.Length - currentLineIndex);
+                                line = line[currentLineIndex..];
                                 existingHeadingRows--;
                             }
                         }
@@ -533,13 +531,13 @@ namespace FastExcel
                     if (line.Contains("</sheetData>"))
                     {
                         int index = line.IndexOf("</sheetData>") + "</sheetData>".Length;
-                        var foot = line.Substring(index, line.Length - index);
+                        var foot = line[index..];
                         footers.Append(foot);
                     }
                     else if (line.Contains("<sheetData/>"))
                     {
                         int index = line.IndexOf("<sheetData/>") + "<sheetData/>".Length;
-                        footers.Append(line.Substring(index, line.Length - index));
+                        footers.Append(line, index, line.Length - index);
                     }
                     else
                     {
@@ -550,7 +548,6 @@ namespace FastExcel
             worksheet.Headers = headers.ToString();
             worksheet.Footers = footers.ToString();
         }
-
 
         /// <summary>
         /// Get worksheet file name from xl/workbook.xml
@@ -672,7 +669,7 @@ namespace FastExcel
                 throw new Exception(string.Format("Worksheet name '{0}' already exists", Name));
             }
 
-            fastExcel.MaxSheetNumber += 1;
+            fastExcel.MaxSheetNumber++;
             Index = fastExcel.MaxSheetNumber;
 
             if (string.IsNullOrEmpty(Headers))

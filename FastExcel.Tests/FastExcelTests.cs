@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
+
 using Xunit;
 using Xunit.Abstractions;
 
@@ -14,7 +13,7 @@ namespace FastExcel.Tests
         private static readonly string ResourcesPath = Path.Combine(Environment.CurrentDirectory, "ResourcesTests");
         private static readonly string TemplateFilePath = Path.Combine(ResourcesPath, "template.xlsx");
 
-        private static readonly CellRow TestCellRow = new CellRow()
+        private static readonly CellRow TestCellRow = new()
         {
             StringColumn1 = "&",
             IntegerColumn2 = 45678854,
@@ -37,7 +36,7 @@ namespace FastExcel.Tests
 
             var action = new Action(() =>
             {
-                using (var fastExcel = new FastExcel(inputFile)) ;
+                using FastExcel fastExcel = new(inputFile);
             });
 
             var exception = Assert.Throws<FileNotFoundException>(action);
@@ -55,7 +54,7 @@ namespace FastExcel.Tests
 
             var action = new Action(() =>
             {
-                using (var fastExcel = new FastExcel(templateFile, outputFile)) ;
+                using FastExcel fastExcel = new(templateFile, outputFile);
             });
 
             var exception = Assert.Throws<FileNotFoundException>(action);
@@ -73,7 +72,7 @@ namespace FastExcel.Tests
 
             var action = new Action(() =>
             {
-                using (var fastExcel = new FastExcel(templateFile, outputFile)) ;
+                using FastExcel fastExcel = new(templateFile, outputFile);
             });
 
             var exception = Assert.Throws<Exception>(action);
@@ -88,10 +87,8 @@ namespace FastExcel.Tests
 
             var action = new Action(() =>
             {
-                using (var fastExcel = new FastExcel(inputFile, true))
-                {
-                    var worksheet = fastExcel.Read(1, 1);
-                }
+                using FastExcel fastExcel = new(inputFile, true);
+                var worksheet = fastExcel.Read(1, 1);
             });
 
             var exception = Record.Exception(action);
@@ -101,19 +98,23 @@ namespace FastExcel.Tests
         [Fact]
         public void ThrowsErrorIfInitializedWithStreamAndFileInfoIsAccessed()
         {
-            using var inputMemorystream = new MemoryStream(new byte[] {0x1});
+            using var inputMemorystream = new MemoryStream(new byte[] { 0x1 });
             using var outputMemorystream = new MemoryStream();
+
             var fastExcel = new FastExcel(inputMemorystream, outputMemorystream);
             var exception = Assert.Throws<ApplicationException>(() => fastExcel.ExcelFile);
-            Assert.Equal($"ExcelFile was not provided", exception.Message);
+
+            Assert.Equal("ExcelFile was not provided", exception.Message);
             exception = Assert.Throws<ApplicationException>(() => fastExcel.TemplateFile);
-            Assert.Equal($"TemplateFile was not provided", exception.Message);
+
+            Assert.Equal("TemplateFile was not provided", exception.Message);
         }
 
         private string FileRead_ReadingSpecialCharactersCore_Read(FileInfo inputFile)
         {
             inputFile.Refresh();
             using var fastExcel = new FastExcel(inputFile);
+
             var worksheet = fastExcel.Read("sheet1");
             var rows = worksheet.Rows;
 
@@ -132,14 +133,12 @@ namespace FastExcel.Tests
             return "Passed";
         }
 
-
         [Fact]
         public string FileRead_ReadingSpecialCharacters_Read()
         {
             var inputFilePath = new FileInfo(Path.Combine(ResourcesPath, "special-char.xlsx"));
             return FileRead_ReadingSpecialCharactersCore_Read(inputFilePath);
         }
-
 
         [Fact]
         public string FileWrite_WritingOneRow_Wrote()
@@ -151,12 +150,11 @@ namespace FastExcel.Tests
             var templateFilePath = new FileInfo(TemplateFilePath);
             using (var fastExcel = new FastExcel(templateFilePath, inputFilePath))
             {
-                List<CellRow> objectList = new List<CellRow>();
+                List<CellRow> objectList = new();
 
                 objectList.Add(TestCellRow);
                 fastExcel.Write(objectList, "sheet1", true);
             }
-
 
             return FileRead_ReadingSpecialCharactersCore_Read(inputFilePath);
         }
@@ -165,8 +163,10 @@ namespace FastExcel.Tests
         public string FileUpdate_UpdatingEmptyFile_Updated()
         {
             var worksheet = new Worksheet();
-            var cells = new List<CellRow>();
-            cells.Add(TestCellRow);
+            var cells = new List<CellRow>
+            {
+                TestCellRow
+            };
 
             worksheet.PopulateRows(cells, usePropertiesAsHeadings: true);
             var templateFile = new FileInfo(TemplateFilePath);
@@ -178,7 +178,6 @@ namespace FastExcel.Tests
                 fastExcel.Update(worksheet, "Sheet1");
             }
 
-
             return FileRead_ReadingSpecialCharactersCore_Read(inputFile);
         }
 
@@ -186,7 +185,7 @@ namespace FastExcel.Tests
         public string FileUpdate_UpdatingWithOneRow_Updated()
         {
             var worksheet = new Worksheet();
-            var cells = new List<CellRow> {TestCellRow};
+            var cells = new List<CellRow> { TestCellRow };
 
             worksheet.PopulateRows(cells, usePropertiesAsHeadings: true);
 
@@ -204,8 +203,10 @@ namespace FastExcel.Tests
         public string FileUpdate_WriteAndUpdatingWithOneRow_Updated()
         {
             var worksheet = new Worksheet();
-            var cells = new List<CellRow>();
-            cells.Add(TestCellRow);
+            var cells = new List<CellRow>
+            {
+                TestCellRow
+            };
 
             worksheet.PopulateRows(cells, usePropertiesAsHeadings: true);
 
@@ -216,7 +217,6 @@ namespace FastExcel.Tests
                 inputFile.Delete();
                 inputFile.Refresh();
             }
-
 
             //Writing Data One Row
             using (var fastExcel = new FastExcel(templateFile, inputFile))

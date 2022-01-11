@@ -13,7 +13,7 @@ namespace FastExcel
     public class Cell
     {
         /// <summary>
-        /// Column Numnber (Starts at 1)
+        /// Column Number (Starts at 1)
         /// </summary>
         public int ColumnNumber { get; set; }
 
@@ -26,12 +26,12 @@ namespace FastExcel
         /// Defined name or the column letter(s) for column this cell is in
         /// </summary>
         public string ColumnName { get; }
-        
+
         /// <summary>
         /// Raw underlying XElement of cell
         /// </summary>
         public XElement XElement { get; }
-        
+
         /// <summary>
         /// List of defined names assigned to this cell
         /// *Does not include names of ranges this cell is within*
@@ -45,8 +45,11 @@ namespace FastExcel
         {
             get
             {
-                if (CellNames.Any())
-                    return CellNames.FirstOrDefault();
+                if (CellNames.Count > 0)
+                {
+                    return CellNames[0];
+                }
+
                 return ColumnName + RowNumber;
             }
         }
@@ -106,7 +109,7 @@ namespace FastExcel
             {
                 // cellElement.Value will give a concatenated Value + reference/calculation
 
-                var node = cellElement.Elements().Where(x => x.Name.LocalName == "v").SingleOrDefault();
+                var node = cellElement.Elements().SingleOrDefault(x => x.Name.LocalName == "v");
 
                 if (node != null)
                 {
@@ -116,7 +119,6 @@ namespace FastExcel
                 {
                     Value = cellElement.Value;
                 }
-                
             }
         }
 
@@ -147,7 +149,7 @@ namespace FastExcel
                     value = sharedStrings.AddString(value.ToString());
                 }
 
-                cell.AppendFormat("<c r=\"{0}{1}\"{2}>", GetExcelColumnName(ColumnNumber), rowNumber, (isString ? " t=\"s\"" : string.Empty));
+                cell.AppendFormat("<c r=\"{0}{1}\"{2}>", GetExcelColumnName(ColumnNumber), rowNumber, isString ? " t=\"s\"" : string.Empty);
                 cell.AppendFormat("<v>{0}</v>", value);
                 cell.Append("</c>");
             }
@@ -215,7 +217,7 @@ namespace FastExcel
         }
 
         /// <summary>
-        /// 
+        /// Returns a cell's Value as a String
         /// </summary>
         /// <returns>Cell's Value</returns>
         public override string ToString()

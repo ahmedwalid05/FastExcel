@@ -8,7 +8,6 @@ namespace FastExcel
     /// </summary>
     internal static class DefinedNamesExtensions
     {
-
         /// <summary>
         /// Finds all the cell names for a given cell
         /// </summary>

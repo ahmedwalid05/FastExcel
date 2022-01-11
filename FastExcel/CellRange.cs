@@ -47,7 +47,7 @@ namespace FastExcel
             // Default value
             RowStart = 1;
 
-            if (range.Contains(":"))
+            if (range.Contains(':'))
             {
                 string[] splitRange = range.Split(':');
                 ColumnStart = splitRange[0].Split('$')[1];
