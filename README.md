@@ -1,5 +1,5 @@
+### Looking for maintainers. Please reach out at fastexcel(at)ahmedmassoud.me
 # Fast Excel
-
 
 #### Build / Release
 ![Build status](https://github.com/ahmedwalid05/FastExcel/workflows/Build/badge.svg)
@@ -170,3 +170,4 @@ using (FastExcel.FastExcel fastExcel = new FastExcel.FastExcel(inputFile))
 
 - Insperation for this project came from [SejExcelExport](https://github.com/jsegarra1971/SejExcelExport) by jsegarra1971 who did a great job. I wanted to have my own crack at this problem.
 - mrjono1 The creater of this library
+
