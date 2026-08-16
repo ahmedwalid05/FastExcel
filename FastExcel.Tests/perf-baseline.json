@@ -1,72 +1,76 @@
-[
-  {
-    "Scenario": "names-10",
-    "Cells": 100000,
-    "FileBytes": 276680,
-    "AllocatedBytes": 405492192,
-    "RetainedBytes": 47015296
-  },
-  {
-    "Scenario": "names-100",
-    "Cells": 100000,
-    "FileBytes": 277143,
-    "AllocatedBytes": 2765776480,
-    "RetainedBytes": 47028416
-  },
-  {
-    "Scenario": "names-none",
-    "Cells": 100000,
-    "FileBytes": 276580,
-    "AllocatedBytes": 132038344,
-    "RetainedBytes": 47014168
-  },
-  {
-    "Scenario": "numeric-large",
-    "Cells": 1000000,
-    "FileBytes": 3509535,
-    "AllocatedBytes": 1323953864,
-    "RetainedBytes": 391681840
-  },
-  {
-    "Scenario": "numeric-medium",
-    "Cells": 200000,
-    "FileBytes": 731536,
-    "AllocatedBytes": 269579608,
-    "RetainedBytes": 80423192
-  },
-  {
-    "Scenario": "tall-large",
-    "Cells": 1000000,
-    "FileBytes": 2718149,
-    "AllocatedBytes": 1307957664,
-    "RetainedBytes": 467682000
-  },
-  {
-    "Scenario": "tall-medium",
-    "Cells": 200000,
-    "FileBytes": 549069,
-    "AllocatedBytes": 264781448,
-    "RetainedBytes": 94825216
-  },
-  {
-    "Scenario": "tall-small",
-    "Cells": 10000,
-    "FileBytes": 31618,
-    "AllocatedBytes": 13278056,
-    "RetainedBytes": 4699184
-  },
-  {
-    "Scenario": "wide-large",
-    "Cells": 4000000,
-    "FileBytes": 18795987,
-    "AllocatedBytes": 5200350696,
-    "RetainedBytes": 1849902888
-  },
-  {
-    "Scenario": "wide-medium",
-    "Cells": 250000,
-    "FileBytes": 798062,
-    "AllocatedBytes": 322346056,
-    "RetainedBytes": 114050712
-  }
-]
+{
+  "Architecture": "X64",
+  "Scenarios": [
+    {
+      "Scenario": "names-10",
+      "Cells": 100000,
+      "FileBytes": 276680,
+      "AllocatedBytes": 405487576,
+      "RetainedBytes": 47015320
+    },
+    {
+      "Scenario": "names-100",
+      "Cells": 100000,
+      "FileBytes": 277143,
+      "AllocatedBytes": 2765771656,
+      "RetainedBytes": 47028440
+    },
+    {
+      "Scenario": "names-none",
+      "Cells": 100000,
+      "FileBytes": 276580,
+      "AllocatedBytes": 132036280,
+      "RetainedBytes": 47014144
+    },
+    {
+      "Scenario": "numeric-large",
+      "Cells": 1000000,
+      "FileBytes": 3509535,
+      "AllocatedBytes": 1323938208,
+      "RetainedBytes": 391719016
+    },
+    {
+      "Scenario": "numeric-medium",
+      "Cells": 200000,
+      "FileBytes": 731536,
+      "AllocatedBytes": 269576288,
+      "RetainedBytes": 80423192
+    },
+    {
+      "Scenario": "tall-large",
+      "Cells": 1000000,
+      "FileBytes": 2718149,
+      "AllocatedBytes": 1307947024,
+      "RetainedBytes": 467727840
+    },
+    {
+      "Scenario": "tall-medium",
+      "Cells": 200000,
+      "FileBytes": 549069,
+      "AllocatedBytes": 264778368,
+      "RetainedBytes": 94825048
+    },
+    {
+      "Scenario": "tall-small",
+      "Cells": 10000,
+      "FileBytes": 31618,
+      "AllocatedBytes": 13278056,
+      "RetainedBytes": 4699184
+    },
+    {
+      "Scenario": "wide-large",
+      "Cells": 4000000,
+      "FileBytes": 18795987,
+      "AllocatedBytes": 5200308224,
+      "RetainedBytes": 1849931296
+    },
+    {
+      "Scenario": "wide-medium",
+      "Cells": 250000,
+      "FileBytes": 798062,
+      "AllocatedBytes": 322342792,
+      "RetainedBytes": 114050688
+    }
+  ],
+  "MatchesCurrentArchitecture": true
+}

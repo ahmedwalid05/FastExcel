@@ -46,8 +46,19 @@ namespace FastExcel.Tests.Performance
                 .Select(scenario => PerfMeasurement.MeasureRead(scenario))
                 .ToList();
 
-            var baseline = PerfBaseline.Load();
-            var report = PerfBaseline.ToMarkdown(results, baseline);
+            var baselineFile = PerfBaseline.Load();
+            var baseline = baselineFile.ByScenario;
+
+            // Allocated bytes count objects and are portable: they measured byte-identical on
+            // linux-x64, win-x64 and osx-arm64, so they are gated everywhere. Retained bytes
+            // come from the GC heap, whose accounting is not comparable between architectures
+            // — arm64 reports roughly twice the x64 figure for the same object graph — so they
+            // are gated only where the architecture matches the recorded baseline.
+            var gated = baselineFile.MatchesCurrentArchitecture
+                ? PerfMetrics.All
+                : PerfMetrics.Allocated;
+
+            var report = PerfBaseline.ToMarkdown(results, baseline, gated, baselineFile.Architecture);
 
             _output.WriteLine(report);
             PublishReport(report, results);
@@ -62,14 +73,14 @@ namespace FastExcel.Tests.Performance
                 return;
             }
 
-            Assert.True(baseline.Count > 0,
+            Assert.False(baselineFile.IsEmpty,
                 $"No performance baseline found at {PerfBaseline.DefaultPath}. Create one with " +
                 "FASTEXCEL_PERF_UPDATE_BASELINE=1 dotnet test and commit the result.");
 
-            var regressions = PerfBaseline.Compare(results, baseline);
+            var regressions = PerfBaseline.Compare(results, baseline, gated);
 
             Assert.True(regressions.Count == 0,
-                "Memory regressed against the committed baseline:" + Environment.NewLine +
+                $"Memory regressed against the committed baseline ({gated} checked):" + Environment.NewLine +
                 string.Join(Environment.NewLine, regressions.Select(r => "  " + r)) +
                 Environment.NewLine + Environment.NewLine +
                 $"Tolerance is {PerfBaseline.RegressionTolerance:P0}. If the increase is intended, " +
@@ -80,11 +91,11 @@ namespace FastExcel.Tests.Performance
         [Fact]
         public void EveryScenarioInTheBaselineStillExists()
         {
-            var baseline = PerfBaseline.Load();
-            if (baseline.Count == 0) return;
+            var baselineFile = PerfBaseline.Load();
+            if (baselineFile.IsEmpty) return;
 
             var known = PerfScenario.All.Select(s => s.Name).ToHashSet(StringComparer.Ordinal);
-            var orphaned = baseline.Keys.Where(name => !known.Contains(name)).ToList();
+            var orphaned = baselineFile.ByScenario.Keys.Where(name => !known.Contains(name)).ToList();
 
             // A renamed or deleted scenario leaves a stale entry that silently stops being
             // checked, which is how a coverage gap hides in plain sight.
@@ -92,6 +103,21 @@ namespace FastExcel.Tests.Performance
                 "The baseline records scenarios that no longer exist: " +
                 string.Join(", ", orphaned) +
                 ". Remove them with FASTEXCEL_PERF_UPDATE_BASELINE=1 dotnet test.");
+        }
+
+        [Fact]
+        public void TheCommittedBaselineRecordsItsArchitecture()
+        {
+            var baselineFile = PerfBaseline.Load();
+            if (baselineFile.IsEmpty) return;
+
+            // Without a recorded architecture the gate cannot tell whether retained memory is
+            // comparable, so it falls back to checking allocated memory only. That fallback is
+            // the safe choice, but it must never happen silently on the committed file.
+            Assert.False(string.IsNullOrEmpty(baselineFile.Architecture),
+                $"The baseline at {PerfBaseline.DefaultPath} does not record the architecture " +
+                "it was measured on, so retained memory is no longer gated anywhere. Rewrite " +
+                "it with FASTEXCEL_PERF_UPDATE_BASELINE=1 dotnet test.");
         }
 
         [Fact]

@@ -23,6 +23,49 @@ namespace FastExcel.Tests.Infrastructure
         // either flake or be too loose to detect anything. Time is reported, never compared.
     }
 
+    /// <summary>The committed baseline: the recorded numbers plus where they came from.</summary>
+    public sealed class PerfBaselineFile
+    {
+        /// <summary>
+        /// The processor architecture the numbers were recorded on, e.g. "X64".
+        /// <para>
+        /// This is load-bearing rather than informational. Allocated bytes are portable —
+        /// measured byte-identical on linux-x64, win-x64 and osx-arm64 — but retained bytes
+        /// are not, and differ by about a factor of two between x64 and arm64. Recording the
+        /// architecture lets the gate check each metric only where it means something.
+        /// </para>
+        /// </summary>
+        public string Architecture { get; set; }
+
+        public List<PerfBaselineEntry> Scenarios { get; set; } = new List<PerfBaselineEntry>();
+
+        [JsonIgnore]
+        public IReadOnlyDictionary<string, PerfBaselineEntry> ByScenario =>
+            Scenarios.ToDictionary(e => e.Scenario, StringComparer.Ordinal);
+
+        [JsonIgnore]
+        public bool IsEmpty => Scenarios.Count == 0;
+
+        /// <summary>Whether retained memory recorded here is comparable on the current machine.</summary>
+        public bool MatchesCurrentArchitecture =>
+            string.Equals(Architecture, PerfBaseline.CurrentArchitecture, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>Which recorded metrics a comparison should check.</summary>
+    [Flags]
+    public enum PerfMetrics
+    {
+        None = 0,
+
+        /// <summary>Total bytes allocated. Portable across operating systems and architectures.</summary>
+        Allocated = 1,
+
+        /// <summary>Bytes still live after the read. Comparable only within one architecture.</summary>
+        Retained = 2,
+
+        All = Allocated | Retained
+    }
+
     public sealed class PerfRegression
     {
         public string Scenario { get; set; }
@@ -79,34 +122,56 @@ namespace FastExcel.Tests.Infrastructure
             }
         }
 
-        public static IReadOnlyDictionary<string, PerfBaselineEntry> Load(string path = null)
+        /// <summary>The architecture this process runs on, e.g. "X64" or "Arm64".</summary>
+        public static string CurrentArchitecture =>
+            System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString();
+
+        public static PerfBaselineFile Load(string path = null)
         {
             path ??= DefaultPath;
-            if (!File.Exists(path)) return new Dictionary<string, PerfBaselineEntry>();
+            if (!File.Exists(path)) return new PerfBaselineFile();
 
-            var entries = JsonSerializer.Deserialize<List<PerfBaselineEntry>>(File.ReadAllText(path), JsonOptions)
-                          ?? new List<PerfBaselineEntry>();
+            var json = File.ReadAllText(path).TrimStart();
 
-            return entries.ToDictionary(e => e.Scenario, StringComparer.Ordinal);
+            // The first version of this file was a bare array with no architecture recorded.
+            // Read it rather than throw, so a stale checkout still runs. With no architecture
+            // to compare against, only allocated memory gets gated, which is the safe default.
+            if (json.StartsWith("[", StringComparison.Ordinal))
+            {
+                return new PerfBaselineFile
+                {
+                    Architecture = null,
+                    Scenarios = JsonSerializer.Deserialize<List<PerfBaselineEntry>>(json, JsonOptions)
+                                ?? new List<PerfBaselineEntry>()
+                };
+            }
+
+            return JsonSerializer.Deserialize<PerfBaselineFile>(json, JsonOptions)
+                   ?? new PerfBaselineFile();
         }
 
         public static void Save(IEnumerable<PerfResult> results, string path = null)
         {
             path ??= DefaultPath;
-            var entries = results
-                .OrderBy(r => r.Scenario, StringComparer.Ordinal)
-                .Select(r => new PerfBaselineEntry
-                {
-                    Scenario = r.Scenario,
-                    Cells = r.Cells,
-                    FileBytes = r.FileBytes,
-                    AllocatedBytes = r.AllocatedBytes,
-                    RetainedBytes = r.RetainedBytes
-                })
-                .ToList();
+
+            var file = new PerfBaselineFile
+            {
+                Architecture = CurrentArchitecture,
+                Scenarios = results
+                    .OrderBy(r => r.Scenario, StringComparer.Ordinal)
+                    .Select(r => new PerfBaselineEntry
+                    {
+                        Scenario = r.Scenario,
+                        Cells = r.Cells,
+                        FileBytes = r.FileBytes,
+                        AllocatedBytes = r.AllocatedBytes,
+                        RetainedBytes = r.RetainedBytes
+                    })
+                    .ToList()
+            };
 
             Directory.CreateDirectory(Path.GetDirectoryName(path));
-            File.WriteAllText(path, JsonSerializer.Serialize(entries, JsonOptions) + Environment.NewLine);
+            File.WriteAllText(path, JsonSerializer.Serialize(file, JsonOptions) + Environment.NewLine);
         }
 
         /// <summary>
@@ -116,6 +181,7 @@ namespace FastExcel.Tests.Infrastructure
         public static IReadOnlyList<PerfRegression> Compare(
             IEnumerable<PerfResult> results,
             IReadOnlyDictionary<string, PerfBaselineEntry> baseline,
+            PerfMetrics metrics = PerfMetrics.All,
             double tolerance = RegressionTolerance)
         {
             var regressions = new List<PerfRegression>();
@@ -139,8 +205,15 @@ namespace FastExcel.Tests.Infrastructure
                     }
                 }
 
-                Check("retained", recorded.RetainedBytes, result.RetainedBytes);
-                Check("allocated", recorded.AllocatedBytes, result.AllocatedBytes);
+                if (metrics.HasFlag(PerfMetrics.Retained))
+                {
+                    Check("retained", recorded.RetainedBytes, result.RetainedBytes);
+                }
+
+                if (metrics.HasFlag(PerfMetrics.Allocated))
+                {
+                    Check("allocated", recorded.AllocatedBytes, result.AllocatedBytes);
+                }
             }
 
             return regressions;
@@ -149,7 +222,9 @@ namespace FastExcel.Tests.Infrastructure
         /// <summary>Renders the results as a markdown table, with movement against the baseline.</summary>
         public static string ToMarkdown(
             IReadOnlyList<PerfResult> results,
-            IReadOnlyDictionary<string, PerfBaselineEntry> baseline)
+            IReadOnlyDictionary<string, PerfBaselineEntry> baseline,
+            PerfMetrics gated = PerfMetrics.All,
+            string baselineArchitecture = null)
         {
             var report = new StringBuilder();
 
@@ -184,11 +259,20 @@ namespace FastExcel.Tests.Infrastructure
             }
 
             report.AppendLine();
-            report.AppendLine("`ret:file` is retained memory as a multiple of the file being read. " +
-                              "`Retained` is what a caller still holds once the worksheet is materialised — " +
-                              "the figure #70 is about — and is measured after a forced collection, so it is " +
-                              "reproducible to the byte. Time is reported but never gated: it varies too much " +
-                              "between runners to threshold meaningfully.");
+            report.AppendLine("`Retained` is what a caller still holds once the worksheet is materialised, " +
+                              "which is the figure #70 is about. `ret:file` expresses it as a multiple of " +
+                              "the file being read. Time is reported but never gated, because runner speed " +
+                              "varies too much to threshold.");
+
+            if (!gated.HasFlag(PerfMetrics.Retained))
+            {
+                report.AppendLine();
+                report.AppendLine($"> Retained memory is reported here but **not gated**. The baseline was " +
+                                  $"recorded on {baselineArchitecture ?? "another architecture"} and this " +
+                                  $"machine is {CurrentArchitecture}. Retained memory reproduces to the byte " +
+                                  $"within one architecture but differs by roughly a factor of two between " +
+                                  $"x64 and arm64. Allocated memory is portable and is still gated here.");
+            }
 
             return report.ToString();
         }

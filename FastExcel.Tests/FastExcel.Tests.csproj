@@ -8,6 +8,12 @@
     <!-- Real ICU culture data is required: several tests assert that output is
          culture-invariant by running under ru-RU, de-DE, tr-TR etc. -->
     <InvariantGlobalization>false</InvariantGlobalization>
+
+    <!-- Pin the garbage collector's mode so the performance measurements do not depend on how
+         many cores a build machine happens to have. Server GC uses one heap per core and
+         background GC collects concurrently, and both change what a heap reading reports. -->
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>false</ConcurrentGarbageCollection>
   </PropertyGroup>
 
   <ItemGroup>

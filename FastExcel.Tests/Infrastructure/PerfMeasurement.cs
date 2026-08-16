@@ -64,7 +64,7 @@ namespace FastExcel.Tests.Infrastructure
             if (warmup) ReadFully(file, out _);
 
             Settle();
-            var baselineLive = GC.GetTotalMemory(forceFullCollection: true);
+            var baselineLive = GC.GetTotalMemory(forceFullCollection: false);
             var allocatedBefore = GC.GetAllocatedBytesForCurrentThread();
 
             var stopwatch = Stopwatch.StartNew();
@@ -74,7 +74,8 @@ namespace FastExcel.Tests.Infrastructure
             var allocated = GC.GetAllocatedBytesForCurrentThread() - allocatedBefore;
 
             // Everything is still reachable through `rows`, so this is peak retention.
-            var retained = GC.GetTotalMemory(forceFullCollection: true) - baselineLive;
+            Settle();
+            var retained = GC.GetTotalMemory(forceFullCollection: false) - baselineLive;
             GC.KeepAlive(rows);
 
             return new PerfResult
@@ -109,11 +110,29 @@ namespace FastExcel.Tests.Infrastructure
             return rows;
         }
 
+        /// <summary>
+        /// Forces the heap into a settled state so that a reading of it counts live objects
+        /// and nothing else.
+        /// <para>
+        /// The parameterless <c>GC.Collect()</c> may satisfy a gen2 request with a background,
+        /// non-compacting collection, which leaves garbage behind. That matters a great deal
+        /// here: reading a workbook allocates roughly 1,300 bytes per cell and retains about
+        /// 470, so most of the heap is garbage at the point of measurement, and any of it that
+        /// survives inflates the result in proportion to the size of the workload. Demanding a
+        /// blocking, compacting collection removes that source of error.
+        /// </para>
+        /// </summary>
         private static void Settle()
         {
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
+            // Twice, with finalizers in between: the first pass queues finalizable objects,
+            // and only the second can reclaim what those finalizers released.
+            for (var i = 0; i < 2; i++)
+            {
+                GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
+                GC.WaitForPendingFinalizers();
+            }
+
+            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
         }
     }
 }

@@ -43,8 +43,19 @@ defined-name finding below is exactly that case.
 
 Elapsed time is reported but **never gated**: a shared CI runner varies enough that any
 threshold on it would either flake or be too loose to catch a real regression. `Retained` is
-measured after a forced collection and reproduced to the byte across repeated runs (0.00%
-variation over five runs), which is what makes a 10% tolerance meaningful.
+measured after a blocking, compacting collection and reproduced to the byte across repeated runs
+(0.00% variation over five runs), which is what makes a 10% tolerance meaningful.
+
+The two memory metrics do not travel equally well between machines, so the gate checks each one
+only where it means something:
+
+| Metric | Portability | Gated |
+| --- | --- | --- |
+| `Allocated` | Counts objects. Measured byte-identical on linux-x64, win-x64 and osx-arm64. | Everywhere |
+| `Retained` | Comes from the GC heap. Reproduces to the byte within one architecture, but arm64 reports roughly 2x the x64 figure for the same object graph. | Only where the architecture matches the baseline |
+
+The baseline records the architecture it was measured on. Where it does not match, retained
+memory is still measured and reported, and the report says that it is not being checked.
 
 ## The regression gate
 

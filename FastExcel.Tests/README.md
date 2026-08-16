@@ -101,12 +101,30 @@ FASTEXCEL_PERF_REPORT=perf.md dotnet test      # also write the markdown report
 ```
 
 Two memory numbers are recorded per scenario because they move independently: **allocated**
-(churn, including what the GC reclaims) and **retained** (still live once the worksheet is
-materialised — what decides whether a file fits in RAM). An optimisation can improve one and not
-the other, so gating on allocations alone would miss #70 entirely.
+(total bytes, including what the GC reclaims) and **retained** (still live once the worksheet is
+materialised, which decides whether a file fits in RAM). An optimisation can improve one and not
+the other, so gating on allocated memory alone would miss #70 entirely.
 
-Retained memory reproduces to the byte across repeated runs, which is what makes a real threshold
-possible; `RetainedMemoryIsMeasuredDeterministically` guards that property itself.
+### What is portable, and what is not
+
+The two metrics do not travel equally well, so the gate checks each one only where it means
+something:
+
+| Metric | Portability | Gated |
+| --- | --- | --- |
+| Allocated | Measured byte-identical on linux-x64, win-x64 and osx-arm64 | Everywhere |
+| Retained | Reproduces to the byte within one architecture, but arm64 reports roughly 2x the x64 figure for the same object graph | Only where the architecture matches the baseline |
+
+The baseline records the architecture it was measured on. On a machine that matches, both
+metrics are gated. On one that does not, retained memory is still measured and reported, and the
+report says plainly that it is not being checked. `RetainedMemoryIsMeasuredDeterministically`
+guards reproducibility, and `TheCommittedBaselineRecordsItsArchitecture` stops a baseline
+without an architecture from silently weakening the gate.
+
+`PerfMeasurement.Settle` forces a blocking, compacting collection rather than calling
+`GC.Collect()`, which may answer a gen2 request with a background, non-compacting pass. Reading
+a workbook allocates about 1,300 bytes per cell and retains about 470, so most of the heap is
+garbage when the measurement happens and any survivor would inflate the result.
 
 ### Updating the baseline
 
