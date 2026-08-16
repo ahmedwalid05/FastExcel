@@ -1,15 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
-
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
     <IsPackable>false</IsPackable>
+
+    <!-- Real ICU culture data is required: several tests assert that output is
+         culture-invariant by running under ru-RU, de-DE, tr-TR etc. -->
+    <InvariantGlobalization>false</InvariantGlobalization>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
-    <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageReference Include="coverlet.collector" Version="6.0.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -17,21 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="ResourcesTests\OneRowFile.xlsx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="ResourcesTests\RouteMaster.xlsx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="ResourcesTests\SameKey.xlsx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="ResourcesTests\special-char.xlsx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="ResourcesTests\template.xlsx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <None Update="ResourcesTests\**\*.xlsx" CopyToOutputDirectory="Always" />
   </ItemGroup>
 
 </Project>

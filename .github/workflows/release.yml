@@ -1,51 +1,76 @@
 name: Release
+
+# Releases are cut from a tag, never from a branch push. Pushing `v3.1.0`
+# publishes FastExcel 3.1.0 to NuGet and opens a matching GitHub release.
 on:
   push:
-    branches:
-      - master # Default release branch
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g. 3.1.0)'
+        required: true
+
+permissions:
+  contents: write
+
 jobs:
   publish:
     name: build, pack & publish
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Setup dotnet
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: 3.1.x
-      - name: Install dependencies
-        run: dotnet restore
-      - name: Build
-        run: dotnet build --configuration Release --no-restore
-      - name: Test
-        run: dotnet test --no-restore --verbosity normal
 
-      # Publish
-      - name: publish on version change
-        id: publish_nuget
-        uses: rohith/publish-nuget@v2
-        with:          
-          PROJECT_FILE_PATH: FastExcel/FastExcel.csproj  
-          NUGET_KEY: ${{secrets.NUGET_KEY}}
-      - name: Create Release
-        if: ${{ success() && steps.publish_nuget.outputs.VERSION != ''  && steps.publish_nuget.outputs.VERSION != null }}
-        id: create_release
-        uses: actions/create-release@latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Resolve version
+        id: version
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Publishing version $VERSION"
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore -p:Version=${{ steps.version.outputs.version }}
+
+      - name: Test
+        run: dotnet test --configuration Release --no-build --verbosity normal
+
+      - name: Pack
+        run: dotnet pack FastExcel/FastExcel.csproj --configuration Release --no-build -p:Version=${{ steps.version.outputs.version }} --output ./artifacts
+
+      - name: Publish to NuGet
+        env:
+          NUGET_KEY: ${{ secrets.NUGET_KEY }}
+        run: |
+          if [ -z "$NUGET_KEY" ]; then
+            echo "::error::NUGET_KEY secret is not set; cannot publish."
+            exit 1
+          fi
+          dotnet nuget push "./artifacts/*.nupkg" \
+            --api-key "$NUGET_KEY" \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+
+      - name: Create GitHub release
+        if: github.event_name == 'push'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.publish_nuget.outputs.VERSION }}
-          release_name: Release ${{ steps.publish_nuget.outputs.VERSION }}
-          draft: false
-          prerelease: false
-      - name: Upload Release Asset
-        if: ${{ success() && steps.publish_nuget.outputs.VERSION != ''  && steps.publish_nuget.outputs.VERSION != null }}
-        id: upload-release-asset 
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.publish_nuget.outputs.PACKAGE_PATH }}
-          asset_name: ${{ steps.publish_nuget.outputs.PACKAGE_NAME }}
-          asset_content_type: application/zip
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "Release ${{ steps.version.outputs.version }}" \
+            --generate-notes \
+            ./artifacts/*.nupkg
