@@ -64,6 +64,7 @@ CI writes this file on every run and uploads it as the `known-bugs` artifact, so
 | `WorksheetResolutionTests.cs` | Sheet name/index to package part resolution (#82, PR #62) |
 | `ColumnNameTests.cs` | Column letter/number conversion across Excel's full range |
 | `Performance/AllocationBudgetTests.cs` | Per-cell memory budgets and scaling (#70) |
+| `Performance/PerfReportTests.cs` | Scenario catalogue, report, regression gate vs the committed baseline |
 | `Performance/ThroughputTests.cs` | Wall-clock throughput and scaling (opt-in) |
 | `FastExcelTests.cs` | The original end-to-end tests |
 
@@ -84,24 +85,58 @@ free.
 
 ## Performance tests
 
-`Performance/` holds assertions about speed and memory. They are split by what can be trusted on
-a shared CI runner:
+Performance is treated as testing: `Performance/` runs on every build, on the same triggers as
+everything else, and **fails the build when memory regresses**.
 
-- **`AllocationBudgetTests` run everywhere.** They assert allocated *bytes per cell*, which is
-  essentially deterministic for the same input on any machine — so a real threshold is possible.
-  This is what guards #70.
+- **`PerfReportTests` is the gate.** It measures the scenario catalogue and compares against
+  `perf-baseline.json`, failing if allocated or retained memory grows by more than 10%.
+- **`AllocationBudgetTests`** holds standalone per-cell ceilings.
 - **`ThroughputTests` are skipped unless `FASTEXCEL_PERF=1`.** Elapsed time on a shared runner
-  varies enough that gating merges on it means either flaky builds or thresholds too loose to
-  catch anything.
+  varies too much to threshold; only memory is gated.
 
 ```bash
-dotnet test                                   # allocation budgets included
-FASTEXCEL_PERF=1 dotnet test                  # timing tests as well
+dotnet test                                    # smoke scenarios + gate
+FASTEXCEL_PERF=1 dotnet test                   # adds 1M-4M cell scenarios and timing tests
+FASTEXCEL_PERF_REPORT=perf.md dotnet test      # also write the markdown report
 ```
 
-Current baseline is about **1,280 bytes allocated per cell**, roughly 400x the size of the file
-being read. The budget is set at 1,800 to catch regressions with room for runtime variation; the
-target is under 256, tracked as a `KnownBug`. **Lower the budget when the read path gets
-cheaper** — it is meant to ratchet.
+Two memory numbers are recorded per scenario because they move independently: **allocated**
+(total bytes, including what the GC reclaims) and **retained** (still live once the worksheet is
+materialised, which decides whether a file fits in RAM). An optimisation can improve one and not
+the other, so gating on allocated memory alone would miss #70 entirely.
 
-For real numbers rather than pass/fail thresholds, see `FastExcel.Benchmarks`.
+### What is portable, and what is not
+
+The two metrics do not travel equally well, so the gate checks each one only where it means
+something:
+
+| Metric | Portability | Gated |
+| --- | --- | --- |
+| Allocated | Measured byte-identical on linux-x64, win-x64 and osx-arm64 | Everywhere |
+| Retained | Reproduces to the byte within one architecture, but arm64 reports roughly 2x the x64 figure for the same object graph | Only where the architecture matches the baseline |
+
+The baseline records the architecture it was measured on. On a machine that matches, both
+metrics are gated. On one that does not, retained memory is still measured and reported, and the
+report says plainly that it is not being checked. `RetainedMemoryIsMeasuredDeterministically`
+guards reproducibility, and `TheCommittedBaselineRecordsItsArchitecture` stops a baseline
+without an architecture from silently weakening the gate.
+
+`PerfMeasurement.Settle` forces a blocking, compacting collection rather than calling
+`GC.Collect()`, which may answer a gen2 request with a background, non-compacting pass. Reading
+a workbook allocates about 1,300 bytes per cell and retains about 470, so most of the heap is
+garbage when the measurement happens and any survivor would inflate the result.
+
+### Updating the baseline
+
+After a change that legitimately moves the numbers:
+
+```bash
+FASTEXCEL_PERF=1 FASTEXCEL_PERF_UPDATE_BASELINE=1 dotnet test
+```
+
+Commit the diff — it records what the change bought. Without `FASTEXCEL_PERF` only the smoke-tier
+entries are rewritten and the large scenarios are carried over untouched.
+
+Scenarios live in `Infrastructure/PerfScenario.cs` and are shared with the benchmark project, so
+adding a shape adds it to both. For statistical detail and the comparison against MiniExcel,
+ClosedXML and Sylvan, see `FastExcel.Benchmarks`.

@@ -38,6 +38,9 @@ jobs:
           # Records how each still-unfixed defect actually fails on this run.
           # See FastExcel.Tests/README.md.
           FASTEXCEL_KNOWNBUG_LOG: ${{ github.workspace }}/known-bugs.tsv
+          # Performance is testing: the perf gate runs with everything else and fails the
+          # build if memory regresses against FastExcel.Tests/perf-baseline.json.
+          FASTEXCEL_PERF_REPORT: ${{ github.workspace }}/perf-report.md
         run: dotnet test --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx"
 
       - name: Upload test results
@@ -46,6 +49,18 @@ jobs:
         with:
           name: test-results-${{ matrix.os }}
           path: '**/TestResults/*.trx'
+          if-no-files-found: ignore
+
+      - name: Add performance report to summary
+        if: ${{ !cancelled() && matrix.os == 'ubuntu-latest' }}
+        run: cat perf-report.md >> "$GITHUB_STEP_SUMMARY" || true
+
+      - name: Upload performance report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: perf-report-${{ matrix.os }}
+          path: perf-report.md
           if-no-files-found: ignore
 
       - name: Upload known-bug report

@@ -12,6 +12,13 @@
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
+
+    <!-- Comparison only. These never reach the shipped FastExcel package.
+         EPPlus is deliberately absent: since v5 it is Polyform Noncommercial licensed,
+         which would be a licensing consideration even for a benchmark reference. -->
+    <PackageReference Include="MiniExcel" Version="1.34.2" />
+    <PackageReference Include="ClosedXML" Version="0.104.2" />
+    <PackageReference Include="Sylvan.Data.Excel" Version="0.4.28" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,6 +28,7 @@
   <ItemGroup>
     <!-- Shared with the test suite so benchmarks and perf tests measure identical workbooks. -->
     <Compile Include="..\FastExcel.Tests\Infrastructure\LargeWorkbook.cs" Link="LargeWorkbook.cs" />
+    <Compile Include="..\FastExcel.Tests\Infrastructure\PerfScenario.cs" Link="PerfScenario.cs" />
   </ItemGroup>
 
 </Project>

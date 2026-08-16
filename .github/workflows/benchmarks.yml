@@ -1,29 +1,41 @@
 name: Benchmarks
 
-# Run on demand only. Benchmarks take minutes and are timing-sensitive, so they are not part
-# of the merge gate — the CI signal for performance is the allocation budget in
-# FastExcel.Tests/Performance, which runs on every build.
+# Runs on the same triggers as the tests: performance is treated as testing.
+#
+# The regression *gate* lives in the test suite (FastExcel.Tests/Performance), which runs on
+# every build across all three platforms and fails when memory regresses against the committed
+# baseline. This workflow is the measurement layer on top of that gate: it produces the full
+# statistical picture, including how FastExcel compares to the alternatives.
 on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
   workflow_dispatch:
     inputs:
       filter:
-        description: 'BenchmarkDotNet filter (e.g. *ReadBenchmarks*)'
+        description: 'BenchmarkDotNet filter. Use * for everything, including the slow write comparison.'
         required: false
         default: '*'
       job:
-        description: 'BenchmarkDotNet job: Short for a quick look, Default for publishable numbers'
+        description: 'Short for a quick look, Default for publishable numbers'
         required: false
-        default: 'Short'
+        default: 'Default'
         type: choice
         options: [ Short, Default ]
 
 permissions:
   contents: read
 
+concurrency:
+  # A newer push supersedes an in-flight run on the same ref.
+  group: benchmarks-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   benchmark:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
 
     steps:
       - uses: actions/checkout@v4
@@ -33,11 +45,26 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      - name: Resolve run parameters
+        id: params
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "filter=${{ inputs.filter }}" >> "$GITHUB_OUTPUT"
+            echo "job=${{ inputs.job }}" >> "$GITHUB_OUTPUT"
+          else
+            # Automated runs skip WriteComparisonBenchmarks: ClosedXML writing 50k rows
+            # dominates the wall time and adds little that the read comparison does not
+            # already show. Run it on demand with filter '*'.
+            echo "filter=*ReadBenchmarks*|*DefinedNameScaling*|*WriteBenchmarks*|*ReadComparison*" >> "$GITHUB_OUTPUT"
+            echo "job=Short" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Run benchmarks
         run: |
           dotnet run -c Release --project FastExcel.Benchmarks -- \
-            --filter '${{ inputs.filter }}' \
-            --job ${{ inputs.job }}
+            --filter '${{ steps.params.outputs.filter }}' \
+            --job ${{ steps.params.outputs.job }}
 
       - name: Upload results
         if: ${{ !cancelled() }}
@@ -49,13 +76,23 @@ jobs:
 
       - name: Summarise
         if: ${{ !cancelled() }}
+        shell: bash
         run: |
           {
-            echo "## Benchmark results"
+            echo "## Benchmarks"
             echo
-            for f in BenchmarkDotNet.Artifacts/results/*-report-github.md; do
-              [ -e "$f" ] || continue
-              cat "$f"
-              echo
-            done
+            echo "Filter \`${{ steps.params.outputs.filter }}\`, job \`${{ steps.params.outputs.job }}\`."
+            echo
+            shopt -s nullglob
+            reports=(BenchmarkDotNet.Artifacts/results/*-report-github.md)
+            if [ ${#reports[@]} -eq 0 ]; then
+              echo "_No benchmark reports were produced._"
+            else
+              for f in "${reports[@]}"; do
+                echo "### $(basename "$f" -report-github.md)"
+                echo
+                cat "$f"
+                echo
+              done
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
