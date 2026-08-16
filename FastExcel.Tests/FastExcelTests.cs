@@ -37,7 +37,7 @@ namespace FastExcel.Tests
 
             var action = new Action(() =>
             {
-                using (var fastExcel = new FastExcel(inputFile)) ;
+                using (var fastExcel = new FastExcel(inputFile)) { }
             });
 
             var exception = Assert.Throws<FileNotFoundException>(action);
@@ -55,7 +55,7 @@ namespace FastExcel.Tests
 
             var action = new Action(() =>
             {
-                using (var fastExcel = new FastExcel(templateFile, outputFile)) ;
+                using (var fastExcel = new FastExcel(templateFile, outputFile)) { }
             });
 
             var exception = Assert.Throws<FileNotFoundException>(action);
@@ -73,7 +73,7 @@ namespace FastExcel.Tests
 
             var action = new Action(() =>
             {
-                using (var fastExcel = new FastExcel(templateFile, outputFile)) ;
+                using (var fastExcel = new FastExcel(templateFile, outputFile)) { }
             });
 
             var exception = Assert.Throws<Exception>(action);
@@ -110,7 +110,7 @@ namespace FastExcel.Tests
             Assert.Equal($"TemplateFile was not provided", exception.Message);
         }
 
-        private string FileRead_ReadingSpecialCharactersCore_Read(FileInfo inputFile)
+        private void FileRead_ReadingSpecialCharactersCore_Read(FileInfo inputFile)
         {
             inputFile.Refresh();
             using var fastExcel = new FastExcel(inputFile);
@@ -128,21 +128,19 @@ namespace FastExcel.Tests
             var row = rows.ToArray()[1].Cells.ToArray();
             Assert.Equal(TestCellRow.StringColumn1, row[0].Value);
             //TODO - Add tests for data-types when implemented 
-
-            return "Passed";
         }
 
 
         [Fact]
-        public string FileRead_ReadingSpecialCharacters_Read()
+        public void FileRead_ReadingSpecialCharacters_Read()
         {
             var inputFilePath = new FileInfo(Path.Combine(ResourcesPath, "special-char.xlsx"));
-            return FileRead_ReadingSpecialCharactersCore_Read(inputFilePath);
+            FileRead_ReadingSpecialCharactersCore_Read(inputFilePath);
         }
 
 
         [Fact]
-        public string FileWrite_WritingOneRow_Wrote()
+        public void FileWrite_WritingOneRow_Wrote()
         {
             var inputFilePath = new FileInfo(Path.Combine(ResourcesPath, "temp.xlsx"));
             if (inputFilePath.Exists)
@@ -158,11 +156,11 @@ namespace FastExcel.Tests
             }
 
 
-            return FileRead_ReadingSpecialCharactersCore_Read(inputFilePath);
+            FileRead_ReadingSpecialCharactersCore_Read(inputFilePath);
         }
 
         [Fact]
-        public string FileUpdate_UpdatingEmptyFile_Updated()
+        public void FileUpdate_UpdatingEmptyFile_Updated()
         {
             var worksheet = new Worksheet();
             var cells = new List<CellRow>();
@@ -179,11 +177,11 @@ namespace FastExcel.Tests
             }
 
 
-            return FileRead_ReadingSpecialCharactersCore_Read(inputFile);
+            FileRead_ReadingSpecialCharactersCore_Read(inputFile);
         }
 
         [Fact]
-        public string FileUpdate_UpdatingWithOneRow_Updated()
+        public void FileUpdate_UpdatingWithOneRow_Updated()
         {
             var worksheet = new Worksheet();
             var cells = new List<CellRow> {TestCellRow};
@@ -197,11 +195,11 @@ namespace FastExcel.Tests
                 fastExcel.Update(worksheet, "Sheet1");
             }
 
-            return FileRead_ReadingSpecialCharactersCore_Read(inputFile);
+            FileRead_ReadingSpecialCharactersCore_Read(inputFile);
         }
 
         [Fact]
-        public string FileUpdate_WriteAndUpdatingWithOneRow_Updated()
+        public void FileUpdate_WriteAndUpdatingWithOneRow_Updated()
         {
             var worksheet = new Worksheet();
             var cells = new List<CellRow>();
@@ -230,17 +228,17 @@ namespace FastExcel.Tests
                 fastExcel.Update(worksheet, "Sheet1");
             }
 
-            return FileRead_ReadingSpecialCharactersCore_Read(inputFile);
+            FileRead_ReadingSpecialCharactersCore_Read(inputFile);
         }
 
         [Fact]
-        public string FileRead_ReadSameStringKey_Read()
+        public void FileRead_ReadSameStringKey_Read()
         {
             var inputFile = new FileInfo(Path.Combine(ResourcesPath, "SameKey.xlsx"));
 
             using var fastExcel = new FastExcel(inputFile, true);
             var sheet = fastExcel.Read(1);
-            return sheet.Name;
+            Assert.Equal("SG Zones TDI Export", sheet.Name);
         }
     }
 
