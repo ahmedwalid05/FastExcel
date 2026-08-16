@@ -34,6 +34,10 @@ jobs:
         run: dotnet build --configuration Release --no-restore
 
       - name: Test
+        env:
+          # Records how each still-unfixed defect actually fails on this run.
+          # See FastExcel.Tests/README.md.
+          FASTEXCEL_KNOWNBUG_LOG: ${{ github.workspace }}/known-bugs.tsv
         run: dotnet test --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx"
 
       - name: Upload test results
@@ -42,4 +46,12 @@ jobs:
         with:
           name: test-results-${{ matrix.os }}
           path: '**/TestResults/*.trx'
+          if-no-files-found: ignore
+
+      - name: Upload known-bug report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: known-bugs-${{ matrix.os }}
+          path: known-bugs.tsv
           if-no-files-found: ignore
