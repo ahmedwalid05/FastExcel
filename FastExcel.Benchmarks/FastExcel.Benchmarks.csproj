@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <IsPackable>false</IsPackable>
+    <!-- BenchmarkDotNet requires an optimised build to produce meaningful numbers. -->
+    <Optimize>true</Optimize>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FastExcel\FastExcel.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Shared with the test suite so benchmarks and perf tests measure identical workbooks. -->
+    <Compile Include="..\FastExcel.Tests\Infrastructure\LargeWorkbook.cs" Link="LargeWorkbook.cs" />
+  </ItemGroup>
+
+</Project>

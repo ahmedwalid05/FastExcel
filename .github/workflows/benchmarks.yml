@@ -1,0 +1,61 @@
+name: Benchmarks
+
+# Run on demand only. Benchmarks take minutes and are timing-sensitive, so they are not part
+# of the merge gate — the CI signal for performance is the allocation budget in
+# FastExcel.Tests/Performance, which runs on every build.
+on:
+  workflow_dispatch:
+    inputs:
+      filter:
+        description: 'BenchmarkDotNet filter (e.g. *ReadBenchmarks*)'
+        required: false
+        default: '*'
+      job:
+        description: 'BenchmarkDotNet job: Short for a quick look, Default for publishable numbers'
+        required: false
+        default: 'Short'
+        type: choice
+        options: [ Short, Default ]
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Run benchmarks
+        run: |
+          dotnet run -c Release --project FastExcel.Benchmarks -- \
+            --filter '${{ inputs.filter }}' \
+            --job ${{ inputs.job }}
+
+      - name: Upload results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: BenchmarkDotNet.Artifacts/**
+          if-no-files-found: warn
+
+      - name: Summarise
+        if: ${{ !cancelled() }}
+        run: |
+          {
+            echo "## Benchmark results"
+            echo
+            for f in BenchmarkDotNet.Artifacts/results/*-report-github.md; do
+              [ -e "$f" ] || continue
+              cat "$f"
+              echo
+            done
+          } >> "$GITHUB_STEP_SUMMARY"

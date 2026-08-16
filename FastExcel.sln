@@ -12,6 +12,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFiles", "SolutionFi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FastExcel.Tests", "FastExcel.Tests\FastExcel.Tests.csproj", "{65290D5C-1AE2-47BC-8ACD-4DAE7648B4CD}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FastExcel.Benchmarks", "FastExcel.Benchmarks\FastExcel.Benchmarks.csproj", "{3F8A2C41-9B7D-4E6A-A5C2-7D1E4F8B0A93}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,6 +28,10 @@ Global
 		{65290D5C-1AE2-47BC-8ACD-4DAE7648B4CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{65290D5C-1AE2-47BC-8ACD-4DAE7648B4CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{65290D5C-1AE2-47BC-8ACD-4DAE7648B4CD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3F8A2C41-9B7D-4E6A-A5C2-7D1E4F8B0A93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3F8A2C41-9B7D-4E6A-A5C2-7D1E4F8B0A93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F8A2C41-9B7D-4E6A-A5C2-7D1E4F8B0A93}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3F8A2C41-9B7D-4E6A-A5C2-7D1E4F8B0A93}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

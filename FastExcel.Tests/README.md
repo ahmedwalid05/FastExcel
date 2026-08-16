@@ -63,6 +63,8 @@ CI writes this file on every run and uploads it as the `known-bugs` artifact, so
 | `StreamLifecycleTests.cs` | Constructors, read-only streams, update semantics, disposal (#75, #69, #74, #71) |
 | `WorksheetResolutionTests.cs` | Sheet name/index to package part resolution (#82, PR #62) |
 | `ColumnNameTests.cs` | Column letter/number conversion across Excel's full range |
+| `Performance/AllocationBudgetTests.cs` | Per-cell memory budgets and scaling (#70) |
+| `Performance/ThroughputTests.cs` | Wall-clock throughput and scaling (opt-in) |
 | `FastExcelTests.cs` | The original end-to-end tests |
 
 ## Infrastructure
@@ -79,3 +81,27 @@ CI writes this file on every run and uploads it as the `known-bugs` artifact, so
 Test parallelisation is disabled assembly-wide (`AssemblyInfo.cs`): culture is thread-local, and
 the whole suite runs in well under a second, so serialising it removes a class of flakiness for
 free.
+
+## Performance tests
+
+`Performance/` holds assertions about speed and memory. They are split by what can be trusted on
+a shared CI runner:
+
+- **`AllocationBudgetTests` run everywhere.** They assert allocated *bytes per cell*, which is
+  essentially deterministic for the same input on any machine — so a real threshold is possible.
+  This is what guards #70.
+- **`ThroughputTests` are skipped unless `FASTEXCEL_PERF=1`.** Elapsed time on a shared runner
+  varies enough that gating merges on it means either flaky builds or thresholds too loose to
+  catch anything.
+
+```bash
+dotnet test                                   # allocation budgets included
+FASTEXCEL_PERF=1 dotnet test                  # timing tests as well
+```
+
+Current baseline is about **1,280 bytes allocated per cell**, roughly 400x the size of the file
+being read. The budget is set at 1,800 to catch regressions with room for runtime variation; the
+target is under 256, tracked as a `KnownBug`. **Lower the budget when the read path gets
+cheaper** — it is meant to ratchet.
+
+For real numbers rather than pass/fail thresholds, see `FastExcel.Benchmarks`.
