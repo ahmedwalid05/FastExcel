@@ -130,7 +130,7 @@ namespace FastExcel.Tests
             // Every part lookup is GetEntry(...) with no null check, so a zip without
             // xl/workbook.xml dereferences null. The caller is told nothing about what was wrong
             // with their file.
-            KnownBug.StillBroken("#18",
+            KnownBug.StillBroken("#119",
                 "a zip that is not a workbook is rejected with a message naming the missing " +
                 "part, rather than a bare NullReferenceException",
                 () => Assert.IsNotType<NullReferenceException>(thrown));
@@ -154,7 +154,7 @@ namespace FastExcel.Tests
 
             Assert.NotNull(thrown);
 
-            KnownBug.StillBroken("#18",
+            KnownBug.StillBroken("#119",
                 "a workbook missing " + part + " is rejected with a message naming the missing " +
                 "part, rather than a bare NullReferenceException",
                 () => Assert.IsNotType<NullReferenceException>(thrown));
@@ -211,7 +211,7 @@ namespace FastExcel.Tests
 
             Assert.NotNull(thrown);
 
-            KnownBug.StillBroken("#18",
+            KnownBug.StillBroken("#120",
                 "a write against a damaged template fails at the write, not from inside " +
                 "Dispose, and the archive is still closed cleanly so no half-written file is left",
                 () => Assert.IsNotType<NullReferenceException>(thrown));
@@ -289,7 +289,7 @@ namespace FastExcel.Tests
             // that genuinely holds an empty string, so corrupt input reads as clean data.
             Assert.Equal(string.Empty, value);
 
-            KnownBug.StillBroken("#18",
+            KnownBug.StillBroken("#121",
                 "a shared-string index that is not a number is reported as corrupt input " +
                 "rather than silently read as an empty cell",
                 () => Assert.NotEqual(string.Empty, value));
@@ -308,7 +308,7 @@ namespace FastExcel.Tests
 
             Assert.NotNull(thrown);
 
-            KnownBug.StillBroken("#18",
+            KnownBug.StillBroken("#121",
                 "a shared-string index past the end of the table is reported as a workbook " +
                 "problem rather than surfacing a raw collection lookup failure",
                 () => Assert.IsNotType<KeyNotFoundException>(thrown));
@@ -343,7 +343,7 @@ namespace FastExcel.Tests
             // "A" with no digits leaves an empty string for the row number, and Convert.ToInt32
             // of "" is a FormatException from deep inside the parse rather than a statement
             // about the cell.
-            KnownBug.StillBroken("#18",
+            KnownBug.StillBroken("#121",
                 "a cell reference missing its row number is reported as a bad reference, " +
                 "naming the cell, rather than as a raw FormatException",
                 () => Assert.IsNotType<FormatException>(thrown));
@@ -361,7 +361,7 @@ namespace FastExcel.Tests
             // The reference is stripped with a regex that removes digits, so the dollar signs
             // survive into the column letters and the column number comes out wrong rather than
             // being rejected. $B should be column 2.
-            KnownBug.StillBroken("#18",
+            KnownBug.StillBroken("#121",
                 "a cell reference containing absolute markers resolves to the column it names",
                 () => Assert.Equal(2, cell.ColumnNumber));
         }
@@ -411,7 +411,7 @@ namespace FastExcel.Tests
 
             Assert.NotNull(thrown);
 
-            KnownBug.StillBroken("#18",
+            KnownBug.StillBroken("#119",
                 "a null file argument is rejected with an ArgumentNullException naming the " +
                 "parameter, rather than a bare NullReferenceException",
                 () => Assert.IsType<ArgumentNullException>(thrown));

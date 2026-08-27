@@ -298,7 +298,7 @@ namespace FastExcel.Tests
             var rows = Materialise(worksheet);
             var appended = rows.Last();
 
-            KnownBug.StillBroken("#18",
+            KnownBug.StillBroken("#125",
                 "AddRow appends after the highest row number in the sheet; today it counts rows " +
                 "instead, so appending to a sheet that starts at row 4 produces row 4 again",
                 () => Assert.Equal(7, appended.RowNumber));
@@ -385,7 +385,7 @@ namespace FastExcel.Tests
             using var fastExcel = new FastExcel(file, true);
             var worksheet = fastExcel.Read(1);
 
-            KnownBug.StillBroken("#18",
+            KnownBug.StillBroken("#119",
                 "a worksheet that was read can also be appended to, or the attempt fails with " +
                 "an error that explains itself rather than a NullReferenceException",
                 () =>
@@ -407,7 +407,7 @@ namespace FastExcel.Tests
             using var fastExcel = new FastExcel(file, true);
             var worksheet = fastExcel.Read(1);
 
-            KnownBug.StillBroken("#18",
+            KnownBug.StillBroken("#119",
                 "a worksheet that was read can also have values added to it, or the attempt " +
                 "fails with an error that explains itself rather than a NullReferenceException",
                 () =>

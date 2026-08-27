@@ -67,7 +67,7 @@ namespace FastExcel.Tests
             // The property returns the cached array itself rather than a copy, so anything a
             // caller does to it is permanent for the lifetime of the instance. Reading sheet 1
             // afterwards then fails inside the library rather than at the point of the mistake.
-            KnownBug.StillBroken("#18",
+            KnownBug.StillBroken("#124",
                 "Worksheets hands back a copy, so a caller cannot corrupt the workbook's own " +
                 "view of its sheets",
                 () => Assert.NotNull(fastExcel.Worksheets[0]));
@@ -110,7 +110,7 @@ namespace FastExcel.Tests
             // Zero is not a sentinel a caller can distinguish from a real answer without knowing
             // that sheet indexes are 1-based, and nothing in the signature says so. Feeding the
             // result straight back into Read(int) produces a confusing failure much later.
-            KnownBug.StillBroken("#18",
+            KnownBug.StillBroken("#123",
                 "an unknown sheet name is reported distinguishably - either a negative sentinel " +
                 "or an exception - rather than as 0, which reads like a valid index",
                 () => Assert.NotEqual(0, fastExcel.GetWorksheetIndexFromName("Nope")));
@@ -128,7 +128,7 @@ namespace FastExcel.Tests
             // same string therefore finds a sheet through one entry point and not the other.
             Assert.Equal("beta", fastExcel.Read("second").Rows.First().Cells.First().Value);
 
-            KnownBug.StillBroken("#18",
+            KnownBug.StillBroken("#123",
                 "sheet names are matched the same way everywhere; today Read is " +
                 "case-insensitive and GetWorksheetIndexFromName is not",
                 () => Assert.Equal(2, fastExcel.GetWorksheetIndexFromName("second")));
@@ -168,7 +168,7 @@ namespace FastExcel.Tests
             var thrown = Record.Exception(() => fastExcel.Read("Nope"));
 
             Assert.NotNull(thrown);
-            KnownBug.StillBroken("#18",
+            KnownBug.StillBroken("#119",
                 "a missing sheet reports the same useful error whether or not Worksheets was " +
                 "read first, instead of degrading to a NullReferenceException",
                 () => Assert.IsNotType<NullReferenceException>(thrown));
@@ -203,7 +203,7 @@ namespace FastExcel.Tests
             // Sheet numbers are 1-based, so 0 is out of range - but it passes the upper-bound
             // guard and reaches an index of -1, so the caller gets an argument exception from
             // deep inside a list rather than the message the other out-of-range cases produce.
-            KnownBug.StillBroken("#18",
+            KnownBug.StillBroken("#123",
                 "sheet number 0 is rejected with the same message as any other out-of-range " +
                 "sheet, rather than surfacing an index error from inside the library",
                 () => Assert.IsNotType<ArgumentOutOfRangeException>(thrown));

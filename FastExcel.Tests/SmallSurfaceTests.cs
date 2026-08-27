@@ -59,7 +59,7 @@ namespace FastExcel.Tests
 
             Assert.True(usage.ValidOn.HasFlag(AttributeTargets.Field));
 
-            KnownBug.StillBroken("#18",
+            KnownBug.StillBroken("#126",
                 "ExcelColumnAttribute is only valid where it is honoured; today it advertises " +
                 "AttributeTargets.Field while headings are read from properties alone",
                 () => Assert.False(usage.ValidOn.HasFlag(AttributeTargets.Field)));
@@ -118,7 +118,7 @@ namespace FastExcel.Tests
 
             // CellNames is only assigned when a cell is parsed from a file, so it is null here,
             // and CellName calls .Any() on it. Every cell a caller builds by hand hits this.
-            KnownBug.StillBroken("#18",
+            KnownBug.StillBroken("#126",
                 "CellName on a constructed cell returns its address (\"A0\" or similar) rather " +
                 "than throwing a NullReferenceException from an unassigned CellNames",
                 () => Assert.NotNull(cell.CellName));
@@ -135,7 +135,7 @@ namespace FastExcel.Tests
         {
             var cell = new Cell(1, null);
 
-            KnownBug.StillBroken("#18",
+            KnownBug.StillBroken("#126",
                 "ToString on a cell with no value returns an empty string rather than throwing",
                 () => Assert.NotNull(cell.ToString()));
         }
@@ -260,7 +260,7 @@ namespace FastExcel.Tests
             Assert.Equal(-5, nonsense.RowStart);
             Assert.Equal(-9, nonsense.RowEnd);
 
-            KnownBug.StillBroken("#18",
+            KnownBug.StillBroken("#126",
                 "CellRange rejects a reversed column pair and a row number below one at " +
                 "construction, rather than silently matching nothing much later",
                 () => Assert.ThrowsAny<ArgumentException>(() => new CellRange("Z", "A", -5, -9)));

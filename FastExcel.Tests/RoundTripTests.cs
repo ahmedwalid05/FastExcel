@@ -221,7 +221,7 @@ namespace FastExcel.Tests
 
             Assert.Equal("XFE", cell.ColumnName);
 
-            KnownBug.StillBroken("#18",
+            KnownBug.StillBroken("#122",
                 "a column number beyond Excel's last column (16,384 / XFD) is rejected when the " +
                 "cell is constructed, rather than written into a file Excel cannot open",
                 () => Assert.ThrowsAny<ArgumentException>(() => new Cell(16385, "past the end")));
@@ -261,7 +261,7 @@ namespace FastExcel.Tests
 
             Assert.Equal(1_048_577, row.RowNumber);
 
-            KnownBug.StillBroken("#18",
+            KnownBug.StillBroken("#122",
                 "a row number beyond Excel's last row (1,048,576) is rejected when the row is " +
                 "constructed, rather than written into a file Excel cannot open",
                 () => Assert.ThrowsAny<ArgumentException>(
@@ -286,7 +286,7 @@ namespace FastExcel.Tests
             // loss happens in the user's spreadsheet rather than at the call that caused it.
             Assert.Equal(tooLong, RoundTripOne(tooLong));
 
-            KnownBug.StillBroken("#18",
+            KnownBug.StillBroken("#122",
                 "a cell value longer than Excel's 32,767-character limit is rejected on write, " +
                 "rather than producing a file Excel will silently truncate",
                 () => Assert.ThrowsAny<ArgumentException>(() => RoundTripOne(tooLong)));
