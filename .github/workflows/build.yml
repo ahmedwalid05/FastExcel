@@ -41,7 +41,46 @@ jobs:
           # Performance is testing: the perf gate runs with everything else and fails the
           # build if memory regresses against FastExcel.Tests/perf-baseline.json.
           FASTEXCEL_PERF_REPORT: ${{ github.workspace }}/perf-report.md
-        run: dotnet test --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx"
+        run: dotnet test --configuration Release --no-build --verbosity normal --logger "trx;LogFileName=test-results.trx" --collect:"XPlat Code Coverage"
+
+      # The suite is the safety net for ~780k downloads, so coverage is a gate, not a report.
+      # The thresholds are a ratchet: raise them whenever a change lifts the real number, never
+      # lower them to make a build pass. See FastExcel.Tests/README.md.
+      - name: Enforce coverage
+        if: ${{ !cancelled() && matrix.os == 'ubuntu-latest' }}
+        shell: bash
+        env:
+          MIN_LINE: 80
+          MIN_BRANCH: 74
+        run: |
+          report=$(find . -name 'coverage.cobertura.xml' -print0 | xargs -0 ls -t 2>/dev/null | head -1)
+          if [ -z "$report" ]; then
+            echo "::error::no coverage report was produced - the gate cannot run"
+            exit 1
+          fi
+          echo "reading $report"
+          line=$(python3 -c "import xml.etree.ElementTree as E,sys;print(round(float(E.parse(sys.argv[1]).getroot().get('line-rate'))*100,1))" "$report")
+          branch=$(python3 -c "import xml.etree.ElementTree as E,sys;print(round(float(E.parse(sys.argv[1]).getroot().get('branch-rate'))*100,1))" "$report")
+          echo "line coverage:   $line% (minimum $MIN_LINE%)"
+          echo "branch coverage: $branch% (minimum $MIN_BRANCH%)"
+          {
+            echo "| Coverage | Measured | Minimum |"
+            echo "| --- | --- | --- |"
+            echo "| Line | $line% | $MIN_LINE% |"
+            echo "| Branch | $branch% | $MIN_BRANCH% |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          fail=0
+          awk "BEGIN{exit !($line < $MIN_LINE)}"   && { echo "::error::line coverage $line% is below the $MIN_LINE% minimum"; fail=1; }
+          awk "BEGIN{exit !($branch < $MIN_BRANCH)}" && { echo "::error::branch coverage $branch% is below the $MIN_BRANCH% minimum"; fail=1; }
+          exit $fail
+
+      - name: Upload coverage report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.os }}
+          path: '**/coverage.cobertura.xml'
+          if-no-files-found: ignore
 
       - name: Upload test results
         if: ${{ !cancelled() }}

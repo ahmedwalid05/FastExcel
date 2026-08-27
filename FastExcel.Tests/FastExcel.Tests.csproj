@@ -21,6 +21,18 @@
     <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
     <PackageReference Include="coverlet.collector" Version="6.0.2" />
+
+    <!-- Opens a produced file through the OPC layer, which refuses a malformed
+         [Content_Types].xml or relationship graph. Test-only; never shipped. -->
+    <PackageReference Include="System.IO.Packaging" Version="8.0.1" />
+
+    <!-- Independent readers, used as oracles. A FastExcel round trip only proves the library
+         agrees with itself; these prove whether anyone else can read what it writes.
+         All three are MIT or Apache. EPPlus is deliberately absent - it is Polyform
+         Noncommercial since v5, and FastExcel ships MIT. Test-only is still a reference. -->
+    <PackageReference Include="ClosedXML" Version="0.104.2" />
+    <PackageReference Include="MiniExcel" Version="1.34.2" />
+    <PackageReference Include="Sylvan.Data.Excel" Version="0.4.28" />
   </ItemGroup>
 
   <ItemGroup>

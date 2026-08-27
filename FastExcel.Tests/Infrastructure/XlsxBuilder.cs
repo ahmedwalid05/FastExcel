@@ -29,6 +29,7 @@ namespace FastExcel.Tests.Infrastructure
             public string Name;
             public string PartName;      // e.g. "worksheets/sheet1.xml"
             public string SheetDataInner; // raw <row> elements
+            public string WorksheetXml;   // whole part, verbatim; wins over SheetDataInner
         }
 
         private readonly List<SheetSpec> _sheets = new List<SheetSpec>();
@@ -48,6 +49,27 @@ namespace FastExcel.Tests.Infrastructure
                 Name = name,
                 PartName = partName ?? $"worksheets/sheet{_sheets.Count + 1}.xml",
                 SheetDataInner = sheetDataInner ?? string.Empty
+            });
+            return this;
+        }
+
+        /// <summary>
+        /// Supplies an entire worksheet part verbatim, bypassing the generated wrapper.
+        ///
+        /// Needed because the generated wrapper always emits the whole worksheet on a single
+        /// line, and several defects here depend on how the XML is *laid out* rather than on
+        /// what it says: the write path scans the part with ReadLine and Contains rather than
+        /// parsing it, so a line break or a namespace prefix in the wrong place changes the
+        /// outcome. See WorksheetXmlLayoutTests.
+        /// </summary>
+        public XlsxBuilder WithSheetXml(string name, string worksheetXml, string partName = null)
+        {
+            _sheets.Add(new SheetSpec
+            {
+                Name = name,
+                PartName = partName ?? $"worksheets/sheet{_sheets.Count + 1}.xml",
+                SheetDataInner = string.Empty,
+                WorksheetXml = worksheetXml
             });
             return this;
         }
@@ -98,7 +120,7 @@ namespace FastExcel.Tests.Infrastructure
 
                 foreach (var sheet in _sheets)
                 {
-                    Write(zip, "xl/" + sheet.PartName,
+                    Write(zip, "xl/" + sheet.PartName, sheet.WorksheetXml ??
                         $"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>" +
                         $"<worksheet xmlns=\"{NsMain}\" xmlns:r=\"{NsRel}\">" +
                         $"<sheetData>{sheet.SheetDataInner}</sheetData>" +

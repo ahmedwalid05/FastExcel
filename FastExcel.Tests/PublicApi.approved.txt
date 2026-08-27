@@ -1,0 +1,85 @@
+  Cell..ctor(XElement, Worksheet)
+  Cell..ctor(int, object)
+  Cell.CellName : string { get; }
+  Cell.CellNames : IReadOnlyList<string> { get; }
+  Cell.ColumnName : string { get; }
+  Cell.ColumnNumber : int { get; set; }
+  Cell.Merge(Cell) : void
+  Cell.RowNumber : int { get; }
+  Cell.Value : object { get; set; }
+  Cell.XElement : XElement { get; }
+  CellRange..ctor(string, string, int = default, int? = default)
+  CellRange.ColumnEnd : string { get; set; }
+  CellRange.ColumnStart : string { get; set; }
+  CellRange.RowEnd : int? { get; set; }
+  CellRange.RowStart : int { get; set; }
+  DefinedNameLoadException..ctor(string, Exception = default)
+  ExcelColumnAttribute..ctor()
+  ExcelColumnAttribute.Name : string { get; set; }
+  FastExcel..ctor(FileInfo, FileInfo)
+  FastExcel..ctor(FileInfo, bool = default)
+  FastExcel..ctor(Stream)
+  FastExcel..ctor(Stream, Stream, bool = default, bool = default)
+  FastExcel.Dispose() : void
+  FastExcel.ExcelFile : FileInfo { get; }
+  FastExcel.GetCellByDefinedName(string, int? = default) : Cell
+  FastExcel.GetCellRangesByDefinedName(string, int? = default) : IEnumerable<IEnumerable<Cell>>
+  FastExcel.GetCellsByColumnName(string, int = default, int? = default) : IEnumerable<Cell>
+  FastExcel.GetCellsByDefinedName(string, int? = default) : IEnumerable<Cell>
+  FastExcel.GetWorksheetIndexFromName(string) : int
+  FastExcel.Read(int, int = default) : Worksheet
+  FastExcel.Read(string, int = default) : Worksheet
+  FastExcel.ReadOnly : bool { get; }
+  FastExcel.TemplateFile : FileInfo { get; }
+  FastExcel.Update(Worksheet, int) : void
+  FastExcel.Update(Worksheet, string) : void
+  FastExcel.Worksheets : Worksheet[] { get; }
+  FastExcel.Write(DataTable, string) : void
+  FastExcel.Write(IEnumerable<T>, int, bool) : void
+  FastExcel.Write(IEnumerable<T>, int, int = default) : void
+  FastExcel.Write(IEnumerable<T>, string, bool) : void
+  FastExcel.Write(IEnumerable<T>, string, int = default) : void
+  FastExcel.Write(Worksheet) : void
+  FastExcel.Write(Worksheet, int, int = default) : void
+  FastExcel.Write(Worksheet, string, int = default) : void
+  Row..ctor(XElement, Worksheet)
+  Row..ctor(int, IEnumerable<Cell>)
+  Row.Cells : IEnumerable<Cell> { get; set; }
+  Row.GetCellByColumnName(string) : Cell
+  Row.RowNumber : int { get; set; }
+  SharedStrings.PendingChanges : bool { get; }
+  SharedStrings.ReadWriteMode : bool { get; set; }
+  Worksheet..ctor()
+  Worksheet..ctor(FastExcel)
+  Worksheet.AddRow(object[]) : void
+  Worksheet.AddValue(int, int, object) : void
+  Worksheet.ExistingHeadingRows : int { get; set; }
+  Worksheet.Exists : bool { get; }
+  Worksheet.FastExcel : FastExcel { get; }
+  Worksheet.GetCellsInRange(CellRange) : IEnumerable<Cell>
+  Worksheet.Headings : IEnumerable<string> { get; set; }
+  Worksheet.Index : int { get; }
+  Worksheet.Merge(Worksheet) : void
+  Worksheet.Name : string { get; set; }
+  Worksheet.PopulateRows(IEnumerable<T>, int = default, bool = default) : void
+  Worksheet.PopulateRowsFromDataTable(DataTable, int = default) : void
+  Worksheet.Read(int = default) : void
+  Worksheet.Rows : IEnumerable<Row> { get; set; }
+  Worksheet.Template : bool { get; set; }
+  WorksheetProperties..ctor()
+  WorksheetProperties.CurrentIndex : int { get; set; }
+  WorksheetProperties.Name : string { get; set; }
+  WorksheetProperties.SheetId : int { get; set; }
+  static Cell.GetExcelColumnName(int) : string
+  static Cell.GetExcelColumnNumber(string, bool = default) : int
+  virtual Cell.ToString() : string
+  virtual FastExcel.Dispose(bool) : void
+TYPE class Cell
+TYPE class CellRange
+TYPE class DefinedNameLoadException : Exception, ISerializable
+TYPE class ExcelColumnAttribute : Attribute
+TYPE class FastExcel : IDisposable
+TYPE class Row
+TYPE class SharedStrings
+TYPE class Worksheet
+TYPE class WorksheetProperties
